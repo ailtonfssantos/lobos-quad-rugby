@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+}
+
+model Inscricao {
+  id                       Int      @id @default(autoincrement())
+  fullName                 String
+  birthDate                String
+  city                     String
+  phone                    String
+  email                    String
+  sportsExperience         String?
+  rugbyExperience          Boolean  @default(false)
+  wheelchairUser           Boolean  @default(false)
+  functionalClassification String?
+  functionalInformation    String?
+  message                  String?
+  privacyAccepted          Boolean  @default(false)
+  status                   String   @default("PENDIENTE")
+  createdAt                DateTime @default(now())
+}
+
+model Patrocinio {
+  id               Int      @id @default(autoincrement())
+  companyName      String
+  contactName      String
+  email            String
+  phone            String?
+  sponsorshipType  String
+  message          String?
+  status           String   @default("PENDIENTE")
+  createdAt        DateTime @default(now())
+}
+
+model Jogador {
+  id             Int      @id @default(autoincrement())
+  name           String
+  role           String
+  classification String?
+  nationality    String
+  image          String?
+  bio            String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model Evento {
+  id          Int               @id @default(autoincrement())
+  type        String
+  name        String
+  date        String
+  month       String
+  day         String
+  time        String
+  location    String
+  description String?
+  isPublic    Boolean           @default(false)
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  inscricoes  InscricaoEvento[]
+}
+
+model InscricaoEvento {
+  id        Int      @id @default(autoincrement())
+  fullName  String
+  email     String
+  phone     String?
+  message   String?
+  eventId   Int
+  evento    Evento   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Jornada {
+  id            Int       @id @default(autoincrement())
+  numero        Int
+  competicion   String
+  ciudad        String
+  pabellon      String
+  fechas        String
+  bannerUrl     String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  partidos      Partido[]
+}
+
+model Partido {
+  id             Int      @id @default(autoincrement())
+  jornadaId      Int
+  jornada        Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  rival          String
+  diaSemana      String   // Ej: "Sábado", "Domingo"
+  horario        String   // Ej: "10:00", "17:30" (Reemplaza a 'turno')
+  youtubeLink    String?  // Nuevo campo para el enlace de transmisión
+  lobosScore     Int?
+  rivalScore     Int?
+  status         String   @default("PROGRAMADO")
+}
