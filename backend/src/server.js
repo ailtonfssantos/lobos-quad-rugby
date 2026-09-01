@@ -1,22 +1,19 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import uploadRoutes from './routes/upload.js';
+import { PrismaClient } from '@prisma/client'; // <-- ESTA É A LINHA QUE FALTAVA!
 
-// 1. Importar todas as rotas
+// Importar todas as rotas
+import authRoutes from './routes/auth.js'; 
+import jugadoresRoutes from './routes/jogadores.js'; 
+import eventosRoutes from './routes/eventos.js'; 
 import inscricoesRoutes from './routes/inscricoes.js';
-import patrocinadoresRoutes from './routes/patrocinadores.js';
-import jugadoresRoutes from './routes/jogadores.js'; // <-- Importação dos jogadores
-import eventosRoutes from './routes/eventos.js';     // <-- Importação dos eventos
-
-import jornadasRoutes from './routes/jornadas.js';
-
-// 2. Importar middleware de autenticação
-import { authMiddleware } from './middlewares/authMiddleware.js';
 import inscricoesEventosRoutes from './routes/inscricoesEventos.js';
+import patrocinadoresRoutes from './routes/patrocinadores.js';
+import jornadasRoutes from './routes/jornadas.js';
+import uploadRoutes from './routes/upload.js';
 
 dotenv.config();
 
@@ -28,12 +25,13 @@ const PORT = process.env.PORT || 4000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // ==========================================
-// MIDDLEWARES (Devem vir antes das rotas)
+// MIDDLEWARES
 // ==========================================
 app.use(cors({
   origin: FRONTEND_URL,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json()); 
@@ -41,19 +39,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ==========================================
-// ROTAS PÚBLICAS (Leitura para o site)
+// ROTAS
 // ==========================================
+app.use('/api/auth', authRoutes);
 app.use('/api/jogadores', jugadoresRoutes);
 app.use('/api/eventos', eventosRoutes);
-app.use('/api/jornadas', jornadasRoutes);
-
-// ==========================================
-// ROTAS PROTEGIDAS (Precisam de Token JWT)
-// ==========================================
-app.use('/api/inscricoes', inscricoesRoutes); // <-- Sem authMiddleware aqui
-app.use('/api/patrocinadores', patrocinadoresRoutes); // <-- Sem authMiddleware aqui
-app.use('/api/upload', uploadRoutes);
+app.use('/api/inscricoes', inscricoesRoutes);
 app.use('/api/inscricoes-eventos', inscricoesEventosRoutes);
+app.use('/api/patrocinadores', patrocinadoresRoutes);
+app.use('/api/jornadas', jornadasRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // ==========================================
 // ROTA DE TESTE (Health Check)
