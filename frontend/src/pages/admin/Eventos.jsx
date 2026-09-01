@@ -24,7 +24,7 @@ export default function Eventos() {
   const fetchEventos = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:4000/api/eventos', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/eventos`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setEventos(await response.json());
@@ -54,7 +54,7 @@ export default function Eventos() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-    const url = editingId ? `http://localhost:4000/api/eventos/${editingId}` : 'http://localhost:4000/api/eventos';
+    const url = editingId ? `${import.meta.env.VITE_API_URL}/api/eventos/${editingId}` : `${import.meta.env.VITE_API_URL}/api/eventos`;
     try {
       await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
@@ -69,7 +69,7 @@ export default function Eventos() {
   const toggleActivo = async (id, currentStatus) => {
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/eventos/${id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/eventos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ isActive: !currentStatus })
@@ -82,7 +82,7 @@ export default function Eventos() {
     if (!itemToDelete) return;
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/eventos/${itemToDelete}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/eventos/${itemToDelete}`, {
         method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
       });
       fetchEventos();
@@ -93,7 +93,7 @@ export default function Eventos() {
   const verInscricoes = async (evento) => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://localhost:4000/api/inscricoes-eventos/evento/${evento.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes-eventos/evento/${evento.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setInscricoes(await response.json());

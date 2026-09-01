@@ -14,7 +14,7 @@ export default function Competitions() {
     useEffect(() => {
     const fetchJornadas = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/jornadas');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas`);
         const data = await res.json();
         
         // ✨ FILTRO MÁGICO: Solo guardar las jornadas que están activas (isActive === true)

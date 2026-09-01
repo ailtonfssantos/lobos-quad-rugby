@@ -26,7 +26,7 @@ export default function Jornadas() {
   const fetchJornadas = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch('http://localhost:4000/api/jornadas', { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas`, { headers: { 'Authorization': `Bearer ${token}` } });
       setJornadas(await res.json());
     } catch (error) { console.error(error); } finally { setLoading(false); }
   };
@@ -58,7 +58,7 @@ export default function Jornadas() {
     formDataUpload.append('image', file);
     setUploadingBanner(true);
     try {
-      const res = await fetch('http://localhost:4000/api/upload', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: formDataUpload
@@ -77,7 +77,7 @@ export default function Jornadas() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-    const url = editingId ? `http://localhost:4000/api/jornadas/${editingId}` : 'http://localhost:4000/api/jornadas';
+    const url = editingId ? `${import.meta.env.VITE_API_URL}/api/jornadas/${editingId}` : `${import.meta.env.VITE_API_URL}/api/jornadas`;
     try {
       await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
@@ -92,7 +92,7 @@ export default function Jornadas() {
   const toggleActiva = async (id, currentStatus) => {
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/jornadas/${id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ isActive: !currentStatus })
@@ -105,7 +105,7 @@ export default function Jornadas() {
     if (!itemToDelete) return;
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/jornadas/${itemToDelete}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas/${itemToDelete}`, {
         method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
       });
       fetchJornadas();

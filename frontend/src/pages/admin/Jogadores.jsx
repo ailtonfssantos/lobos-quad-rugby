@@ -29,7 +29,7 @@ export default function Jugadores() {
   const fetchJugadores = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:4000/api/jogadores', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jogadores`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -81,8 +81,8 @@ export default function Jugadores() {
     e.preventDefault();
     const token = localStorage.getItem('token');
     const url = editingId 
-      ? `http://localhost:4000/api/jogadores/${editingId}`
-      : 'http://localhost:4000/api/jogadores';
+      ? `${import.meta.env.VITE_API_URL}/api/jogadores/${editingId}`
+      : `${import.meta.env.VITE_API_URL}/api/jogadores`;
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -126,7 +126,7 @@ export default function Jugadores() {
 
     setUploading(true);
     try {
-      const response = await fetch('http://localhost:4000/api/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formDataUpload
@@ -150,7 +150,7 @@ export default function Jugadores() {
     const nuevoStatus = !currentStatus;
     
     try {
-      const response = await fetch(`http://localhost:4000/api/jogadores/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jogadores/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ export default function Jugadores() {
     if (!itemToDelete) return;
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://localhost:4000/api/jogadores/${itemToDelete}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jogadores/${itemToDelete}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

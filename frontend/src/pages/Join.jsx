@@ -63,7 +63,7 @@ export default function Join() {
   
     try {
       // Enviar dados para o backend
-      const response = await fetch('http://localhost:4000/api/inscricoes', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

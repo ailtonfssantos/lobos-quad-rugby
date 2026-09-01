@@ -14,7 +14,7 @@ export default function Patrocinadores() {
   const fetchPatrocinios = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:4000/api/patrocinadores', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/patrocinadores`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -33,7 +33,7 @@ export default function Patrocinadores() {
   const actualizarEstado = async (id, estado) => {
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/patrocinadores/${id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/patrocinadores/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export default function Patrocinadores() {
     if (!itemToDelete) return;
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/patrocinadores/${itemToDelete}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/patrocinadores/${itemToDelete}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -26,11 +26,11 @@ export default function Dashboard() {
 
     // Como el admin tiene token, las rutas GET devuelven TODOS los registros (activos e inactivos)
     Promise.all([
-      fetch('http://localhost:4000/api/inscricoes', { headers }).then(r => r.json()).catch(() => []),
-      fetch('http://localhost:4000/api/patrocinadores', { headers }).then(r => r.json()).catch(() => []),
-      fetch('http://localhost:4000/api/jogadores', { headers }).then(r => r.json()).catch(() => []),
-      fetch('http://localhost:4000/api/eventos', { headers }).then(r => r.json()).catch(() => []),
-      fetch('http://localhost:4000/api/jornadas', { headers }).then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes`, { headers }).then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.VITE_API_URL}/api/patrocinadores`, { headers }).then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.VITE_API_URL}/api/jogadores`, { headers }).then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.VITE_API_URL}/api/eventos`, { headers }).then(r => r.json()).catch(() => []),
+      fetch(`${import.meta.env.VITE_API_URL}/api/jornadas`, { headers }).then(r => r.json()).catch(() => []),
     ]).then(([inscripciones, patrocinios, jugadores, eventos, jornadas]) => {
       setStats({
         inscripcionesPendientes: Array.isArray(inscripciones) ? inscripciones.filter(i => i.status === 'PENDIENTE').length : 0,

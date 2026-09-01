@@ -36,7 +36,7 @@ export default function Team() {
   useEffect(() => {
     const fetchJogadores = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/jogadores');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jogadores`);
         const data = await response.json();
         
         if (!Array.isArray(data)) {

@@ -12,7 +12,7 @@ export default function Training() {
     useEffect(() => {
     const fetchEventos = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/eventos');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/eventos`);
         const data = await response.json();
         
         // ✨ FILTRO: Solo mostrar eventos activos en la web pública
@@ -38,7 +38,7 @@ export default function Training() {
     e.preventDefault();
     setInscricaoLoading(true);
     try {
-      const response = await fetch('http://localhost:4000/api/inscricoes-eventos', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes-eventos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

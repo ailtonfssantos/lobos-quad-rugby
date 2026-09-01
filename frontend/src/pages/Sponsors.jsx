@@ -21,7 +21,7 @@ export default function Sponsors() {
   e.preventDefault();
   
   try {
-    const response = await fetch('http://localhost:4000/api/patrocinadores', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/patrocinadores`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

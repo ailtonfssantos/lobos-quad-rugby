@@ -14,7 +14,7 @@ export default function Inscripciones() {
   const fetchInscripciones = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:4000/api/inscricoes', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -33,7 +33,7 @@ export default function Inscripciones() {
   const actualizarEstado = async (id, estado) => {
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/inscricoes/${id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export default function Inscripciones() {
     if (!itemToDelete) return;
     const token = localStorage.getItem('token');
     try {
-      await fetch(`http://localhost:4000/api/inscricoes/${itemToDelete}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes/${itemToDelete}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
