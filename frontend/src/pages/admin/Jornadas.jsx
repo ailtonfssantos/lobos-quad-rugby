@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getImageUrl } from '../../config'; 
 
 const Icon = ({ path, className = "w-5 h-5" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -231,7 +232,7 @@ export default function Jornadas() {
                 <div className="md:col-span-2">
                   <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Banner Promocional</label>
                   <div className="flex items-center gap-4">
-                    {formData.bannerUrl && <img src={formData.bannerUrl} alt="Banner" className="h-16 w-auto border border-zinc-700 rounded-sm" />}
+                    {formData.bannerUrl && <img src={getImageUrl(formData.bannerUrl)} alt="Banner" className="h-16 w-auto border border-zinc-700 rounded-sm" />}
                     <label className="flex items-center gap-2 px-4 py-2 bg-zinc-950 border border-zinc-700 hover:border-red-600 text-zinc-300 cursor-pointer rounded-sm text-sm">
                       {uploadingBanner ? 'Subiendo...' : 'Elegir Imagen'}
                       <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" disabled={uploadingBanner} />
