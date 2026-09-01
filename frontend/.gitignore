@@ -1,4 +1,4 @@
-# Dependências
+# Dependências (O MAIOR VILÃO DO TAMANHO)
 node_modules/
 frontend/node_modules/
 backend/node_modules/
@@ -7,13 +7,20 @@ backend/node_modules/
 frontend/dist/
 frontend/build/
 
-# Variáveis de ambiente (NUNCA suba senhas para o GitHub)
+# Variáveis de ambiente (NUNCA suba senhas)
 .env
 .env.local
 .env.production
 
-# Uploads de imagens do backend (devem ficar apenas no servidor)
+# Uploads e Mídia Pesada
 backend/uploads/
+*.mp4
+*.mov
+*.avi
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
 
 # Arquivos de sistema
 .DS_Store
