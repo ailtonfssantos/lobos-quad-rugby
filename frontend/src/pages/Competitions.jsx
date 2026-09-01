@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../config';
 
 const Icon = ({ path, className = "w-5 h-5" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -53,7 +54,7 @@ export default function Competitions() {
             <section key={j.id} className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
               {j.bannerUrl && (
                 <div className="w-full h-48 md:h-64 bg-zinc-800 relative">
-                  <img src={j.bannerUrl} alt={`Banner Jornada ${j.numero}`} className="w-full h-full object-cover opacity-80" />
+                    <img src={getImageUrl(j.bannerUrl)} alt={`Banner Jornada ${j.numero}`} className="w-full h-full object-cover opacity-80" />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent"></div>
                 </div>
               )}
