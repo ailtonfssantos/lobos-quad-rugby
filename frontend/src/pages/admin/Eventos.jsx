@@ -126,7 +126,6 @@ export default function Eventos() {
         </button>
       </div>
 
-      {/* Pestañas */}
       <div className="flex border-b border-zinc-800">
         <button onClick={() => setActiveTab('activos')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'activos' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>Eventos Activos</button>
         <button onClick={() => setActiveTab('historico')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'historico' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>Histórico</button>
@@ -138,8 +137,9 @@ export default function Eventos() {
           {activeTab === 'activos' && <button onClick={() => openModal()} className="px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm">Crear Primer Evento</button>}
         </div>
       ) : (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
-          <table className="w-full text-left">
+        /* ✅ CORREÇÃO: overflow-x-auto e min-w-[800px] adicionados aqui */
+        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
+          <table className="w-full text-left min-w-[800px]">
             <thead className="bg-zinc-950 border-b border-zinc-800">
               <tr>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Fecha</th>
@@ -176,26 +176,13 @@ export default function Eventos() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {/* Botón EDITAR */}
                       <button onClick={() => openModal(ev)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors" title="Editar">
                         <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                       </button>
-                      
-                      {/* Botón ARCHIVAR/REACTIVAR */}
-                      <button 
-                        onClick={() => toggleActivo(ev.id, ev.isActive)} 
-                        className={`p-2 rounded-sm transition-colors ${ev.isActive ? 'text-yellow-500 hover:bg-yellow-500/10' : 'text-green-500 hover:bg-green-500/10'}`} 
-                        title={ev.isActive ? 'Archivar (mover al histórico)' : 'Reactivar (volver a eventos activos)'}
-                      >
+                      <button onClick={() => toggleActivo(ev.id, ev.isActive)} className={`p-2 rounded-sm transition-colors ${ev.isActive ? 'text-yellow-500 hover:bg-yellow-500/10' : 'text-green-500 hover:bg-green-500/10'}`} title={ev.isActive ? 'Archivar' : 'Reactivar'}>
                         <Icon path={ev.isActive ? 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' : 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'} />
                       </button>
-                      
-                      {/* Botón ELIMINAR */}
-                      <button 
-                        onClick={() => setItemToDelete(ev.id)} 
-                        className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" 
-                        title="Eliminar permanentemente"
-                      >
+                      <button onClick={() => setItemToDelete(ev.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Eliminar">
                         <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                       </button>
                     </div>
@@ -266,9 +253,9 @@ export default function Eventos() {
               <div><h2 className="font-display text-2xl text-white">Inscritos</h2><p className="text-zinc-500 text-sm mt-1">{inscricoesModal.name} · {inscricoes.length} inscrito(s)</p></div>
               <button onClick={() => setInscricoesModal(null)} className="text-zinc-500 hover:text-white"><Icon path="M6 18L18 6M6 6l12 12" /></button>
             </div>
-            <div className="p-6">
+            <div className="p-6 overflow-x-auto">
               {inscricoes.length === 0 ? <p className="text-zinc-500 text-center py-8">Aún no hay inscritos para este evento.</p> : (
-                <table className="w-full text-left">
+                <table className="w-full text-left min-w-[600px]">
                   <thead className="border-b border-zinc-800"><tr><th className="pb-3 text-zinc-500 text-xs uppercase tracking-wider">Nombre</th><th className="pb-3 text-zinc-500 text-xs uppercase tracking-wider">Email</th><th className="pb-3 text-zinc-500 text-xs uppercase tracking-wider">Teléfono</th><th className="pb-3 text-zinc-500 text-xs uppercase tracking-wider">Fecha</th></tr></thead>
                   <tbody className="divide-y divide-zinc-800">
                     {inscricoes.map((insc) => (
