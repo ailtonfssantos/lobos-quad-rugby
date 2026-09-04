@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { getImageUrl } from '../../config';
 
 const Icon = ({ path, className = "w-5 h-5" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -300,7 +299,7 @@ export default function Jugadores() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-zinc-800 rounded-sm flex items-center justify-center text-zinc-500 overflow-hidden">
                           {jog.image ? (
-                            <img src={getImageUrl(jug.image)} alt={jug.name} className="w-10 h-10 rounded-full object-cover" />
+                            <img src={jog.image} alt={jog.name || 'Miembro'} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-xs font-bold">
                               {jog.name ? jog.name.charAt(0).toUpperCase() : '?'}
