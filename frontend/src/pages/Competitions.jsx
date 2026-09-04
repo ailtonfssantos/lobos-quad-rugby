@@ -58,7 +58,6 @@ export default function Competitions() {
               )}
               
               <div className={`p-5 md:p-8 ${j.bannerUrl ? '-mt-12 relative z-10' : ''}`}>
-                {/* Header da Jornada */}
                 <div className="mb-6 md:mb-8 border-b border-zinc-800 pb-6">
                   <p className="text-red-500 font-bold tracking-widest text-xs uppercase mb-2">{j.competicion}</p>
                   <h2 className="font-display text-2xl md:text-4xl text-white mb-3">Jornada {j.numero}</h2>
@@ -74,41 +73,36 @@ export default function Competitions() {
                   </div>
                 </div>
 
-                {/* Partidos - Layout Mobile-First REFEITO */}
                 <div className="space-y-4">
                   {j.partidos.map((p, idx) => (
-                    <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-sm overflow-hidden">
+                    <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-sm">
                       <div className="p-4 md:p-5">
-                        {/* MOBILE: Empilhado vertical | DESKTOP: Horizontal */}
-                        <div className="flex flex-col gap-4">
+                        {/* Layout FLEXÍVEL: Horizontal no PC, Vertical no Mobile */}
+                        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                           
-                          {/* Linha 1: Horário + Confronto */}
-                          <div className="flex items-start gap-3">
-                            <div className="text-center min-w-[70px] shrink-0">
-                              <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{p.diaSemana}</p>
-                              <p className="text-red-500 text-base md:text-lg font-display font-bold">{p.horario || 'TBD'}</p>
-                            </div>
-                            <div className="flex-grow min-w-0">
-                              <h3 className="text-base md:text-xl font-bold text-white leading-tight break-words">
-                                Lobos QR <span className="text-zinc-600 mx-1.5 text-xs md:text-sm font-normal">vs</span> {p.rival}
-                              </h3>
-                            </div>
+                          {/* COLUNA 1: Horário */}
+                          <div className="text-center md:text-left min-w-[70px] md:min-w-[80px] shrink-0">
+                            <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{p.diaSemana}</p>
+                            <p className="text-red-500 text-base md:text-lg font-display font-bold">{p.horario || 'TBD'}</p>
                           </div>
 
-                          {/* Linha 2: Status/Resultado/Link */}
-                          <div className="flex items-center justify-between gap-3 pl-[82px] md:pl-0">
+                          {/* COLUNA 2: Confronto */}
+                          <div className="flex-grow min-w-0">
+                            <h3 className="text-base md:text-xl font-bold text-white leading-tight">
+                              Lobos QR <span className="text-zinc-600 mx-1.5 text-xs md:text-sm font-normal">vs</span> {p.rival}
+                            </h3>
+                          </div>
+
+                          {/* COLUNA 3: Status/Placar + Live */}
+                          <div className="flex items-center gap-2 md:gap-3 shrink-0">
                             {p.status === 'FINALIZADO' ? (
-                              <div className="flex items-center gap-2 md:gap-3 bg-zinc-900 px-3 md:px-4 py-1.5 md:py-2 rounded-sm border border-zinc-800">
-                                <div className="text-center">
-                                  <p className={`font-display text-lg md:text-2xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
-                                </div>
-                                <span className="text-zinc-700 font-display text-lg md:text-xl">-</span>
-                                <div className="text-center">
-                                  <p className={`font-display text-lg md:text-2xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
-                                </div>
+                              <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-sm border border-zinc-800">
+                                <span className={`font-display text-lg font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</span>
+                                <span className="text-zinc-700">-</span>
+                                <span className={`font-display text-lg font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</span>
                               </div>
                             ) : (
-                              <span className={`px-2.5 md:px-3 py-1 md:py-1.5 border text-[9px] md:text-xs font-bold uppercase tracking-wider rounded-sm whitespace-nowrap ${
+                              <span className={`px-3 py-1.5 border text-[10px] md:text-xs font-bold uppercase tracking-wider rounded-sm whitespace-nowrap ${
                                 p.status === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                               }`}>
                                 {p.status}
@@ -120,11 +114,11 @@ export default function Competitions() {
                                 href={p.youtubeLink} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-red-600 text-white text-[9px] md:text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors shrink-0"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
                               >
-                                <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3 md:w-4 md:h-4" />
-                                <span className="hidden sm:inline">Ver en vivo</span>
-                                <span className="sm:hidden">Live</span>
+                                <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3" />
+                                <span className="hidden lg:inline">Ver en vivo</span>
+                                <span className="lg:hidden">Live</span>
                               </a>
                             )}
                           </div>
