@@ -143,11 +143,11 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* CONTEÚDO PRINCIPAL */}
-      <main className="flex-1 md:ml-64 min-h-screen relative z-10">
+      {/* CONTEÚDO PRINCIPAL - Layout Original */}
+      <main className="flex-grow ml-64 p-8 md:p-12 overflow-auto">
         
         {/* Barra Superior Mobile (APENAS MOBILE) */}
-        <div className="md:hidden sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
+        <div className="md:hidden -mt-8 -ml-8 mb-6 sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
           <button 
             onClick={() => setIsSidebarOpen(true)} 
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
@@ -158,10 +158,8 @@ export default function AdminLayout() {
           <div className="w-10"></div>
         </div>
 
-        {/* Área de Conteúdo das Páginas - Padding reduzido no desktop */}
-        <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
-          <Outlet />
-        </div>
+        {/* Área de Conteúdo das Páginas */}
+        <Outlet />
       </main>
     </div>
   );
