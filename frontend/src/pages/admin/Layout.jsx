@@ -67,7 +67,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-zinc-950 flex">
       
-      {/* OVERLAY MOBILE (Fundo escuro ao abrir o menu) */}
+      {/* OVERLAY MOBILE */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity"
@@ -90,7 +90,7 @@ export default function AdminLayout() {
           <Icon path="M6 18L18 6M6 6l12 12" className="w-6 h-6" />
         </button>
 
-        <div className="p-6 border-b border-zinc-800 pt-8 md:pt-6">
+        <div className="p-6 border-b border-zinc-800">
           <img src="/assets/logo1.png" alt="Lobos" className="h-10 mb-3 grayscale opacity-80" />
           <h2 className="font-display text-lg text-white tracking-wide">PANEL DE CONTROL</h2>
           <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mt-1">Lobos Quad Rugby</p>
@@ -103,7 +103,7 @@ export default function AdminLayout() {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setIsSidebarOpen(false)} // Fecha o menu ao clicar em um link (mobile)
+                onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-red-600/10 text-red-500 border-l-2 border-red-600'
@@ -144,9 +144,9 @@ export default function AdminLayout() {
       </aside>
 
       {/* CONTEÚDO PRINCIPAL */}
-      <main className="flex-grow md:ml-64 min-h-screen relative z-10">
+      <main className="flex-1 md:ml-64 min-h-screen relative z-10">
         
-        {/* Barra Superior Mobile (Com botão Hambúrguer) */}
+        {/* Barra Superior Mobile (APENAS MOBILE) */}
         <div className="md:hidden sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
           <button 
             onClick={() => setIsSidebarOpen(true)} 
@@ -155,11 +155,11 @@ export default function AdminLayout() {
             <Icon path="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" className="w-6 h-6" />
           </button>
           <span className="text-sm font-display text-white tracking-wide">PANEL DE CONTROL</span>
-          <div className="w-10"></div> {/* Espaçador para centralizar o título */}
+          <div className="w-10"></div>
         </div>
 
-        {/* Área de Conteúdo das Páginas */}
-        <div className="p-4 md:p-8 lg:p-12">
+        {/* Área de Conteúdo das Páginas - Padding reduzido no desktop */}
+        <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
