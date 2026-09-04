@@ -1,8 +1,8 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-const Icon = ({ path, className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+const Icon = ({ path }) => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d={path} />
   </svg>
 );
@@ -66,28 +66,22 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
-      
-      {/* OVERLAY MOBILE */}
+      {/* Overlay Mobile */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* SIDEBAR */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col 
-        transition-transform duration-300 ease-in-out 
-        md:relative md:translate-x-0 
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        {/* Botão de Fechar (Apenas Mobile) */}
+      {/* Sidebar - Desktop: fixa | Mobile: deslizante */}
+      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col fixed h-full md:relative md:translate-x-0 transition-transform duration-300 z-50 -translate-x-full md:translate-x-0">
+        {/* Botão Fechar Mobile */}
         <button 
           onClick={() => setIsSidebarOpen(false)}
-          className="md:hidden absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors"
+          className="md:hidden absolute top-4 right-4 p-2 text-zinc-400 hover:text-white"
         >
-          <Icon path="M6 18L18 6M6 6l12 12" className="w-6 h-6" />
+          <Icon path="M6 18L18 6M6 6l12 12" />
         </button>
 
         <div className="p-6 border-b border-zinc-800">
@@ -96,7 +90,7 @@ export default function AdminLayout() {
           <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mt-1">Lobos Quad Rugby</p>
         </div>
 
-        <nav className="flex-grow p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-grow p-4 space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -143,22 +137,16 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* CONTEÚDO PRINCIPAL - Layout Original */}
+      {/* Conteúdo Principal - EXATAMENTE como estava */}
       <main className="flex-grow ml-64 p-8 md:p-12 overflow-auto">
-        
-        {/* Barra Superior Mobile (APENAS MOBILE) */}
-        <div className="md:hidden -mt-8 -ml-8 mb-6 sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
-          <button 
-            onClick={() => setIsSidebarOpen(true)} 
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-          >
-            <Icon path="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" className="w-6 h-6" />
-          </button>
-          <span className="text-sm font-display text-white tracking-wide">PANEL DE CONTROL</span>
-          <div className="w-10"></div>
-        </div>
+        {/* Botão Menu Mobile */}
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="md:hidden fixed top-4 left-4 z-30 p-2 bg-zinc-900 border border-zinc-800 rounded-md text-zinc-400 hover:text-white"
+        >
+          <Icon path="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </button>
 
-        {/* Área de Conteúdo das Páginas */}
         <Outlet />
       </main>
     </div>
