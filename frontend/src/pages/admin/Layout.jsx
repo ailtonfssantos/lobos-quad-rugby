@@ -139,7 +139,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main - EXATAMENTE como estava no original */}
-      <main className="flex-grow ml-64 p-8 md:p-12 overflow-auto">
+      <main className="flex-grow md:ml-64 p-4 md:p-8 lg:p-12 overflow-auto pt-16 md:pt-0">
         
         {/* Botão Menu Mobile */}
         <button 
