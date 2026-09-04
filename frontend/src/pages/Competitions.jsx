@@ -21,7 +21,7 @@ export default function Competitions() {
         const jornadasActivas = data.filter(jornada => jornada.isActive === true);
         setJornadas(jornadasActivas);
       } catch (error) { 
-        console.error("❌ Error al cargar jornadas:", error); 
+        console.error(" Error al cargar jornadas:", error); 
       } finally { 
         setLoading(false); 
       }
@@ -77,24 +77,71 @@ export default function Competitions() {
                   {j.partidos.map((p, idx) => (
                     <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-sm">
                       <div className="p-4 md:p-5">
-                        {/* Layout FLEXÍVEL: Horizontal no PC, Vertical no Mobile */}
-                        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-                          
-                          {/* COLUNA 1: Horário */}
-                          <div className="text-center md:text-left min-w-[70px] md:min-w-[80px] shrink-0">
+                        
+                        {/* MOBILE LAYOUT - Centralizado */}
+                        <div className="md:hidden space-y-3">
+                          {/* Horário */}
+                          <div className="text-center">
                             <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{p.diaSemana}</p>
-                            <p className="text-red-500 text-base md:text-lg font-display font-bold">{p.horario || 'TBD'}</p>
+                            <p className="text-red-500 text-lg font-display font-bold">{p.horario || 'TBD'}</p>
                           </div>
 
-                          {/* COLUNA 2: Confronto */}
-                          <div className="flex-grow min-w-0">
-                            <h3 className="text-base md:text-xl font-bold text-white leading-tight">
-                              Lobos QR <span className="text-zinc-600 mx-1.5 text-xs md:text-sm font-normal">vs</span> {p.rival}
+                          {/* Confronto Centralizado */}
+                          <div className="text-center">
+                            <h3 className="text-lg font-bold text-white">
+                              Lobos QR <span className="text-zinc-600 mx-2 text-sm">vs</span> {p.rival}
                             </h3>
                           </div>
 
-                          {/* COLUNA 3: Status/Placar + Live */}
-                          <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                          {/* Placar ou Status + Live */}
+                          {p.status === 'FINALIZADO' ? (
+                            <div className="flex items-center justify-center gap-6 pt-2">
+                              <div className="text-center">
+                                <p className="text-xs text-zinc-500 mb-1">Lobos</p>
+                                <p className={`font-display text-2xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
+                              </div>
+                              <span className="text-zinc-700 text-xl">-</span>
+                              <div className="text-center">
+                                <p className="text-xs text-zinc-500 mb-1">Rival</p>
+                                <p className={`font-display text-2xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-3 pt-2">
+                              <span className={`px-3 py-1.5 border text-[10px] font-bold uppercase tracking-wider rounded-sm ${
+                                p.status === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                              }`}>
+                                {p.status}
+                              </span>
+                              {p.youtubeLink && (
+                                <a 
+                                  href={p.youtubeLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                >
+                                  <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3" />
+                                  Live
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* DESKTOP LAYOUT - Horizontal (NÃO MEXER) */}
+                        <div className="hidden md:flex md:items-center gap-4">
+                          <div className="text-center md:text-left min-w-[80px] shrink-0">
+                            <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{p.diaSemana}</p>
+                            <p className="text-red-500 text-lg font-display font-bold">{p.horario || 'TBD'}</p>
+                          </div>
+
+                          <div className="flex-grow min-w-0">
+                            <h3 className="text-xl font-bold text-white leading-tight">
+                              Lobos QR <span className="text-zinc-600 mx-1.5 text-sm font-normal">vs</span> {p.rival}
+                            </h3>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
                             {p.status === 'FINALIZADO' ? (
                               <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-sm border border-zinc-800">
                                 <span className={`font-display text-lg font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</span>
@@ -102,7 +149,7 @@ export default function Competitions() {
                                 <span className={`font-display text-lg font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</span>
                               </div>
                             ) : (
-                              <span className={`px-3 py-1.5 border text-[10px] md:text-xs font-bold uppercase tracking-wider rounded-sm whitespace-nowrap ${
+                              <span className={`px-3 py-1.5 border text-xs font-bold uppercase tracking-wider rounded-sm whitespace-nowrap ${
                                 p.status === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                               }`}>
                                 {p.status}
@@ -114,15 +161,15 @@ export default function Competitions() {
                                 href={p.youtubeLink} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
                               >
-                                <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3" />
-                                <span className="hidden lg:inline">Ver en vivo</span>
-                                <span className="lg:hidden">Live</span>
+                                <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
+                                Ver en vivo
                               </a>
                             )}
                           </div>
                         </div>
+
                       </div>
                     </div>
                   ))}
