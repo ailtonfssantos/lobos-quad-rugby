@@ -183,7 +183,7 @@
   }
 }
 
-/* Remove fundo branco e bordas no mobile */
+/* Remove fundo branco no mobile */
 html, body, #root {
   background-color: #09090b; /* zinc-950 */
   margin: 0;
@@ -193,7 +193,7 @@ html, body, #root {
   min-height: 100vh;
 }
 
-/* Garante que não haja overflow horizontal */
+/* Garante que elementos não ultrapassem a tela */
 * {
   box-sizing: border-box;
 }
