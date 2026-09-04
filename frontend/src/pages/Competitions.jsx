@@ -59,6 +59,7 @@ export default function Competitions() {
               
               <div className={`p-5 md:p-8 ${j.bannerUrl ? '-mt-12 relative z-10' : ''}`}>
                 {/* ✅ HEADER DA JORNADA - Organizado em linhas separadas */}
+                {/* ✅ HEADER DA JORNADA - Organizado em linhas separadas */}
                 <div className="mb-6 md:mb-8 border-b border-zinc-800 pb-6">
                   <p className="text-red-500 font-bold tracking-widest text-xs uppercase mb-2">{j.competicion}</p>
                   <h2 className="font-display text-2xl md:text-4xl text-white mb-4">Jornada {j.numero}</h2>
@@ -69,11 +70,11 @@ export default function Competitions() {
                       <Icon path="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" className="w-4 h-4 text-zinc-500" />
                       <span className="text-zinc-300 font-medium">{j.ciudad}</span>
                     </div>
-                    <div className="flex items-center gap-2 pl-6">
+                    <div className="flex items-center gap-2">
                       <span className="text-zinc-600">•</span>
                       <span>{j.pabellon}</span>
                     </div>
-                    <div className="flex items-center gap-2 pl-6">
+                    <div className="flex items-center gap-2">
                       <span className="text-zinc-600">•</span>
                       <span>{j.fechas}</span>
                     </div>
@@ -204,8 +205,8 @@ export default function Competitions() {
 
       <section className="py-16 md:py-20 bg-red-600 relative overflow-hidden">
         <div className="relative max-w-4xl mx-auto px-4 text-center">
-          <h2 className="font-display text-3xl md:text-6xl mb-6 text-white">¿QUIERES VERLOS EN ACCIÓN?</h2>
-          <p className="text-lg md:text-xl mb-8 md:mb-10 text-red-100 font-light">Ven a apoyar a la manada en nuestro próximo partido en casa o síguenos en directo.</p>
+          <h2 className="font-display text-3xl md:text-6xl mb-6 text-white">¿QUIERES VERNOS EN ACCIÓN?</h2>
+          <p className="text-lg md:text-xl mb-8 md:mb-10 text-red-100 font-light">Síguenos para estar al tanto del próximo evento o para conocer nuestra dirección y el horario de los entrenamientos.</p>
           <Link to="/entrenamientos" className="inline-block px-10 py-5 bg-zinc-950 text-white font-bold uppercase tracking-widest hover:bg-black transition-colors shadow-2xl">
             Ver Calendario y Ubicación
           </Link>
