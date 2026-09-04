@@ -74,8 +74,9 @@ export default function AdminLayout() {
         />
       )}
 
-      {/* Sidebar - Desktop: fixa | Mobile: deslizante */}
-      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col fixed h-full md:relative md:translate-x-0 transition-transform duration-300 z-50 -translate-x-full md:translate-x-0">
+      {/* Sidebar - EXATAMENTE como estava no original */}
+      <aside className={`w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col fixed h-full transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        
         {/* Botão Fechar Mobile */}
         <button 
           onClick={() => setIsSidebarOpen(false)}
@@ -137,8 +138,9 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* Conteúdo Principal - EXATAMENTE como estava */}
+      {/* Main - EXATAMENTE como estava no original */}
       <main className="flex-grow ml-64 p-8 md:p-12 overflow-auto">
+        
         {/* Botão Menu Mobile */}
         <button 
           onClick={() => setIsSidebarOpen(true)}
