@@ -79,7 +79,7 @@ export default function Patrocinadores() {
           <h1 className="font-display text-3xl text-white mb-1">Solicitudes de Patrocinio</h1>
           <p className="text-zinc-500 text-sm">Gestione las propuestas de empresas y colaboradores.</p>
         </div>
-        <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 text-sm">
+        <div className="hidden md:block px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 text-sm">
           Total: <span className="text-white font-bold">{patrocinios.length}</span>
         </div>
       </div>
@@ -90,76 +90,150 @@ export default function Patrocinadores() {
           <p className="text-zinc-500">Aún no se han recibido solicitudes de patrocinio.</p>
         </div>
       ) : (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-zinc-950 border-b border-zinc-800">
-                <tr>
-                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Empresa</th>
-                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Contacto</th>
-                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Modalidad</th>
-                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Mensaje</th>
-                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Estado</th>
-                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800">
-                {patrocinios.map((pat) => (
-                  <tr key={pat.id} className="hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <p className="text-white font-medium">{pat.companyName}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-zinc-300 text-sm">{pat.contactName}</p>
-                      <p className="text-zinc-500 text-xs">{pat.email}</p>
-                      {pat.phone && <p className="text-zinc-500 text-xs">{pat.phone}</p>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">
-                        {pat.sponsorshipType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 max-w-xs">
-                      {pat.message ? (
-                        <p className="text-zinc-400 text-sm line-clamp-2" title={pat.message}>
-                          "{pat.message}"
-                        </p>
-                      ) : (
-                        <span className="text-zinc-600 text-sm italic">Sin mensaje</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getEstadoStyle(pat.status)}`}>
-                        {pat.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {pat.status === 'PENDIENTE' && (
-                          <>
-                            <button onClick={() => actualizarEstado(pat.id, 'APROBADO')} className="p-2 text-green-500 hover:bg-green-500/10 rounded-sm transition-colors" title="Aprobar">
-                              <Icon path="M4.5 12.75l6 6 9-13.5" />
-                            </button>
-                            <button onClick={() => actualizarEstado(pat.id, 'RECHAZADO')} className="p-2 text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Rechazar">
-                              <Icon path="M6 18L18 6M6 6l12 12" />
-                            </button>
-                          </>
-                        )}
-                        <button 
-                          onClick={() => setItemToDelete(pat.id)} 
-                          className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" 
-                          title="Eliminar permanentemente"
-                        >
-                          <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* MOBILE - Cards Verticais */}
+          <div className="md:hidden space-y-4">
+            {patrocinios.map((pat) => (
+              <div key={pat.id} className="bg-zinc-900 border border-zinc-800 rounded-sm p-5 space-y-4">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-display text-xl text-white font-bold">{pat.companyName}</h3>
+                    <p className="text-zinc-400 text-sm mt-1">{pat.contactName}</p>
+                  </div>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getEstadoStyle(pat.status)}`}>
+                    {pat.status}
+                  </span>
+                </div>
+
+                {/* Informações */}
+                <div className="space-y-3 pt-3 border-t border-zinc-800">
+                  <div>
+                    <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Email</p>
+                    <p className="text-zinc-300 text-sm">{pat.email}</p>
+                  </div>
+                  {pat.phone && (
+                    <div>
+                      <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Teléfono</p>
+                      <p className="text-zinc-300 text-sm">{pat.phone}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Modalidad</p>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">
+                      {pat.sponsorshipType}
+                    </span>
+                  </div>
+                  {pat.message && (
+                    <div>
+                      <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Mensaje</p>
+                      <p className="text-zinc-400 text-sm italic">"{pat.message}"</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Ações */}
+                {pat.status === 'PENDIENTE' && (
+                  <div className="flex gap-2 pt-3 border-t border-zinc-800">
+                    <button 
+                      onClick={() => actualizarEstado(pat.id, 'APROBADO')} 
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600/10 text-green-500 border border-green-600/20 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-green-600/20 transition-colors"
+                    >
+                      <Icon path="M4.5 12.75l6 6 9-13.5" className="w-4 h-4" />
+                      Aprobar
+                    </button>
+                    <button 
+                      onClick={() => actualizarEstado(pat.id, 'RECHAZADO')} 
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-600/10 text-red-500 border border-red-600/20 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-red-600/20 transition-colors"
+                    >
+                      <Icon path="M6 18L18 6M6 6l12 12" className="w-4 h-4" />
+                      Rechazar
+                    </button>
+                  </div>
+                )}
+                <button 
+                  onClick={() => setItemToDelete(pat.id)} 
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 text-zinc-400 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-red-600/10 hover:text-red-500 transition-colors"
+                >
+                  <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" className="w-4 h-4" />
+                  Eliminar
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* DESKTOP - Tabela Horizontal */}
+          <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-zinc-950 border-b border-zinc-800">
+                  <tr>
+                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Empresa</th>
+                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Contacto</th>
+                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Modalidad</th>
+                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Mensaje</th>
+                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Estado</th>
+                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {patrocinios.map((pat) => (
+                    <tr key={pat.id} className="hover:bg-zinc-800/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="text-white font-medium">{pat.companyName}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-zinc-300 text-sm">{pat.contactName}</p>
+                        <p className="text-zinc-500 text-xs">{pat.email}</p>
+                        {pat.phone && <p className="text-zinc-500 text-xs">{pat.phone}</p>}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">
+                          {pat.sponsorshipType}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 max-w-xs">
+                        {pat.message ? (
+                          <p className="text-zinc-400 text-sm line-clamp-2" title={pat.message}>
+                            "{pat.message}"
+                          </p>
+                        ) : (
+                          <span className="text-zinc-600 text-sm italic">Sin mensaje</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getEstadoStyle(pat.status)}`}>
+                          {pat.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {pat.status === 'PENDIENTE' && (
+                            <>
+                              <button onClick={() => actualizarEstado(pat.id, 'APROBADO')} className="p-2 text-green-500 hover:bg-green-500/10 rounded-sm transition-colors" title="Aprobar">
+                                <Icon path="M4.5 12.75l6 6 9-13.5" />
+                              </button>
+                              <button onClick={() => actualizarEstado(pat.id, 'RECHAZADO')} className="p-2 text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Rechazar">
+                                <Icon path="M6 18L18 6M6 6l12 12" />
+                              </button>
+                            </>
+                          )}
+                          <button 
+                            onClick={() => setItemToDelete(pat.id)} 
+                            className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" 
+                            title="Eliminar permanentemente"
+                          >
+                            <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN */}
