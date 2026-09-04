@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -25,10 +25,13 @@ import Jugadores from './pages/admin/Jogadores';
 import Eventos from './pages/admin/Eventos';
 import Jornadas from './pages/admin/Jornadas';
 
-function App() {
+// Componente principal que verifica a rota
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-    <Router>
-      <ScrollToTop />
+    <>
       <Routes>
         {/* Rotas Públicas */}
         <Route path="/" element={
@@ -49,8 +52,8 @@ function App() {
         <Route path="/cookies" element={<><Navbar /><PoliticaCookies /><Footer /></>} />
 
         {/* Admin */}
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="inscripciones" element={<Inscripciones />} />
           <Route path="patrocinadores" element={<Patrocinadores />} />
@@ -59,7 +62,18 @@ function App() {
           <Route path="jornadas" element={<Jornadas />} />
         </Route>
       </Routes>
-      <WhatsAppButton />
+      
+      {/* WhatsApp só aparece se NÃO for admin */}
+      {!isAdminRoute && <WhatsAppButton />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <ScrollToTop />
+      <AppContent />
     </Router>
   );
 }
