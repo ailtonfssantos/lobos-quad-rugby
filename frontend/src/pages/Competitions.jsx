@@ -59,7 +59,6 @@ export default function Competitions() {
               
               <div className={`p-5 md:p-8 ${j.bannerUrl ? '-mt-12 relative z-10' : ''}`}>
                 {/* ✅ HEADER DA JORNADA - Organizado em linhas separadas */}
-                {/* ✅ HEADER DA JORNADA - Organizado em linhas separadas */}
                 <div className="mb-6 md:mb-8 border-b border-zinc-800 pb-6">
                   <p className="text-red-500 font-bold tracking-widest text-xs uppercase mb-2">{j.competicion}</p>
                   <h2 className="font-display text-2xl md:text-4xl text-white mb-4">Jornada {j.numero}</h2>
@@ -187,7 +186,7 @@ export default function Competitions() {
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
                               >
                                 <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
-                                Ver en vivo
+                                En Directo
                               </a>
                             )}
                           </div>
