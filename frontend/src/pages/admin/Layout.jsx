@@ -1,8 +1,8 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-const Icon = ({ path }) => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+const Icon = ({ path, className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d={path} />
   </svg>
 );
@@ -11,6 +11,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -65,21 +66,44 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col fixed h-full">
-        <div className="p-6 border-b border-zinc-800">
+      
+      {/* OVERLAY MOBILE (Fundo escuro ao abrir o menu) */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col 
+        transition-transform duration-300 ease-in-out 
+        md:relative md:translate-x-0 
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Botão de Fechar (Apenas Mobile) */}
+        <button 
+          onClick={() => setIsSidebarOpen(false)}
+          className="md:hidden absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors"
+        >
+          <Icon path="M6 18L18 6M6 6l12 12" className="w-6 h-6" />
+        </button>
+
+        <div className="p-6 border-b border-zinc-800 pt-8 md:pt-6">
           <img src="/assets/logo1.png" alt="Lobos" className="h-10 mb-3 grayscale opacity-80" />
           <h2 className="font-display text-lg text-white tracking-wide">PANEL DE CONTROL</h2>
           <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mt-1">Lobos Quad Rugby</p>
         </div>
 
-        <nav className="flex-grow p-4 space-y-1">
+        <nav className="flex-grow p-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setIsSidebarOpen(false)} // Fecha o menu ao clicar em um link (mobile)
                 className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-red-600/10 text-red-500 border-l-2 border-red-600'
@@ -99,7 +123,6 @@ export default function AdminLayout() {
             <p className="text-zinc-300 text-sm truncate">{user.email}</p>
           </div>
           
-          {/* CAMBIO AQUÍ: Etiqueta <a> para abrir en nueva pestaña */}
           <a 
             href="/" 
             target="_blank" 
@@ -120,9 +143,25 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* Contenido Principal */}
-      <main className="flex-grow ml-64 p-8 md:p-12 overflow-auto">
-        <Outlet />
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className="flex-grow md:ml-64 min-h-screen relative z-10">
+        
+        {/* Barra Superior Mobile (Com botão Hambúrguer) */}
+        <div className="md:hidden sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
+          <button 
+            onClick={() => setIsSidebarOpen(true)} 
+            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+          >
+            <Icon path="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" className="w-6 h-6" />
+          </button>
+          <span className="text-sm font-display text-white tracking-wide">PANEL DE CONTROL</span>
+          <div className="w-10"></div> {/* Espaçador para centralizar o título */}
+        </div>
+
+        {/* Área de Conteúdo das Páginas */}
+        <div className="p-4 md:p-8 lg:p-12">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
