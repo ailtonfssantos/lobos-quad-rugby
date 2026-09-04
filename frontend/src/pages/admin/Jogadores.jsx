@@ -463,7 +463,7 @@ export default function Jugadores() {
                 <div className="mb-3">
                   {formData.image ? (
                     <div className="relative w-32 h-32 bg-zinc-950 border border-zinc-700 rounded-sm overflow-hidden">
-                      <img src={getImageUrl(formData.image)} alt="Preview" className="w-full h-48 object-cover rounded-sm" />
+                      <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => { setFormData({...formData, image: ''}); setSelectedFile(null); }}
