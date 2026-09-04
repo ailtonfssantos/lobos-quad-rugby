@@ -22,7 +22,7 @@ export default function Competitions() {
         const jornadasActivas = data.filter(jornada => jornada.isActive === true);
         setJornadas(jornadasActivas);
       } catch (error) { 
-        console.error(" Error al cargar jornadas:", error); 
+        console.error("❌ Error al cargar jornadas:", error); 
       } finally { 
         setLoading(false); 
       }
@@ -30,7 +30,7 @@ export default function Competitions() {
     fetchJornadas();
   }, []);
 
-  // Atualiza o tempo a cada minuto para verificar status automático
+  // Atualiza o tempo atual a cada minuto
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -38,28 +38,74 @@ export default function Competitions() {
     return () => clearInterval(timer);
   }, []);
 
-  // Função para determinar o status dinâmico
-  const getDynamicStatus = (partido) => {
+  // Função para extrair data da jornada (ex: "13 Y 14 DE DICIEMBRE DE 2026")
+  const parseJornadaDates = (fechas) => {
+    const meses = {
+      'ENERO': 0, 'FEBRERO': 1, 'MARZO': 2, 'ABRIL': 3, 'MAYO': 4, 'JUNIO': 5,
+      'JULIO': 6, 'AGOSTO': 7, 'SEPTIEMBRE': 8, 'OCTUBRE': 9, 'NOVIEMBRE': 10, 'DICIEMBRE': 11
+    };
+    
+    // Extrai o ano
+    const yearMatch = fechas.match(/(\d{4})/);
+    const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+    
+    // Extrai o mês
+    const monthMatch = fechas.match(/DE\s+(\w+)/);
+    const month = monthMatch ? meses[monthMatch[1].toUpperCase()] : 0;
+    
+    // Extrai os dias (ex: "13 Y 14" ou "17 Y 18")
+    const daysMatch = fechas.match(/(\d+)\s+Y\s+(\d+)/);
+    const days = daysMatch ? [parseInt(daysMatch[1]), parseInt(daysMatch[2])] : [1, 2];
+    
+    return { year, month, days };
+  };
+
+  // Função para obter o status dinâmico da partida
+  const getDynamicStatus = (jornada, partido) => {
+    // Se já está finalizado ou cancelado, mantém o status
     if (partido.status === 'FINALIZADO' || partido.status === 'CANCELADO') {
       return partido.status;
     }
-    
-    // Se tem youtubeLink e está na hora (ou passou), é EN DIRECTO
-    if (partido.youtubeLink && partido.horario) {
-      const now = currentTime;
-      const [hours, minutes] = partido.horario.split(':').map(Number);
-      
-      // Cria uma data para hoje com o horário da partida
-      const partidoTime = new Date(now);
-      partidoTime.setHours(hours, minutes, 0, 0);
-      
-      // Se já passou da hora (ou está na hora), é EN DIRECTO
-      if (now >= partidoTime) {
-        return 'EN_DIRECTO';
-      }
+
+    // Se não tem horário ou link, é PROGRAMADO
+    if (!partido.horario || !jornada.fechas) {
+      return 'PROGRAMADO';
     }
-    
-    return 'PROGRAMADO';
+
+    try {
+      // Parseia as datas da jornada
+      const { year, month, days } = parseJornadaDates(jornada.fechas);
+      
+      // Determina qual dia da jornada é este partido (Sábado ou Domingo)
+      let dayIndex = 0; // Padrão: primeiro dia (Sábado)
+      if (partido.diaSemana?.toLowerCase().includes('domingo')) {
+        dayIndex = 1; // Segundo dia (Domingo)
+      }
+      
+      const day = days[dayIndex] || days[0];
+      
+      // Cria a data completa da partida
+      const [hours, minutes] = partido.horario.split(':').map(Number);
+      const partidoDateTime = new Date(year, month, day, hours, minutes, 0);
+      
+      // Calcula o fim da partida (2 horas depois)
+      const partidoEndDateTime = new Date(partidoDateTime);
+      partidoEndDateTime.setHours(partidoDateTime.getHours() + 2);
+      
+      // Compara com o tempo atual
+      const now = currentTime;
+      
+      if (now >= partidoDateTime && now <= partidoEndDateTime) {
+        return 'EN_DIRECTO'; // Está acontecendo agora
+      } else if (now < partidoDateTime) {
+        return 'PROGRAMADO'; // Ainda não chegou a hora
+      } else {
+        return 'PROGRAMADO'; // Já passou, mas não foi marcado como finalizado
+      }
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return 'PROGRAMADO';
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">Cargando competiciones...</div>;
@@ -112,7 +158,7 @@ export default function Competitions() {
 
                 <div className="space-y-4">
                   {j.partidos.map((p, idx) => {
-                    const dynamicStatus = getDynamicStatus(p);
+                    const dynamicStatus = getDynamicStatus(j, p);
                     
                     return (
                       <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-sm">
@@ -187,7 +233,7 @@ export default function Competitions() {
                             )}
                           </div>
 
-                          {/* DESKTOP LAYOUT - Agora igual ao mobile */}
+                          {/* DESKTOP LAYOUT */}
                           <div className="hidden md:flex md:flex-col md:items-center md:text-center md:space-y-3 md:py-2">
                             <div>
                               <p className="text-zinc-500 text-xs uppercase tracking-wider">{p.diaSemana}</p>
