@@ -117,7 +117,7 @@ export default function Footer() {
         {/* Linha final de Copyright */}
         <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-zinc-600 text-xs uppercase tracking-widest">
-            © 2024 Lobos Quad Rugby. Todos los derechos reservados.
+            © 2026 Lobos Quad Rugby. Todos los derechos reservados.
           </p>
           <div className="flex gap-6">
             <Link to="/aviso-legal" className="text-zinc-600 hover:text-white text-xs uppercase tracking-widest transition-colors">
