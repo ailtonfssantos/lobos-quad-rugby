@@ -30,77 +30,62 @@ export default function Competitions() {
     fetchJornadas();
   }, []);
 
-  // Atualiza o tempo atual a cada minuto
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // 60 segundos
+    }, 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Função para extrair data da jornada (ex: "13 Y 14 DE DICIEMBRE DE 2026")
   const parseJornadaDates = (fechas) => {
     const meses = {
       'ENERO': 0, 'FEBRERO': 1, 'MARZO': 2, 'ABRIL': 3, 'MAYO': 4, 'JUNIO': 5,
       'JULIO': 6, 'AGOSTO': 7, 'SEPTIEMBRE': 8, 'OCTUBRE': 9, 'NOVIEMBRE': 10, 'DICIEMBRE': 11
     };
     
-    // Extrai o ano
     const yearMatch = fechas.match(/(\d{4})/);
     const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
     
-    // Extrai o mês
     const monthMatch = fechas.match(/DE\s+(\w+)/);
     const month = monthMatch ? meses[monthMatch[1].toUpperCase()] : 0;
     
-    // Extrai os dias (ex: "13 Y 14" ou "17 Y 18")
     const daysMatch = fechas.match(/(\d+)\s+Y\s+(\d+)/);
     const days = daysMatch ? [parseInt(daysMatch[1]), parseInt(daysMatch[2])] : [1, 2];
     
     return { year, month, days };
   };
 
-  // Função para obter o status dinâmico da partida
   const getDynamicStatus = (jornada, partido) => {
-    // Se já está finalizado ou cancelado, mantém o status
     if (partido.status === 'FINALIZADO' || partido.status === 'CANCELADO') {
       return partido.status;
     }
 
-    // Se não tem horário ou link, é PROGRAMADO
     if (!partido.horario || !jornada.fechas) {
       return 'PROGRAMADO';
     }
 
     try {
-      // Parseia as datas da jornada
       const { year, month, days } = parseJornadaDates(jornada.fechas);
       
-      // Determina qual dia da jornada é este partido (Sábado ou Domingo)
-      let dayIndex = 0; // Padrão: primeiro dia (Sábado)
+      let dayIndex = 0;
       if (partido.diaSemana?.toLowerCase().includes('domingo')) {
-        dayIndex = 1; // Segundo dia (Domingo)
+        dayIndex = 1;
       }
       
       const day = days[dayIndex] || days[0];
-      
-      // Cria a data completa da partida
       const [hours, minutes] = partido.horario.split(':').map(Number);
       const partidoDateTime = new Date(year, month, day, hours, minutes, 0);
-      
-      // Calcula o fim da partida (2 horas depois)
       const partidoEndDateTime = new Date(partidoDateTime);
       partidoEndDateTime.setHours(partidoDateTime.getHours() + 2);
       
-      // Compara com o tempo atual
       const now = currentTime;
       
       if (now >= partidoDateTime && now <= partidoEndDateTime) {
-        return 'EN_DIRECTO'; // Está acontecendo agora
+        return 'EN_DIRECTO';
       } else if (now < partidoDateTime) {
-        return 'PROGRAMADO'; // Ainda não chegou a hora
+        return 'PROGRAMADO';
       } else {
-        return 'PROGRAMADO'; // Já passou, mas não foi marcado como finalizado
+        return 'PROGRAMADO';
       }
     } catch (error) {
       console.error('Error parsing date:', error);
@@ -233,63 +218,67 @@ export default function Competitions() {
                             )}
                           </div>
 
-                          {/* DESKTOP LAYOUT */}
-                          <div className="hidden md:flex md:flex-col md:items-center md:text-center md:space-y-3 md:py-2">
-                            <div>
-                              <p className="text-zinc-500 text-xs uppercase tracking-wider">{p.diaSemana}</p>
-                              <p className="text-red-500 text-xl font-display font-bold">{p.horario || 'TBD'}</p>
-                            </div>
-                            <h3 className="text-xl font-bold text-white">
-                              Lobos QR <span className="text-zinc-600 mx-2 text-sm">vs</span> {p.rival}
-                            </h3>
-                            
-                            {dynamicStatus === 'FINALIZADO' ? (
-                              <div className="flex flex-col items-center gap-3">
-                                <div className="flex items-center gap-4">
-                                  <div className="text-center">
-                                    <p className={`font-display text-3xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
+                          {/* DESKTOP LAYOUT - Centralizado e Elegante */}
+                          <div className="hidden md:block py-6">
+                            <div className="flex flex-col items-center text-center space-y-4">
+                              
+                              <div>
+                                <p className="text-zinc-500 text-sm uppercase tracking-widest mb-1">{p.diaSemana}</p>
+                                <p className="text-red-500 text-2xl font-display font-bold">{p.horario || 'TBD'}</p>
+                              </div>
+
+                              <h3 className="text-2xl font-bold text-white">
+                                Lobos QR <span className="text-zinc-600 mx-3 text-base font-normal">vs</span> {p.rival}
+                              </h3>
+
+                              {dynamicStatus === 'FINALIZADO' ? (
+                                <div className="flex flex-col items-center gap-3">
+                                  <div className="flex items-center gap-6">
+                                    <div className="text-center">
+                                      <p className={`font-display text-4xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
+                                    </div>
+                                    <span className="text-zinc-700 text-3xl">-</span>
+                                    <div className="text-center">
+                                      <p className={`font-display text-4xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
+                                    </div>
                                   </div>
-                                  <span className="text-zinc-700 text-2xl">-</span>
-                                  <div className="text-center">
-                                    <p className={`font-display text-3xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
-                                  </div>
+                                  {p.youtubeLink && (
+                                    <a 
+                                      href={p.youtubeLink} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white text-sm font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                    >
+                                      <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
+                                      Ver el partido
+                                    </a>
+                                  )}
                                 </div>
-                                {p.youtubeLink && (
-                                  <a 
-                                    href={p.youtubeLink} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
-                                  >
-                                    <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
-                                    Ver el partido
-                                  </a>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-3">
-                                {dynamicStatus === 'EN_DIRECTO' ? (
-                                  <span className="px-4 py-2 border text-xs font-bold uppercase tracking-wider rounded-sm bg-green-500/10 text-green-500 border-green-500/20 animate-pulse">
-                                    🔴 En Directo
-                                  </span>
-                                ) : (
-                                  <span className="px-4 py-2 border text-xs font-bold uppercase tracking-wider rounded-sm bg-blue-500/10 text-blue-500 border-blue-500/20">
-                                    Programado
-                                  </span>
-                                )}
-                                {p.youtubeLink && (
-                                  <a 
-                                    href={p.youtubeLink} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
-                                  >
-                                    <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
-                                    {dynamicStatus === 'EN_DIRECTO' ? 'Ver ahora' : 'Ver en vivo'}
-                                  </a>
-                                )}
-                              </div>
-                            )}
+                              ) : (
+                                <div className="flex items-center justify-center gap-4">
+                                  {dynamicStatus === 'EN_DIRECTO' ? (
+                                    <span className="px-5 py-2.5 border text-sm font-bold uppercase tracking-wider rounded-sm bg-green-500/10 text-green-500 border-green-500/20 animate-pulse">
+                                      🔴 En Directo
+                                    </span>
+                                  ) : (
+                                    <span className="px-5 py-2.5 border text-sm font-bold uppercase tracking-wider rounded-sm bg-blue-500/10 text-blue-500 border-blue-500/20">
+                                      Programado
+                                    </span>
+                                  )}
+                                  {p.youtubeLink && (
+                                    <a 
+                                      href={p.youtubeLink} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                    >
+                                      <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
+                                      {dynamicStatus === 'EN_DIRECTO' ? 'Ver ahora' : 'Ver en vivo'}
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                         </div>
