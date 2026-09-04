@@ -244,14 +244,27 @@ export default function Competitions() {
                             </h3>
                             
                             {dynamicStatus === 'FINALIZADO' ? (
-                              <div className="flex items-center gap-4">
-                                <div className="text-center">
-                                  <p className={`font-display text-3xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="flex items-center gap-4">
+                                  <div className="text-center">
+                                    <p className={`font-display text-3xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
+                                  </div>
+                                  <span className="text-zinc-700 text-2xl">-</span>
+                                  <div className="text-center">
+                                    <p className={`font-display text-3xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
+                                  </div>
                                 </div>
-                                <span className="text-zinc-700 text-2xl">-</span>
-                                <div className="text-center">
-                                  <p className={`font-display text-3xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
-                                </div>
+                                {p.youtubeLink && (
+                                  <a 
+                                    href={p.youtubeLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                  >
+                                    <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
+                                    Ver el partido
+                                  </a>
+                                )}
                               </div>
                             ) : (
                               <div className="flex items-center gap-3">
