@@ -218,44 +218,46 @@ export default function Competitions() {
                             )}
                           </div>
 
-                          {/* DESKTOP LAYOUT - Centralizado e Elegante */}
-                          <div className="hidden md:block py-6">
-                            <div className="flex flex-col items-center text-center space-y-4">
-                              
-                              <div>
-                                <p className="text-zinc-500 text-sm uppercase tracking-widest mb-1">{p.diaSemana}</p>
-                                <p className="text-red-500 text-2xl font-display font-bold">{p.horario || 'TBD'}</p>
-                              </div>
+                          {/* DESKTOP LAYOUT - Alinhamento Perfeito ao Centro */}
+                          <div className="hidden md:flex md:flex-col md:items-center md:space-y-4 md:py-4">
+                            {/* Dia e Horário */}
+                            <div className="text-center">
+                              <p className="text-zinc-500 text-sm uppercase tracking-widest">{p.diaSemana}</p>
+                              <p className="text-red-500 text-2xl font-display font-bold mt-1">{p.horario || 'TBD'}</p>
+                            </div>
 
-                              <h3 className="text-2xl font-bold text-white">
-                                Lobos QR <span className="text-zinc-600 mx-3 text-base font-normal">vs</span> {p.rival}
-                              </h3>
+                            {/* Confronto */}
+                            <h3 className="text-2xl font-bold text-white text-center">
+                              Lobos QR <span className="text-zinc-600 mx-3 text-base font-normal">vs</span> {p.rival}
+                            </h3>
 
-                              {dynamicStatus === 'FINALIZADO' ? (
-                                <div className="flex flex-col items-center gap-3">
-                                  <div className="flex items-center gap-6">
-                                    <div className="text-center">
-                                      <p className={`font-display text-4xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
-                                    </div>
-                                    <span className="text-zinc-700 text-3xl">-</span>
-                                    <div className="text-center">
-                                      <p className={`font-display text-4xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
-                                    </div>
+                            {/* Status/Placar e Botões */}
+                            {dynamicStatus === 'FINALIZADO' ? (
+                              <div className="flex flex-col items-center space-y-3">
+                                <div className="flex items-center gap-6">
+                                  <div className="text-center">
+                                    <p className={`font-display text-4xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
                                   </div>
-                                  {p.youtubeLink && (
-                                    <a 
-                                      href={p.youtubeLink} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white text-sm font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
-                                    >
-                                      <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
-                                      Ver el partido
-                                    </a>
-                                  )}
+                                  <span className="text-zinc-700 text-3xl">-</span>
+                                  <div className="text-center">
+                                    <p className={`font-display text-4xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
+                                  </div>
                                 </div>
-                              ) : (
-                                <div className="flex items-center justify-center gap-4">
+                                {p.youtubeLink && (
+                                  <a 
+                                    href={p.youtubeLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white text-sm font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                  >
+                                    <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
+                                    Ver el partido
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center space-y-3">
+                                <div className="flex items-center gap-3">
                                   {dynamicStatus === 'EN_DIRECTO' ? (
                                     <span className="px-5 py-2.5 border text-sm font-bold uppercase tracking-wider rounded-sm bg-green-500/10 text-green-500 border-green-500/20 animate-pulse">
                                       🔴 En Directo
@@ -270,15 +272,15 @@ export default function Competitions() {
                                       href={p.youtubeLink} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
-                                      className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
                                     >
                                       <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
                                       {dynamicStatus === 'EN_DIRECTO' ? 'Ver ahora' : 'Ver en vivo'}
                                     </a>
                                   )}
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
 
                         </div>
