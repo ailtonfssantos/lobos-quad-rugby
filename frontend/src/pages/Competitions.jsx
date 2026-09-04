@@ -61,8 +61,6 @@ export default function Competitions() {
                 <div className="mb-6 md:mb-8 border-b border-zinc-800 pb-6">
                   <p className="text-red-500 font-bold tracking-widest text-xs uppercase mb-2">{j.competicion}</p>
                   <h2 className="font-display text-2xl md:text-4xl text-white mb-3">Jornada {j.numero}</h2>
-                  
-                  {/* ✅ CORREÇÃO: Header da Jornada - Mobile organizado */}
                   <div className="space-y-1.5 md:space-y-0 md:flex md:items-center md:gap-2 text-sm text-zinc-400">
                     <span className="flex items-center gap-1.5">
                       <Icon path="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" className="w-4 h-4" />
@@ -73,7 +71,6 @@ export default function Competitions() {
                     <span className="hidden md:inline text-zinc-600">•</span>
                     <span className="md:hidden block text-xs text-zinc-500">{j.fechas}</span>
                   </div>
-                  {/* Versão Desktop completa */}
                   <div className="hidden md:flex items-center gap-2 text-sm text-zinc-400 mt-1">
                     <span>{j.pabellon}</span>
                     <span className="text-zinc-600">•</span>
@@ -86,56 +83,78 @@ export default function Competitions() {
                     <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-sm">
                       <div className="p-4 md:p-5">
                         
-                        {/* MOBILE LAYOUT - Centralizado */}
-                        <div className="md:hidden space-y-3">
-                          {/* Horário */}
-                          <div className="text-center">
-                            <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{p.diaSemana}</p>
-                            <p className="text-red-500 text-lg font-display font-bold">{p.horario || 'TBD'}</p>
-                          </div>
+                        {/* MOBILE LAYOUT */}
+                        <div className="md:hidden">
+                          {p.status === 'FINALIZADO' ? (
+                            /* ✅ LAYOUT CENTRALIZADO VERTICAL PARA JOGOS FINALIZADOS */
+                            <div className="flex flex-col items-center text-center space-y-3 py-2">
+                              {/* Dia e Horário */}
+                              <div>
+                                <p className="text-zinc-500 text-[10px] uppercase tracking-wider">{p.diaSemana}</p>
+                                <p className="text-red-500 text-lg font-display font-bold">{p.horario || 'TBD'}</p>
+                              </div>
 
-                          {/* Confronto Centralizado */}
-                          <div className="text-center">
-                            <h3 className="text-lg font-bold text-white">
-                              Lobos QR <span className="text-zinc-600 mx-2 text-sm">vs</span> {p.rival}
-                            </h3>
-                          </div>
+                              {/* Confronto */}
+                              <h3 className="text-lg font-bold text-white">
+                                Lobos QR <span className="text-zinc-600 mx-2 text-sm">vs</span> {p.rival}
+                              </h3>
 
-                          {/* Placar ou Status + Live */}
-                          <div className="flex items-center justify-center gap-3 pt-2">
-                            {p.status === 'FINALIZADO' ? (
-                              <div className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-sm border border-zinc-800">
+                              {/* Placar */}
+                              <div className="flex items-center gap-4">
                                 <div className="text-center">
-                                  {/*<p className="text-[9px] text-zinc-500 uppercase">Lobos</p>*/}
-                                  <p className={`font-display text-xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
+                                  <p className={`font-display text-2xl font-bold ${p.lobosScore > p.rivalScore ? 'text-green-500' : 'text-white'}`}>{p.lobosScore}</p>
                                 </div>
-                                <span className="text-zinc-700 text-lg">-</span>
+                                <span className="text-zinc-700 text-xl">-</span>
                                 <div className="text-center">
-                                  {/*<p className="text-[9px] text-zinc-500 uppercase">Rival</p>*/}
-                                  <p className={`font-display text-xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
+                                  <p className={`font-display text-2xl font-bold ${p.rivalScore > p.lobosScore ? 'text-green-500' : 'text-white'}`}>{p.rivalScore}</p>
                                 </div>
                               </div>
-                            ) : (
-                              <span className={`px-3 py-1.5 border text-[10px] font-bold uppercase tracking-wider rounded-sm ${
-                                p.status === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                              }`}>
-                                {p.status}
-                              </span>
-                            )}
 
-                            {/* ✅ CORREÇÃO: Botão Live aparece em TODOS os casos (finalizado ou não) */}
-                            {p.youtubeLink && (
-                              <a 
-                                href={p.youtubeLink} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
-                              >
-                                <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3" />
-                                Live
-                              </a>
-                            )}
-                          </div>
+                              {/* Botão Ver Partido (se tiver link) */}
+                              {p.youtubeLink && (
+                                <a 
+                                  href={p.youtubeLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                >
+                                  <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3" />
+                                  Ver el partido
+                                </a>
+                              )}
+                            </div>
+                          ) : (
+                            /* ✅ LAYOUT ORIGINAL PARA JOGOS PROGRAMADOS (NÃO MEXER) */
+                            <div className="space-y-3">
+                              <div className="text-center">
+                                <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{p.diaSemana}</p>
+                                <p className="text-red-500 text-lg font-display font-bold">{p.horario || 'TBD'}</p>
+                              </div>
+                              <div className="text-center">
+                                <h3 className="text-lg font-bold text-white">
+                                  Lobos QR <span className="text-zinc-600 mx-2 text-sm">vs</span> {p.rival}
+                                </h3>
+                              </div>
+                              <div className="flex items-center justify-center gap-3 pt-2">
+                                <span className={`px-3 py-1.5 border text-[10px] font-bold uppercase tracking-wider rounded-sm ${
+                                  p.status === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                }`}>
+                                  {p.status}
+                                </span>
+                                {p.youtubeLink && (
+                                  <a 
+                                    href={p.youtubeLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
+                                  >
+                                    <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-3 h-3" />
+                                    Ver el partido
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* DESKTOP LAYOUT - Horizontal (NÃO MEXER) */}
@@ -174,7 +193,7 @@ export default function Competitions() {
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-red-700 transition-colors"
                               >
                                 <Icon path="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" className="w-4 h-4" />
-                                Ver en vivo
+                                Ver el partido
                               </a>
                             )}
                           </div>
