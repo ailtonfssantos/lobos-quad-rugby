@@ -4,29 +4,20 @@ import { Link } from 'react-router-dom';
 export default function Sponsors() {
   const [formData, setFormData] = useState({ companyName: '', contactName: '', email: '', phone: '', sponsorshipType: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
-  
-  // Estados para dados do banco
-  const [dbData, setDbData] = useState([]);
-  const [loadingData, setLoadingData] = useState(true);
+
+  // Estado exclusivo para Subvenções (Transparência)
+  const [subvenciones, setSubvenciones] = useState([]);
+  const [loadingSubvenciones, setLoadingSubvenciones] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/patrocinadores`);
-        const data = await response.json();
-        setDbData(data);
-      } catch (error) {
-        console.error('Error cargando patrocinios:', error);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-    fetchData();
+    fetch(`${import.meta.env.VITE_API_URL}/api/subvenciones`)
+      .then(res => res.json())
+      .then(data => {
+        setSubvenciones(data);
+        setLoadingSubvenciones(false);
+      })
+      .catch(console.error);
   }, []);
-
-  // Separa os dados: Subvenções (têm 'ano') e Patrocinadores (têm 'sponsorshipType' comercial)
-  const subvencionesList = dbData.filter(item => item.ano && item.valor);
-  const sponsorsList = dbData.filter(item => item.sponsorshipType && !item.ano);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -188,7 +179,7 @@ export default function Sponsors() {
       </section>
 
       {/* ========================================== */}
-      {/* SEÇÃO DE TRANSPARÊNCIA (AGORA DINÂMICA)    */}
+      {/* SEÇÃO DE TRANSPARÊNCIA (DINÂMICA E CORRIGIDA) */}
       {/* ========================================== */}
       <section className="py-16 bg-zinc-900 border-y border-zinc-800">
         <div className="max-w-5xl mx-auto px-4">
@@ -201,14 +192,14 @@ export default function Sponsors() {
             </p>
           </div>
 
-          {loadingData ? (
+          {loadingSubvenciones ? (
             <div className="text-center text-zinc-500 py-10">Cargando datos de transparencia...</div>
-          ) : subvencionesList.length === 0 ? (
+          ) : subvenciones.length === 0 ? (
             <div className="text-center text-zinc-500 py-10">No hay subvenciones registradas públicamente aún.</div>
           ) : (
             <>
               <div className="space-y-6">
-                {subvencionesList.map((sub, index) => (
+                {subvenciones.map((sub) => (
                   <div key={sub.id} className="bg-zinc-950 border border-zinc-800 p-6 md:p-8 hover:border-zinc-700 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                       <div>
@@ -216,22 +207,22 @@ export default function Sponsors() {
                           <span className="font-display text-3xl text-red-500">{sub.ano}</span>
                           <span className="font-display text-3xl text-white">{sub.valor}€</span>
                         </div>
-                        <h4 className="text-white font-bold text-lg">{sub.companyName}</h4>
+                        <h4 className="text-white font-bold text-lg">{sub.entidad}</h4>
                       </div>
                       <div className="text-right md:text-right">
                         <p className="text-zinc-500 text-xs uppercase tracking-wider">Fecha de concesión</p>
-                        <p className="text-zinc-300 font-medium">{sub.dataConcessao}</p>
+                        <p className="text-zinc-300 font-medium">{sub.fechaConcesion}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
                       <div>
                         <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Administración</span>
-                        <span className="text-zinc-300">{sub.tipoEntidad} - {sub.ambito}</span>
+                        <span className="text-zinc-300">{sub.tipo} - {sub.ambito}</span>
                       </div>
                       <div>
                         <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Departamento</span>
-                        <span className="text-zinc-300">{sub.departamento}</span>
+                        <span className="text-zinc-300">{sub.departamento || 'No especificado'}</span>
                       </div>
                     </div>
 

@@ -7,174 +7,139 @@ const Icon = ({ path, className = "w-5 h-5" }) => (
 );
 
 export default function Patrocinadores() {
-  const [patrocinios, setPatrocinios] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [itemToDelete, setItemToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState('solicitudes');
   
-  // Estados para o Modal de Criar/Editar
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
-    companyName: '', contactName: '', email: '', phone: '',
-    sponsorshipType: 'Subvención', message: '', status: 'APROBADO',
-    ano: '', valor: '', dataConcessao: '', tipoEntidad: 'Administración',
+  // Estados para Solicitudes
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
+
+  // Estados para Transparencia
+  const [subvenciones, setSubvenciones] = useState([]);
+  const [modalSubvencionOpen, setModalSubvencionOpen] = useState(false);
+  const [editingSubId, setEditingSubId] = useState(null);
+  const [formDataSub, setFormDataSub] = useState({
+    ano: '', valor: '', entidad: '', fechaConcesion: '', tipo: 'Administración',
     ambito: 'Local', departamento: '', convocatoria: '', basesLink: ''
   });
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const fetchPatrocinios = async () => {
+  // Carregar dados
+  useEffect(() => {
     const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${API_URL}/api/patrocinadores`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setPatrocinios(await response.json());
-    } catch (error) {
-      console.error('Error al buscar patrocinios:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const headers = { 'Authorization': `Bearer ${token}` };
 
-  useEffect(() => { fetchPatrocinios(); }, []);
+    fetch(`${API_URL}/api/patrocinadores`, { headers })
+      .then(res => res.json()).then(data => setSolicitudes(data)).catch(console.error);
 
-  const openModal = (pat = null) => {
-    if (pat) {
-      setEditingId(pat.id);
-      setFormData({
-        companyName: pat.companyName || '', contactName: pat.contactName || '',
-        email: pat.email || '', phone: pat.phone || '',
-        sponsorshipType: pat.sponsorshipType || 'Subvención',
-        message: pat.message || '', status: pat.status || 'APROBADO',
-        ano: pat.ano || '', valor: pat.valor || '', dataConcessao: pat.dataConcessao || '',
-        tipoEntidad: pat.tipoEntidad || 'Administración', ambito: pat.ambito || 'Local',
-        departamento: pat.departamento || '', convocatoria: pat.convocatoria || '',
-        basesLink: pat.basesLink || ''
-      });
-    } else {
-      setEditingId(null);
-      setFormData({
-        companyName: '', contactName: '', email: '', phone: '',
-        sponsorshipType: 'Subvención', message: '', status: 'APROBADO',
-        ano: '', valor: '', dataConcessao: '', tipoEntidad: 'Administración',
-        ambito: 'Local', departamento: '', convocatoria: '', basesLink: ''
-      });
-    }
-    setModalOpen(true);
-  };
+    fetch(`${API_URL}/api/subvenciones`, { headers })
+      .then(res => res.json()).then(data => setSubvenciones(data)).catch(console.error);
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('token');
-    const url = editingId ? `${API_URL}/api/patrocinadores/${editingId}` : `${API_URL}/api/patrocinadores`;
-    try {
-      await fetch(url, {
-        method: editingId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(formData)
-      });
-      setModalOpen(false);
-      fetchPatrocinios();
-    } catch (error) {
-      console.error('Error al guardar:', error);
-      alert('No se pudo guardar.');
-    }
-  };
-
-  const actualizarEstado = async (id, estado) => {
-    const token = localStorage.getItem('token');
-    try {
-      await fetch(`${API_URL}/api/patrocinadores/${id}`, {
+  // Marcar como VISTO ao abrir
+  const verSolicitud = async (sol) => {
+    setSelectedSolicitud(sol);
+    if (sol.status === 'PENDIENTE') {
+      const token = localStorage.getItem('token');
+      await fetch(`${API_URL}/api/patrocinadores/${sol.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status: estado })
+        body: JSON.stringify({ status: 'VISTO' })
       });
-      fetchPatrocinios();
-    } catch (error) { console.error('Error al actualizar:', error); }
-  };
-
-  const confirmDelete = async () => {
-    if (!itemToDelete) return;
-    const token = localStorage.getItem('token');
-    try {
-      await fetch(`${API_URL}/api/patrocinadores/${itemToDelete}`, {
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-      });
-      fetchPatrocinios();
-      setItemToDelete(null);
-    } catch (error) { console.error('Error al eliminar:', error); }
-  };
-
-  const getEstadoStyle = (estado) => {
-    switch (estado) {
-      case 'APROBADO': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'RECHAZADO': return 'bg-red-500/10 text-red-500 border-red-500/20';
-      default: return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+      // Atualiza localmente
+      setSolicitudes(prev => prev.map(s => s.id === sol.id ? { ...s, status: 'VISTO' } : s));
     }
   };
 
-  if (loading) return <div className="text-zinc-500">Cargando...</div>;
+  const guardarSubvencion = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const url = editingSubId ? `${API_URL}/api/subvenciones/${editingSubId}` : `${API_URL}/api/subvenciones`;
+    try {
+      await fetch(url, {
+        method: editingSubId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(formDataSub)
+      });
+      setModalSubvencionOpen(false);
+      setEditingSubId(null);
+      // Recarrega
+      const res = await fetch(`${API_URL}/api/subvenciones`, { headers: { 'Authorization': `Bearer ${token}` } });
+      setSubvenciones(await res.json());
+    } catch (error) {
+      alert('Error al guardar');
+    }
+  };
+
+  const eliminarSubvencion = async () => {
+    if (!itemToDelete) return;
+    const token = localStorage.getItem('token');
+    await fetch(`${API_URL}/api/subvenciones/${itemToDelete}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    setItemToDelete(null);
+    const res = await fetch(`${API_URL}/api/subvenciones`, { headers: { 'Authorization': `Bearer ${token}` } });
+    setSubvenciones(await res.json());
+  };
+
+  const getStatusColor = (status) => {
+    if (status === 'PENDIENTE') return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+    if (status === 'VISTO') return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+    if (status === 'APROBADO') return 'bg-green-500/10 text-green-500 border-green-500/20';
+    return 'bg-red-500/10 text-red-500 border-red-500/20';
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl text-white mb-1">Patrocinios y Subvenciones</h1>
-          <p className="text-zinc-500 text-sm">Gestione patrocinadores comerciales y ayudas públicas.</p>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={() => openModal()} className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm">
-            <Icon path="M12 4.5v15m7.5-7.5h-15" className="w-4 h-4" /> Nuevo Registro
-          </button>
+          <h1 className="font-display text-3xl text-white mb-1">Patrocinios y Transparencia</h1>
+          <p className="text-zinc-500 text-sm">Gestione solicitudes de empresas y ayudas públicas.</p>
         </div>
       </div>
-      
-      {patrocinios.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-12 text-center">
-          <p className="text-zinc-500">Aún no hay registros.</p>
-        </div>
-      ) : (
+
+      {/* ABAS */}
+      <div className="flex border-b border-zinc-800">
+        <button onClick={() => setActiveTab('solicitudes')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'solicitudes' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+          Solicitudes ({solicitudes.filter(s => s.status === 'PENDIENTE').length})
+        </button>
+        <button onClick={() => setActiveTab('transparencia')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'transparencia' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+          Transparencia (Subvenciones)
+        </button>
+      </div>
+
+      {/* ================= ABA 1: SOLICITUDES ================= */}
+      {activeTab === 'solicitudes' && (
         <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
-          <table className="w-full text-left min-w-[900px]">
+          <table className="w-full text-left min-w-[800px]">
             <thead className="bg-zinc-950 border-b border-zinc-800">
               <tr>
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Entidad / Empresa</th>
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Tipo</th>
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Valor / Modalidad</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Empresa</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Contacto</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Modalidad</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Estado</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {patrocinios.map((pat) => (
-                <tr key={pat.id} className="hover:bg-zinc-800/30 transition-colors">
+              {solicitudes.map((sol) => (
+                <tr key={sol.id} className="hover:bg-zinc-800/30 transition-colors">
+                  <td className="px-6 py-4"><p className="text-white font-medium">{sol.companyName}</p></td>
                   <td className="px-6 py-4">
-                    <p className="text-white font-medium">{pat.companyName}</p>
-                    {pat.ano && <p className="text-zinc-500 text-xs">Año: {pat.ano}</p>}
+                    <p className="text-zinc-300 text-sm">{sol.contactName}</p>
+                    <p className="text-zinc-500 text-xs">{sol.email}</p>
                   </td>
+                  <td className="px-6 py-4"><span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">{sol.sponsorshipType}</span></td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">
-                      {pat.tipoEntidad || pat.sponsorshipType || 'General'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {pat.valor ? <p className="text-green-500 font-bold">{pat.valor}€</p> : <p className="text-zinc-400 text-sm">{pat.sponsorshipType}</p>}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getEstadoStyle(pat.status)}`}>
-                      {pat.status}
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(sol.status)}`}>
+                      {sol.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => openModal(pat)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors" title="Editar">
-                        <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                      </button>
-                      <button onClick={() => setItemToDelete(pat.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Eliminar">
-                        <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </button>
-                    </div>
+                    <button onClick={() => verSolicitud(sol)} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-zinc-700 transition-colors">
+                      Ver Mensaje
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -183,68 +148,107 @@ export default function Patrocinadores() {
         </div>
       )}
 
-      {/* MODAL DE CREAR/EDITAR */}
-      {modalOpen && (
+      {/* ================= ABA 2: TRANSPARENCIA ================= */}
+      {activeTab === 'transparencia' && (
+        <>
+          <div className="flex justify-end">
+            <button onClick={() => { setEditingSubId(null); setFormDataSub({ ano: '', valor: '', entidad: '', fechaConcesion: '', tipo: 'Administración', ambito: 'Local', departamento: '', convocatoria: '', basesLink: '' }); setModalSubvencionOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm">
+              <Icon path="M12 4.5v15m7.5-7.5h-15" className="w-4 h-4" /> Nueva Subvención
+            </button>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
+            <table className="w-full text-left min-w-[900px]">
+              <thead className="bg-zinc-950 border-b border-zinc-800">
+                <tr>
+                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Año</th>
+                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Entidad</th>
+                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Valor</th>
+                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Tipo / Ámbito</th>
+                  <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {subvenciones.map((sub) => (
+                  <tr key={sub.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <td className="px-6 py-4"><p className="text-white font-bold text-lg">{sub.ano}</p></td>
+                    <td className="px-6 py-4">
+                      <p className="text-white font-medium">{sub.entidad}</p>
+                      <p className="text-zinc-500 text-xs">{sub.departamento}</p>
+                    </td>
+                    <td className="px-6 py-4"><p className="text-green-500 font-bold text-lg">{sub.valor}€</p></td>
+                    <td className="px-6 py-4">
+                      <p className="text-zinc-300 text-sm">{sub.tipo}</p>
+                      <p className="text-zinc-500 text-xs">{sub.ambito}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => { setEditingSubId(sub.id); setFormDataSub(sub); setModalSubvencionOpen(true); }} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"><Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></button>
+                        <button onClick={() => setItemToDelete(sub.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"><Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* MODAL: VER SOLICITUD */}
+      {selectedSolicitud && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedSolicitud(null)}>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-xl text-white mb-4">Mensaje de {selectedSolicitud.companyName}</h3>
+            <div className="space-y-3 text-sm text-zinc-300 mb-6">
+              <p><span className="text-zinc-500">Contacto:</span> {selectedSolicitud.contactName} ({selectedSolicitud.email})</p>
+              <p><span className="text-zinc-500">Teléfono:</span> {selectedSolicitud.phone || 'No proporcionado'}</p>
+              <p><span className="text-zinc-500">Modalidad:</span> {selectedSolicitud.sponsorshipType}</p>
+              <div className="bg-zinc-950 p-4 rounded-sm border border-zinc-800 mt-4">
+                <p className="text-zinc-400 italic">"{selectedSolicitud.message || 'Sin mensaje adicional'}"</p>
+              </div>
+            </div>
+            <button onClick={() => setSelectedSolicitud(null)} className="w-full py-3 bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-sm hover:bg-zinc-700">Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CREAR/EDITAR SUBVENCIÓN */}
+      {modalSubvencionOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-3xl w-full my-8 shadow-2xl">
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900 z-10">
-              <h2 className="font-display text-2xl text-white">{editingId ? 'Editar Registro' : 'Nuevo Registro'}</h2>
-              <button onClick={() => setModalOpen(false)} className="text-zinc-500 hover:text-white"><Icon path="M6 18L18 6M6 6l12 12" /></button>
+            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+              <h2 className="font-display text-2xl text-white">{editingSubId ? 'Editar Subvención' : 'Nueva Subvención'}</h2>
+              <button onClick={() => setModalSubvencionOpen(false)} className="text-zinc-500 hover:text-white"><Icon path="M6 18L18 6M6 6l12 12" /></button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-              {/* Datos Generales */}
-              <div>
-                <h3 className="text-red-500 text-xs uppercase tracking-widest font-bold mb-4">Datos Generales</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Nombre de la Entidad / Empresa *" value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} required className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
-                  <select value={formData.sponsorshipType} onChange={(e) => setFormData({...formData, sponsorshipType: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
-                    <option value="Subvención">Subvención / Ayuda Pública</option>
-                    <option value="Platinum">Platinum</option>
-                    <option value="Gold">Gold</option>
-                    <option value="Silver">Silver</option>
-                    <option value="Colabora">Colabora</option>
-                  </select>
-                </div>
+            <form onSubmit={guardarSubvencion} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="number" placeholder="Año *" value={formDataSub.ano} onChange={e => setFormDataSub({...formDataSub, ano: e.target.value})} required className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+                <input type="text" placeholder="Valor (Ej: 6.500,00) *" value={formDataSub.valor} onChange={e => setFormDataSub({...formDataSub, valor: e.target.value})} required className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+                <input type="text" placeholder="Fecha Concesión *" value={formDataSub.fechaConcesion} onChange={e => setFormDataSub({...formDataSub, fechaConcesion: e.target.value})} required className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
               </div>
-
-              {/* Datos de Subvención (Opcionais) */}
-              <div className="border-t border-zinc-800 pt-5">
-                <h3 className="text-blue-500 text-xs uppercase tracking-widest font-bold mb-4">Datos de Subvención (Opcional, rellenar si aplica)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <input type="number" placeholder="Año (Ej: 2025)" value={formData.ano} onChange={(e) => setFormData({...formData, ano: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none" />
-                  <input type="text" placeholder="Valor (Ej: 6.500,00)" value={formData.valor} onChange={(e) => setFormData({...formData, valor: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none" />
-                  <input type="text" placeholder="Fecha Concesión (Ej: 25/03/2025)" value={formData.dataConcessao} onChange={(e) => setFormData({...formData, dataConcessao: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <select value={formData.tipoEntidad} onChange={(e) => setFormData({...formData, tipoEntidad: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none">
-                    <option value="">Tipo de Entidad...</option>
-                    <option value="Administración">Administración</option>
-                    <option value="Fundación">Fundación</option>
-                    <option value="Privada">Privada</option>
-                  </select>
-                  <select value={formData.ambito} onChange={(e) => setFormData({...formData, ambito: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none">
-                    <option value="">Ámbito...</option>
-                    <option value="Local">Local</option>
-                    <option value="Regional">Regional</option>
-                    <option value="Nacional">Nacional</option>
-                  </select>
-                  <input type="text" placeholder="Departamento (Ej: Valencia)" value={formData.departamento} onChange={(e) => setFormData({...formData, departamento: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none" />
-                </div>
-                <textarea placeholder="Descripción de la Convocatoria..." value={formData.convocatoria} onChange={(e) => setFormData({...formData, convocatoria: e.target.value})} rows={3} className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none resize-none mb-4" />
-                <input type="url" placeholder="Enlace a Bases Reguladoras (https://...)" value={formData.basesLink} onChange={(e) => setFormData({...formData, basesLink: e.target.value})} className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-blue-600 outline-none" />
+              <input type="text" placeholder="Entidad Concedente (Ej: Ayuntamiento de Valencia) *" value={formDataSub.entidad} onChange={e => setFormDataSub({...formDataSub, entidad: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select value={formDataSub.tipo} onChange={e => setFormDataSub({...formDataSub, tipo: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
+                  <option>Administración</option><option>Fundación</option><option>Privada</option>
+                </select>
+                <select value={formDataSub.ambito} onChange={e => setFormDataSub({...formDataSub, ambito: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
+                  <option>Local</option><option>Regional</option><option>Nacional</option><option>Europeo</option>
+                </select>
+                <input type="text" placeholder="Departamento" value={formDataSub.departamento} onChange={e => setFormDataSub({...formDataSub, departamento: e.target.value})} className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
               </div>
-
+              <textarea placeholder="Descripción de la Convocatoria..." value={formDataSub.convocatoria} onChange={e => setFormDataSub({...formDataSub, convocatoria: e.target.value})} rows={3} className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none resize-none" />
+              <input type="url" placeholder="Enlace Bases Reguladoras (https://...)" value={formDataSub.basesLink} onChange={e => setFormDataSub({...formDataSub, basesLink: e.target.value})} className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+              
               <div className="flex gap-3 pt-4 border-t border-zinc-800">
-                <button type="submit" className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors rounded-sm">{editingId ? 'Guardar Cambios' : 'Crear Registro'}</button>
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm">Cancelar</button>
+                <button type="submit" className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors rounded-sm">Guardar</button>
+                <button type="button" onClick={() => setModalSubvencionOpen(false)} className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm">Cancelar</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL DE ELIMINAR */}
+      {/* MODAL: ELIMINAR */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setItemToDelete(null)}>
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -252,7 +256,7 @@ export default function Patrocinadores() {
             <p className="text-zinc-400 text-sm mb-6">¿Está seguro?</p>
             <div className="flex gap-3">
               <button onClick={() => setItemToDelete(null)} className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-sm rounded-sm">Cancelar</button>
-              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm">Sí, Eliminar</button>
+              <button onClick={eliminarSubvencion} className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm">Sí, Eliminar</button>
             </div>
           </div>
         </div>

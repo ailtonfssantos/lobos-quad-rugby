@@ -12,6 +12,7 @@ import eventosRoutes from './routes/eventos.js';
 import inscricoesRoutes from './routes/inscricoes.js';
 import inscricoesEventosRoutes from './routes/inscricoesEventos.js';
 import patrocinadoresRoutes from './routes/patrocinadores.js';
+import subvencionesRoutes from './routes/subvenciones.js';
 import jornadasRoutes from './routes/jornadas.js';
 import uploadRoutes from './routes/upload.js';
 
@@ -47,6 +48,7 @@ app.use('/api/eventos', eventosRoutes);
 app.use('/api/inscricoes', inscricoesRoutes);
 app.use('/api/inscricoes-eventos', inscricoesEventosRoutes);
 app.use('/api/patrocinadores', patrocinadoresRoutes);
+app.use('/api/subvenciones', subvencionesRoutes);
 app.use('/api/jornadas', jornadasRoutes);
 app.use('/api/upload', uploadRoutes);
 
