@@ -17,14 +17,25 @@ const calculateYearlySummaries = (subvenciones) => {
     const year = sub.ano;
     if (!summaries[year]) summaries[year] = { count: 0, total: 0 };
     summaries[year].count += 1;
-    const numericValue = parseFloat(String(sub.valor).replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(numericValue)) summaries[year].total += numericValue;
+    
+    const valStr = String(sub.valor).trim();
+    let numericValue = 0;
+    
+    if (valStr.includes(',')) {
+      numericValue = parseFloat(valStr.replace(/\./g, '').replace(',', '.'));
+    } else {
+      numericValue = parseFloat(valStr);
+    }
+    
+    if (!isNaN(numericValue)) {
+      summaries[year].total += numericValue;
+    }
   });
 
   return Object.keys(summaries).sort((a, b) => b - a).map(year => ({
     year,
     count: summaries[year].count,
-    total: formatCurrency(summaries[year].total)
+    total: new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(summaries[year].total)
   }));
 };
 

@@ -7,30 +7,29 @@ const calculateYearlySummaries = (subvenciones) => {
   subvenciones.forEach(sub => {
     const year = sub.ano;
     if (!summaries[year]) summaries[year] = { count: 0, total: 0 };
-    
     summaries[year].count += 1;
-    // Remove pontos e troca vírgula por ponto para converter em número
-    const numericValue = parseFloat(String(sub.valor).replace(/\./g, '').replace(',', '.'));
+    
+    const valStr = String(sub.valor).trim();
+    let numericValue = 0;
+    
+    if (valStr.includes(',')) {
+      // Formato europeu: remove pontos de milhar, troca vírgula por ponto decimal
+      numericValue = parseFloat(valStr.replace(/\./g, '').replace(',', '.'));
+    } else {
+      // Formato US ou sem separadores
+      numericValue = parseFloat(valStr);
+    }
+    
     if (!isNaN(numericValue)) {
       summaries[year].total += numericValue;
     }
   });
 
-  return Object.keys(summaries)
-    .sort((a, b) => b - a)
-    .map(year => {
-      // Formatação correta para Espanha: 4.332,83
-      const formattedTotal = new Intl.NumberFormat('es-ES', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
-      }).format(summaries[year].total);
-      
-      return {
-        year,
-        count: summaries[year].count,
-        total: formattedTotal
-      };
-    });
+  return Object.keys(summaries).sort((a, b) => b - a).map(year => ({
+    year,
+    count: summaries[year].count,
+    total: new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(summaries[year].total)
+  }));
 };
 
 export default function Sponsors() {
