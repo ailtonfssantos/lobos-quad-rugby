@@ -212,7 +212,7 @@ export default function Sponsors() {
             <h2 className="font-display text-4xl md:text-5xl text-white mb-4">TRANSPARENCIA</h2>
             <div className="w-24 h-1 bg-red-600 mx-auto mb-6"></div>
             <p className="text-zinc-400 text-lg max-w-3xl mx-auto leading-relaxed">
-              Apostamos por un deporte inclusivo, competitivo y transparente. Estas ayudas se traducen directamente en más oportunidades, competición y desarrollo para nuestros jugadores.
+              Apostamos por un deporte inclusivo, competitivo y transparente, en el que cada jugador tenga la oportunidad de crecer y competir al máximo nivel.
             </p>
           </div>
 
@@ -236,8 +236,8 @@ export default function Sponsors() {
               </div>
 
               <p className="text-zinc-400 text-center mb-12 max-w-3xl mx-auto">
-                Estas ayudas se traducen directamente en más oportunidades, competición y desarrollo para nuestros jugadores, 
-                permitiéndonos financiar desplazamientos, adquirir material deportivo y participar en competiciones oficiales.
+                Estas ayudas nos permiten seguir haciendo crecer el proyecto y cubrir parte de los costes necesarios para nuestra actividad
+                deportiva, como desplazamientos, material, licencias y participación en competiciones oficiales.
               </p>
 
               {/* LISTA DETALHADA */}
