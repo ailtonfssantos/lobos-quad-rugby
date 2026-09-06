@@ -5,106 +5,706 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 const router = Router();
 const prisma = new PrismaClient();
 
-// PÚBLICA: Obtener todas las jornadas con sus partidos
+/* =========================================================
+   HELPERS
+========================================================= */
+
+/**
+ * Normaliza um partido para aceitar tanto:
+ *
+ * ESTRUCTURA NUEVA:
+ * equipoLocal: {
+ *   nombre,
+ *   logo
+ * }
+ *
+ * equipoVisitante: {
+ *   nombre,
+ *   logo
+ * }
+ *
+ * quanto a estrutura antiga:
+ *
+ * rival
+ * rivalLogo
+ */
+const normalizePartido = (p = {}) => {
+
+  const equipoLocalNombre =
+    p.equipoLocal?.nombre ||
+    p.equipoLocalNombre ||
+    'Lobos Quad Rugby';
+
+  const equipoLocalLogo =
+    p.equipoLocal?.logo ||
+    p.equipoLocalLogo ||
+    null;
+
+  const equipoVisitanteNombre =
+    p.equipoVisitante?.nombre ||
+    p.equipoVisitanteNombre ||
+    p.rival ||
+    '';
+
+  const equipoVisitanteLogo =
+    p.equipoVisitante?.logo ||
+    p.equipoVisitanteLogo ||
+    p.rivalLogo ||
+    null;
+
+  return {
+    fecha: p.fecha || null,
+
+    diaSemana:
+      p.diaSemana ||
+      'Sábado',
+
+    horario:
+      p.horario ||
+      'TBD',
+
+    equipoLocalNombre,
+
+    equipoLocalLogo,
+
+    equipoVisitanteNombre,
+
+    equipoVisitanteLogo,
+
+    youtubeLink:
+      p.youtubeLink ||
+      p.youtube ||
+      null,
+
+    status:
+      p.status ||
+      'PROGRAMADO',
+
+    lobosScore:
+      p.lobosScore !== undefined &&
+      p.lobosScore !== null &&
+      p.lobosScore !== ''
+        ? parseInt(p.lobosScore)
+        : null,
+
+    rivalScore:
+      p.rivalScore !== undefined &&
+      p.rivalScore !== null &&
+      p.rivalScore !== ''
+        ? parseInt(p.rivalScore)
+        : null
+  };
+};
+
+
+/* =========================================================
+   PUBLICA
+   Obtener todas las jornadas con sus partidos
+========================================================= */
+
 router.get('/', async (req, res) => {
-  try {
-    const jornadas = await prisma.jornada.findMany({
-      include: { partidos: true },
-      orderBy: { numero: 'asc' }
-    });
-    res.json(jornadas);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al buscar jornadas' });
-  }
-});
 
-// PROTEGIDA: Crear Jornada con sus partidos
-router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { numero, competicion, ciudad, pabellon, fechas, bannerUrl, partidos } = req.body;
-    const partidosValidos = partidos.filter(p => p.rival && p.rival.trim() !== '');
 
-    const nuevaJornada = await prisma.jornada.create({
-      data: {
-        numero: parseInt(numero), competicion, ciudad, pabellon, fechas, bannerUrl: bannerUrl || null, isActive: true,
-        partidos: {
-          create: partidosValidos.map(p => ({
-            rival: p.rival,
-            diaSemana: p.diaSemana,
-            horario: p.horario || 'TBD', // Hora exacta
-            youtubeLink: p.youtubeLink || null, // Enlace de YouTube
-            status: p.status || 'PROGRAMADO',
-            lobosScore: p.lobosScore ? parseInt(p.lobosScore) : null,
-            rivalScore: p.rivalScore ? parseInt(p.rivalScore) : null
-          }))
+    const jornadas =
+      await prisma.jornada.findMany({
+
+        include: {
+          partidos: true
+        },
+
+        orderBy: {
+          numero: 'asc'
         }
-      },
-      include: { partidos: true }
-    });
-    res.status(201).json(nuevaJornada);
+
+      });
+
+    res.json(jornadas);
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al crear jornada' });
+
+    console.error(
+      '❌ Error al buscar jornadas:',
+      error
+    );
+
+    res.status(500).json({
+      error: 'Error al buscar jornadas'
+    });
+
   }
+
 });
 
-// PROTEGIDA: Actualizar Jornada (Inteligente: solo actualiza lo que se envía)
-router.put('/:id', authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { numero, competicion, ciudad, pabellon, fechas, bannerUrl, isActive, partidos } = req.body;
 
-    // 1. Construimos el objeto de actualización dinámicamente
-    const updateData = {};
-    if (numero !== undefined) updateData.numero = parseInt(numero);
-    if (competicion !== undefined) updateData.competicion = competicion;
-    if (ciudad !== undefined) updateData.ciudad = ciudad;
-    if (pabellon !== undefined) updateData.pabellon = pabellon;
-    if (fechas !== undefined) updateData.fechas = fechas;
-    if (bannerUrl !== undefined) updateData.bannerUrl = bannerUrl || null;
-    if (isActive !== undefined) updateData.isActive = isActive;
+/* =========================================================
+   PROTEGIDA
+   Crear Jornada
+========================================================= */
 
-    // 2. SOLO borramos y recreamos los partidos si el array 'partidos' viene explícitamente en la petición
-    if (partidos !== undefined) {
-      await prisma.partido.deleteMany({ where: { jornadaId: parseInt(id) } });
-      const partidosValidos = partidos.filter(p => p.rival && p.rival.trim() !== '');
-      
-      updateData.partidos = {
-        create: partidosValidos.map(p => ({
-          rival: p.rival,
-          diaSemana: p.diaSemana,
-          horario: p.horario || 'TBD',
-          youtubeLink: p.youtubeLink || null,
-          status: p.status || 'PROGRAMADO',
-          lobosScore: p.lobosScore ? parseInt(p.lobosScore) : null,
-          rivalScore: p.rivalScore ? parseInt(p.rivalScore) : null
-        }))
-      };
+router.post(
+  '/',
+  authMiddleware,
+  async (req, res) => {
+
+    try {
+
+      const {
+        numero,
+        competicion,
+        temporada,
+        ciudad,
+        pabellon,
+        fechas,
+        bannerUrl,
+        partidos
+      } = req.body;
+
+
+      /* -----------------------------------------------
+         VALIDACIÓN
+      ------------------------------------------------ */
+
+      if (!numero) {
+
+        return res.status(400).json({
+          error: 'El número de jornada es obligatorio'
+        });
+
+      }
+
+      if (!competicion) {
+
+        return res.status(400).json({
+          error: 'La competición es obligatoria'
+        });
+
+      }
+
+      if (!ciudad) {
+
+        return res.status(400).json({
+          error: 'La ciudad es obligatoria'
+        });
+
+      }
+
+      if (!pabellon) {
+
+        return res.status(400).json({
+          error: 'El pabellón es obligatorio'
+        });
+
+      }
+
+
+      /* -----------------------------------------------
+         NORMALIZAR PARTIDOS
+      ------------------------------------------------ */
+
+      const partidosValidos =
+        Array.isArray(partidos)
+          ? partidos
+              .map(normalizePartido)
+              .filter(
+                p =>
+                  p.equipoVisitanteNombre &&
+                  p.equipoVisitanteNombre.trim() !== ''
+              )
+          : [];
+
+
+      /* -----------------------------------------------
+         CREAR JORNADA
+      ------------------------------------------------ */
+
+      const nuevaJornada =
+        await prisma.jornada.create({
+
+          data: {
+
+            numero:
+              parseInt(numero),
+
+            competicion,
+
+            temporada:
+              temporada ||
+              'Rugby 26-27',
+
+            ciudad,
+
+            pabellon,
+
+            fechas,
+
+            bannerUrl:
+              bannerUrl ||
+              null,
+
+            isActive: true,
+
+            partidos: {
+
+              create:
+                partidosValidos.map(
+                  p => ({
+
+                    /*
+                     * Compatibilidad con estructura antigua
+                     */
+
+                    rival:
+                      p.equipoVisitanteNombre,
+
+                    rivalLogo:
+                      p.equipoVisitanteLogo,
+
+                    /*
+                     * Nueva estructura
+                     */
+
+                    equipoLocalNombre:
+                      p.equipoLocalNombre,
+
+                    equipoLocalLogo:
+                      p.equipoLocalLogo,
+
+                    equipoVisitanteNombre:
+                      p.equipoVisitanteNombre,
+
+                    equipoVisitanteLogo:
+                      p.equipoVisitanteLogo,
+
+                    /*
+                     * Datos del partido
+                     */
+
+                    fecha:
+                      p.fecha,
+
+                    diaSemana:
+                      p.diaSemana,
+
+                    horario:
+                      p.horario,
+
+                    youtubeLink:
+                      p.youtubeLink,
+
+                    status:
+                      p.status,
+
+                    lobosScore:
+                      p.lobosScore,
+
+                    rivalScore:
+                      p.rivalScore
+
+                  })
+                )
+
+            }
+
+          },
+
+          include: {
+            partidos: true
+          }
+
+        });
+
+
+      res
+        .status(201)
+        .json(nuevaJornada);
+
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error al crear jornada:',
+        error
+      );
+
+      res.status(500).json({
+
+        error:
+          'Error al crear jornada',
+
+        details:
+          error.message
+
+      });
+
     }
 
-    // 3. Aplicamos la actualización
-    const actualizada = await prisma.jornada.update({
-      where: { id: parseInt(id) },
-      data: updateData,
-      include: { partidos: true }
-    });
-    
-    res.json(actualizada);
-  } catch (error) {
-    console.error('❌ Error al actualizar jornada:', error);
-    res.status(500).json({ error: 'Error al actualizar jornada', details: error.message });
   }
-});
+);
 
-// PROTEGIDA: Eliminar Jornada
-router.delete('/:id', authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await prisma.jornada.delete({ where: { id: parseInt(id) } });
-    res.json({ message: 'Jornada eliminada' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar jornada' });
+
+/* =========================================================
+   PROTEGIDA
+   Actualizar Jornada
+========================================================= */
+
+router.put(
+  '/:id',
+  authMiddleware,
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const {
+
+        numero,
+
+        competicion,
+
+        temporada,
+
+        ciudad,
+
+        pabellon,
+
+        fechas,
+
+        bannerUrl,
+
+        isActive,
+
+        partidos
+
+      } = req.body;
+
+
+      /* -----------------------------------------------
+         DATOS DE JORNADA
+      ------------------------------------------------ */
+
+      const updateData = {};
+
+
+      if (
+        numero !== undefined
+      ) {
+
+        updateData.numero =
+          parseInt(numero);
+
+      }
+
+
+      if (
+        competicion !== undefined
+      ) {
+
+        updateData.competicion =
+          competicion;
+
+      }
+
+
+      if (
+        temporada !== undefined
+      ) {
+
+        updateData.temporada =
+          temporada;
+
+      }
+
+
+      if (
+        ciudad !== undefined
+      ) {
+
+        updateData.ciudad =
+          ciudad;
+
+      }
+
+
+      if (
+        pabellon !== undefined
+      ) {
+
+        updateData.pabellon =
+          pabellon;
+
+      }
+
+
+      if (
+        fechas !== undefined
+      ) {
+
+        updateData.fechas =
+          fechas;
+
+      }
+
+
+      if (
+        bannerUrl !== undefined
+      ) {
+
+        updateData.bannerUrl =
+          bannerUrl || null;
+
+      }
+
+
+      if (
+        isActive !== undefined
+      ) {
+
+        updateData.isActive =
+          isActive;
+
+      }
+
+
+      /* -----------------------------------------------
+         ACTUALIZAR PARTIDOS
+         
+         Solo si el frontend envía partidos.
+      ------------------------------------------------ */
+
+      if (
+        partidos !== undefined
+      ) {
+
+        if (
+          !Array.isArray(partidos)
+        ) {
+
+          return res.status(400).json({
+            error:
+              'El campo partidos debe ser un array'
+          });
+
+        }
+
+
+        /*
+         * Primero eliminamos los partidos
+         * antiguos de esta jornada.
+         */
+
+        await prisma.partido.deleteMany({
+
+          where: {
+
+            jornadaId:
+              parseInt(id)
+
+          }
+
+        });
+
+
+        /*
+         * Normalizamos los nuevos partidos.
+         */
+
+        const partidosValidos =
+          partidos
+
+            .map(normalizePartido)
+
+            .filter(
+              p =>
+                p.equipoVisitanteNombre &&
+                p.equipoVisitanteNombre.trim() !== ''
+            );
+
+
+        /*
+         * Creamos nuevamente
+         * los partidos.
+         */
+
+        updateData.partidos = {
+
+          create:
+
+            partidosValidos.map(
+              p => ({
+
+                /*
+                 * Compatibilidad
+                 */
+
+                rival:
+                  p.equipoVisitanteNombre,
+
+                rivalLogo:
+                  p.equipoVisitanteLogo,
+
+                /*
+                 * Equipos
+                 */
+
+                equipoLocalNombre:
+                  p.equipoLocalNombre,
+
+                equipoLocalLogo:
+                  p.equipoLocalLogo,
+
+                equipoVisitanteNombre:
+                  p.equipoVisitanteNombre,
+
+                equipoVisitanteLogo:
+                  p.equipoVisitanteLogo,
+
+                /*
+                 * Partido
+                 */
+
+                fecha:
+                  p.fecha,
+
+                diaSemana:
+                  p.diaSemana,
+
+                horario:
+                  p.horario,
+
+                youtubeLink:
+                  p.youtubeLink,
+
+                status:
+                  p.status,
+
+                lobosScore:
+                  p.lobosScore,
+
+                rivalScore:
+                  p.rivalScore
+
+              })
+            )
+
+        };
+
+      }
+
+
+      /* -----------------------------------------------
+         ACTUALIZAR JORNADA
+      ------------------------------------------------ */
+
+      const actualizada =
+        await prisma.jornada.update({
+
+          where: {
+
+            id:
+              parseInt(id)
+
+          },
+
+          data:
+            updateData,
+
+          include: {
+
+            partidos: true
+
+          }
+
+        });
+
+
+      res.json(
+        actualizada
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error al actualizar jornada:',
+        error
+      );
+
+      res.status(500).json({
+
+        error:
+          'Error al actualizar jornada',
+
+        details:
+          error.message
+
+      });
+
+    }
+
   }
-});
+);
+
+
+/* =========================================================
+   PROTEGIDA
+   Eliminar Jornada
+========================================================= */
+
+router.delete(
+  '/:id',
+  authMiddleware,
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+
+      await prisma.jornada.delete({
+
+        where: {
+
+          id:
+            parseInt(id)
+
+        }
+
+      });
+
+
+      res.json({
+
+        message:
+          'Jornada eliminada'
+
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error al eliminar jornada:',
+        error
+      );
+
+      res.status(500).json({
+
+        error:
+          'Error al eliminar jornada',
+
+        details:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
 
 export default router;

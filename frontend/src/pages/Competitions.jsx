@@ -5,7 +5,6 @@ import { API_URL, getImageUrl } from '../config';
 /* =========================================================
    ICON COMPONENT
 ========================================================= */
-
 const Icon = ({ path, className = "w-5 h-5" }) => (
   <svg
     className={className}
@@ -21,11 +20,9 @@ const Icon = ({ path, className = "w-5 h-5" }) => (
     />
   </svg>
 );
-
 /* =========================================================
    YOUTUBE / PLAY ICON
 ========================================================= */
-
 const PlayIcon = ({ className = "w-4 h-4" }) => (
   <svg
     className={className}
@@ -35,13 +32,10 @@ const PlayIcon = ({ className = "w-4 h-4" }) => (
     <path d="M8 5.14v13.72c0 .78.85 1.26 1.52.86l10.94-6.86a1 1 0 000-1.72L9.52 4.28C8.85 3.88 8 4.36 8 5.14Z" />
   </svg>
 );
-
 /* =========================================================
    MAIN COMPONENT
 ========================================================= */
-
 export default function Competitions() {
-
   const [jornadas, setJornadas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -52,40 +46,26 @@ export default function Competitions() {
   ======================================================= */
 
   useEffect(() => {
-
     const fetchJornadas = async () => {
-
       try {
-
         setLoading(true);
         setError(false);
-
         const res = await fetch(`${API_URL}/api/jornadas`);
-
         if (!res.ok) {
           throw new Error(`Error HTTP: ${res.status}`);
         }
-
         const data = await res.json();
-
         const jornadasActivas = Array.isArray(data)
           ? data.filter(jornada => jornada.isActive === true)
           : [];
-
         setJornadas(jornadasActivas);
-
       } catch (err) {
-
         console.error("❌ Error al cargar jornadas:", err);
         setError(true);
-
       } finally {
-
         setLoading(false);
-
       }
     };
-
     fetchJornadas();
 
   }, []);
