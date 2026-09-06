@@ -43,6 +43,16 @@ model Patrocinio {
   message          String?
   status           String   @default("PENDIENTE")
   createdAt        DateTime @default(now())
+
+  // ✅ NOVOS CAMPOS para Subvenciones / Ayudas Públicas (Opcionais)
+  ano              Int?
+  valor            String?
+  dataConcessao    String?
+  tipoEntidad      String?  
+  ambito           String?  
+  departamento     String?
+  convocatoria     String?
+  basesLink        String?
 }
 
 model Jogador {
