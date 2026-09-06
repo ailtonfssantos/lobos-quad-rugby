@@ -1054,31 +1054,27 @@ export default function Jornadas() {
                   {/* BANNER */}
 
                   <div className="md:col-span-2">
-                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">
-                      Banner de la Jornada
-                    </label>
+                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Banner da Jornada</label>
+<div className="flex flex-col md:flex-row md:items-center gap-4">
+  {formData.bannerUrl && (
+    <img src={getImageUrl(formData.bannerUrl)} alt="Banner" className="w-full md:w-64 h-24 object-cover border border-zinc-700 rounded-sm" />
+  )}
+  
+  {/* Botão de Upload (Mantido) */}
+  <label className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-zinc-950 border border-zinc-700 hover:border-red-600 text-zinc-300 cursor-pointer rounded-sm text-sm">
+    {uploadingBanner ? 'Subindo...' : 'Elegir Imagen'}
+    <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" disabled={uploadingBanner} />
+  </label>
 
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      {formData.bannerUrl && (
-                        <img
-                          src={getImageUrl(formData.bannerUrl)}
-                          alt="Banner"
-                          className="w-full md:w-64 h-24 object-cover border border-zinc-700 rounded-sm"
-                        />
-                      )}
-
-                      <label className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-zinc-950 border border-zinc-700 hover:border-red-600 text-zinc-300 cursor-pointer rounded-sm text-sm">
-                        {uploadingBanner ? "Subiendo..." : "Elegir Imagen"}
-
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleBannerUpload}
-                          className="hidden"
-                          disabled={uploadingBanner}
-                        />
-                      </label>
-                    </div>
+  {/* ✅ NOVO CAMPO: Para colar o caminho local durante os testes */}
+  <input 
+    type="text" 
+    placeholder="Ou cole o caminho: /assets/competitions/banner.jpg" 
+    value={formData.bannerUrl} 
+    onChange={(e) => updateJornada('bannerUrl', e.target.value)}
+    className="flex-1 bg-zinc-950 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600"
+  />
+</div>
                   </div>
                 </div>
               </section>

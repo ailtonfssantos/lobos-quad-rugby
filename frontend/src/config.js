@@ -1,14 +1,18 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://lobos-backend-g9kr.onrender.com';
 
-// Função inteligente para corrigir URLs de imagens
 export const getImageUrl = (imagePath) => {
-  if (!imagePath) return '/assets/logo1.png'; // Imagem padrão se não houver
-  
-  // Se já for um link completo, mas estiver apontando para localhost, corrigimos
+  if (!imagePath) return '/assets/logo1.png';
+
+  // ✅ NOVO: Se for um caminho local do frontend, retorna direto (a Vercel resolve isso)
+  if (imagePath.startsWith('/assets/')) {
+    return imagePath;
+  }
+
+  // Se for um link externo ou do localhost antigo, corrigimos
   if (imagePath.startsWith('http')) {
     return imagePath.replace('http://localhost:10000', API_URL).replace('http://localhost:4000', API_URL);
   }
-  
-  // Se for um caminho relativo (ex: /uploads/foto.jpg), adicionamos a URL da API
+
+  // Fallback para caminhos relativos do backend (ex: /uploads/...)
   return `${API_URL}${imagePath}`;
 };
