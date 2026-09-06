@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // <-- Mude de "mysql" para "postgresql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -98,14 +98,24 @@ model Jornada {
 }
 
 model Partido {
-  id             Int      @id @default(autoincrement())
-  jornadaId      Int
-  jornada        Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
-  rival          String
-  diaSemana      String   // Ej: "Sábado", "Domingo"
-  horario        String   // Ej: "10:00", "17:30" (Reemplaza a 'turno')
-  youtubeLink    String?  // Nuevo campo para el enlace de transmisión
-  lobosScore     Int?
-  rivalScore     Int?
-  status         String   @default("PROGRAMADO")
+  id                    Int      @id @default(autoincrement())
+  jornadaId             Int
+  jornada               Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  
+  // Campos existentes (tornados opcionais para compatibilidade)
+  rival                 String?
+  diaSemana             String
+  horario               String
+  youtubeLink           String?
+  lobosScore            Int?
+  rivalScore            Int?
+  status                String   @default("PROGRAMADO")
+
+  // ✅ NOVOS CAMPOS para suportar a interface avançada
+  fecha                 String?
+  equipoLocalNombre     String?
+  equipoLocalLogo       String?
+  equipoVisitanteNombre String?
+  equipoVisitanteLogo   String?
+  rivalLogo             String?
 }
