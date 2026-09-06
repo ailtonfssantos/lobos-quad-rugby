@@ -6,14 +6,33 @@ const Icon = ({ path, className = "w-5 h-5" }) => (
   </svg>
 );
 
+// Função para calcular totais por ano
+const calculateYearlySummaries = (subvenciones) => {
+  const summaries = {};
+  subvenciones.forEach(sub => {
+    const year = sub.ano;
+    if (!summaries[year]) summaries[year] = { count: 0, total: 0 };
+    
+    summaries[year].count += 1;
+    const numericValue = parseFloat(String(sub.valor).replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(numericValue)) {
+      summaries[year].total += numericValue;
+    }
+  });
+
+  return Object.keys(summaries)
+    .sort((a, b) => b - a)
+    .map(year => ({
+      year,
+      count: summaries[year].count,
+      total: summaries[year].total.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }));
+};
+
 export default function Patrocinadores() {
   const [activeTab, setActiveTab] = useState('solicitudes');
-  
-  // Estados para Solicitudes
   const [solicitudes, setSolicitudes] = useState([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState(null);
-
-  // Estados para Transparencia
   const [subvenciones, setSubvenciones] = useState([]);
   const [modalSubvencionOpen, setModalSubvencionOpen] = useState(false);
   const [editingSubId, setEditingSubId] = useState(null);
@@ -25,7 +44,6 @@ export default function Patrocinadores() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Carregar dados
   useEffect(() => {
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };
@@ -37,7 +55,6 @@ export default function Patrocinadores() {
       .then(res => res.json()).then(data => setSubvenciones(data)).catch(console.error);
   }, []);
 
-  // Marcar como VISTO ao abrir
   const verSolicitud = async (sol) => {
     setSelectedSolicitud(sol);
     if (sol.status === 'PENDIENTE') {
@@ -47,7 +64,6 @@ export default function Patrocinadores() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'VISTO' })
       });
-      // Atualiza localmente
       setSolicitudes(prev => prev.map(s => s.id === sol.id ? { ...s, status: 'VISTO' } : s));
     }
   };
@@ -64,7 +80,6 @@ export default function Patrocinadores() {
       });
       setModalSubvencionOpen(false);
       setEditingSubId(null);
-      // Recarrega
       const res = await fetch(`${API_URL}/api/subvenciones`, { headers: { 'Authorization': `Bearer ${token}` } });
       setSubvenciones(await res.json());
     } catch (error) {
@@ -90,6 +105,8 @@ export default function Patrocinadores() {
     return 'bg-red-500/10 text-red-500 border-red-500/20';
   };
 
+  const yearlySummaries = calculateYearlySummaries(subvenciones);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -99,7 +116,6 @@ export default function Patrocinadores() {
         </div>
       </div>
 
-      {/* ABAS */}
       <div className="flex border-b border-zinc-800">
         <button onClick={() => setActiveTab('solicitudes')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'solicitudes' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
           Solicitudes ({solicitudes.filter(s => s.status === 'PENDIENTE').length})
@@ -109,7 +125,6 @@ export default function Patrocinadores() {
         </button>
       </div>
 
-      {/* ================= ABA 1: SOLICITUDES ================= */}
       {activeTab === 'solicitudes' && (
         <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
           <table className="w-full text-left min-w-[800px]">
@@ -148,9 +163,21 @@ export default function Patrocinadores() {
         </div>
       )}
 
-      {/* ================= ABA 2: TRANSPARENCIA ================= */}
       {activeTab === 'transparencia' && (
         <>
+          {/* CARDS DE RESUMO POR ANO NO ADMIN */}
+          {yearlySummaries.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {yearlySummaries.map((summary) => (
+                <div key={summary.year} className="bg-zinc-900 border border-zinc-800 p-5 rounded-sm">
+                  <p className="text-zinc-500 text-xs uppercase tracking-widest mb-2">Resumen {summary.year}</p>
+                  <p className="font-display text-3xl text-green-500 mb-1">{summary.total}€</p>
+                  <p className="text-zinc-400 text-sm">{summary.count} {summary.count === 1 ? 'subvención registrada' : 'subvenciones registradas'}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex justify-end">
             <button onClick={() => { setEditingSubId(null); setFormDataSub({ ano: '', valor: '', entidad: '', fechaConcesion: '', tipo: 'Administración', ambito: 'Local', departamento: '', convocatoria: '', basesLink: '' }); setModalSubvencionOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm">
               <Icon path="M12 4.5v15m7.5-7.5h-15" className="w-4 h-4" /> Nueva Subvención

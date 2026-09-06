@@ -1,11 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+// Função para calcular totais por ano
+const calculateYearlySummaries = (subvenciones) => {
+  const summaries = {};
+  subvenciones.forEach(sub => {
+    const year = sub.ano;
+    if (!summaries[year]) summaries[year] = { count: 0, total: 0 };
+    
+    summaries[year].count += 1;
+    // Converte "6.500,00" ou "6500.00" para número float
+    const numericValue = parseFloat(String(sub.valor).replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(numericValue)) {
+      summaries[year].total += numericValue;
+    }
+  });
+
+  return Object.keys(summaries)
+    .sort((a, b) => b - a) // Ordena do ano mais recente para o mais antigo
+    .map(year => ({
+      year,
+      count: summaries[year].count,
+      total: summaries[year].total.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }));
+};
+
 export default function Sponsors() {
   const [formData, setFormData] = useState({ companyName: '', contactName: '', email: '', phone: '', sponsorshipType: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
-
-  // Estado exclusivo para Subvenções (Transparência)
   const [subvenciones, setSubvenciones] = useState([]);
   const [loadingSubvenciones, setLoadingSubvenciones] = useState(true);
 
@@ -72,6 +94,8 @@ export default function Sponsors() {
     { feature: 'Jornada para trabajadores', platinum: true, gold: true, silver: true, colabora: true },
     { feature: 'Publicidad y agradecimientos en redes', platinum: true, gold: true, silver: true, colabora: true },
   ];
+
+  const yearlySummaries = calculateYearlySummaries(subvenciones);
 
   if (submitted) {
     return (
@@ -179,7 +203,7 @@ export default function Sponsors() {
       </section>
 
       {/* ========================================== */}
-      {/* SEÇÃO DE TRANSPARÊNCIA (DINÂMICA E CORRIGIDA) */}
+      {/* SEÇÃO DE TRANSPARÊNCIA COM TOTAIS POR ANO  */}
       {/* ========================================== */}
       <section className="py-16 bg-zinc-900 border-y border-zinc-800">
         <div className="max-w-5xl mx-auto px-4">
@@ -198,47 +222,75 @@ export default function Sponsors() {
             <div className="text-center text-zinc-500 py-10">No hay subvenciones registradas públicamente aún.</div>
           ) : (
             <>
-              <div className="space-y-6">
-                {subvenciones.map((sub) => (
-                  <div key={sub.id} className="bg-zinc-950 border border-zinc-800 p-6 md:p-8 hover:border-zinc-700 transition-colors">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="font-display text-3xl text-red-500">{sub.ano}</span>
-                          <span className="font-display text-3xl text-white">{sub.valor}€</span>
-                        </div>
-                        <h4 className="text-white font-bold text-lg">{sub.entidad}</h4>
-                      </div>
-                      <div className="text-right md:text-right">
-                        <p className="text-zinc-500 text-xs uppercase tracking-wider">Fecha de concesión</p>
-                        <p className="text-zinc-300 font-medium">{sub.fechaConcesion}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
-                      <div>
-                        <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Administración</span>
-                        <span className="text-zinc-300">{sub.tipo} - {sub.ambito}</span>
-                      </div>
-                      <div>
-                        <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Departamento</span>
-                        <span className="text-zinc-300">{sub.departamento || 'No especificado'}</span>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Convocatoria</span>
-                      <p className="text-zinc-400 text-sm leading-relaxed">{sub.convocatoria}</p>
-                    </div>
-
-                    {sub.basesLink && (
-                      <a href={sub.basesLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-red-500 hover:text-red-400 text-sm font-bold uppercase tracking-wider transition-colors group">
-                        Ver bases reguladoras (BBRR)
-                        <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                      </a>
-                    )}
+              {/* CARDS DE RESUMO POR ANO */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                {yearlySummaries.map((summary) => (
+                  <div key={summary.year} className="bg-zinc-950 border border-zinc-800 p-8 text-center hover:border-red-600/50 transition-colors">
+                    <span className="block text-zinc-500 text-xs uppercase tracking-widest mb-2">Total Ayudas {summary.year}</span>
+                    <span className="block font-display text-5xl text-white mb-2">{summary.total}€</span>
+                    <span className="inline-block px-3 py-1 bg-red-900/30 text-red-500 border border-red-900 text-xs font-bold uppercase tracking-wider">
+                      {summary.count} {summary.count === 1 ? 'Subvención' : 'Subvenciones'}
+                    </span>
                   </div>
                 ))}
+              </div>
+
+              <p className="text-zinc-400 text-center mb-12 max-w-3xl mx-auto">
+                Estas ayudas permiten financiar desplazamientos, material deportivo y la participación en competiciones oficiales.
+              </p>
+
+              {/* LISTA DETALHADA */}
+              <div className="mb-16">
+                <h3 className="font-display text-2xl text-white mb-8 flex items-center gap-3">
+                  <span className="w-8 h-[2px] bg-red-600"></span>
+                  Subvenciones Recibidas
+                </h3>
+                <p className="text-zinc-500 text-sm mb-6 italic">
+                  Información suministrada por los órganos y entidades de las Administraciones Públicas a la Base de Datos Nacional de Subvenciones.
+                </p>
+
+                <div className="space-y-6">
+                  {subvenciones.map((sub) => (
+                    <div key={sub.id} className="bg-zinc-950 border border-zinc-800 p-6 md:p-8 hover:border-zinc-700 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="font-display text-3xl text-red-500">{sub.ano}</span>
+                            <span className="font-display text-3xl text-white">{sub.valor}€</span>
+                          </div>
+                          <h4 className="text-white font-bold text-lg">{sub.entidad}</h4>
+                        </div>
+                        <div className="text-right md:text-right">
+                          <p className="text-zinc-500 text-xs uppercase tracking-wider">Fecha de concesión</p>
+                          <p className="text-zinc-300 font-medium">{sub.fechaConcesion}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+                        <div>
+                          <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Administración</span>
+                          <span className="text-zinc-300">{sub.tipo} - {sub.ambito}</span>
+                        </div>
+                        <div>
+                          <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Departamento</span>
+                          <span className="text-zinc-300">{sub.departamento || 'No especificado'}</span>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="text-zinc-600 text-xs uppercase tracking-wider block mb-1">Convocatoria</span>
+                        <p className="text-zinc-400 text-sm leading-relaxed">{sub.convocatoria}</p>
+                      </div>
+
+                      {sub.basesLink && (
+                        <a href={sub.basesLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-red-500 hover:text-red-400 text-sm font-bold uppercase tracking-wider transition-colors group">
+                          Ver bases reguladoras (BBRR)
+                          <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="text-center mt-16">
