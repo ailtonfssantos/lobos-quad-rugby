@@ -23,10 +23,10 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao fazer login');
+        throw new Error(data.error || 'Error al iniciar sesión');
       }
 
-      // Salvar token no localStorage
+      // Guardar token en localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -43,7 +43,7 @@ export default function AdminLogin() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <img src="/assets/logo1.png" alt="Lobos" className="h-16 mx-auto mb-4 grayscale" />
-          <h1 className="font-display text-4xl text-white mb-2">PAINEL ADMIN</h1>
+          <h1 className="font-display text-4xl text-white mb-2">PANEL ADMIN</h1>
           <p className="text-zinc-500 text-sm uppercase tracking-widest">Lobos Quad Rugby</p>
         </div>
 
@@ -55,7 +55,7 @@ export default function AdminLogin() {
           )}
 
           <div>
-            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Email</label>
+            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Correo electrónico</label>
             <input
               type="email"
               value={email}
@@ -67,7 +67,7 @@ export default function AdminLogin() {
           </div>
 
           <div>
-            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Senha</label>
+            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Contraseña</label>
             <input
               type="password"
               value={password}
@@ -83,7 +83,7 @@ export default function AdminLogin() {
             disabled={loading}
             className="w-full py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? 'Accediendo...' : 'Acceder'}
           </button>
         </form>
       </div>

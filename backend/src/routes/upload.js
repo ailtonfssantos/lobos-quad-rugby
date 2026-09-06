@@ -1,92 +1,52 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Router } from 'express';
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
+import { authMiddleware } from '../middlewares/authMiddleware.js';
 
-export default function AdminLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+const router = Router();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+// 1. Configuração do Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+// 2. Configuração do armazenamento no Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'lobos-quad-rugby', // Cria uma pasta organizada no seu Cloudinary
+    allowed_formats: ['jpeg', 'jpg', 'png', 'webp'],
+  },
+});
 
-      const data = await response.json();
+// 3. Configuração do Multer
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB máximo
+});
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al iniciar sesión');
-      }
-
-      // Guardar token en localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      navigate('/admin/dashboard');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+// 4. Rota de upload (protegida por auth)
+router.post('/', authMiddleware, upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
     }
-  };
 
-  return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <img src="/assets/logo1.png" alt="Lobos" className="h-16 mx-auto mb-4 grayscale" />
-          <h1 className="font-display text-4xl text-white mb-2">PANEL ADMIN</h1>
-          <p className="text-zinc-500 text-sm uppercase tracking-widest">Lobos Quad Rugby</p>
-        </div>
+    // O Cloudinary já retorna a URL HTTPS segura em req.file.path
+    const imageUrl = req.file.path;
+    
+    res.json({
+      message: 'Imagem enviada com sucesso',
+      url: imageUrl,
+      filename: req.file.filename
+    });
+  } catch (error) {
+    console.error('Erro no upload:', error);
+    res.status(500).json({ error: 'Erro ao fazer upload da imagem' });
+  }
+});
 
-        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 p-8 space-y-6">
-          {error && (
-            <div className="bg-red-900/30 border border-red-900 text-red-400 px-4 py-3 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Correo electrónico</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-red-600 transition-colors"
-              placeholder="admin@lobosquadrugby.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-red-600 transition-colors"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Accediendo...' : 'Acceder'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
+export default router;
