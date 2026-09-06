@@ -236,7 +236,8 @@ export default function Sponsors() {
               </div>
 
               <p className="text-zinc-400 text-center mb-12 max-w-3xl mx-auto">
-                Estas ayudas permiten financiar desplazamientos, material deportivo y la participación en competiciones oficiales.
+                Estas ayudas se traducen directamente en más oportunidades, competición y desarrollo para nuestros jugadores, 
+                permitiéndonos financiar desplazamientos, adquirir material deportivo y participar en competiciones oficiales.
               </p>
 
               {/* LISTA DETALHADA */}
