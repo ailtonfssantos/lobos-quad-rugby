@@ -1,1517 +1,300 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { API_URL, getImageUrl } from '../config';
-
-/* =========================================================
-   ICON COMPONENT
-========================================================= */
+import { useEffect, useState } from 'react';
+import { getImageUrl } from '../../config'; 
 
 const Icon = ({ path, className = "w-5 h-5" }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d={path}
-    />
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
   </svg>
 );
 
-/* =========================================================
-   YOUTUBE / PLAY ICON
-========================================================= */
-
-const PlayIcon = ({ className = "w-4 h-4" }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-  >
-    <path d="M8 5.14v13.72c0 .78.85 1.26 1.52.86l10.94-6.86a1 1 0 000-1.72L9.52 4.28C8.85 3.88 8 4.36 8 5.14Z" />
-  </svg>
-);
-
-/* =========================================================
-   MAIN COMPONENT
-========================================================= */
-
-export default function Competitions() {
-
+export default function Jornadas() {
   const [jornadas, setJornadas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState('activas');
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  /* =======================================================
-     LOAD JORNADAS
-  ======================================================= */
+  const initialPartido = { rival: '', diaSemana: 'Sábado', horario: '', youtubeLink: '', status: 'PROGRAMADO', lobosScore: '', rivalScore: '' };
 
-  useEffect(() => {
+  const [formData, setFormData] = useState({
+    numero: '', competicion: 'Liga Nacional 26/27', ciudad: '', pabellon: '', fechas: '', bannerUrl: '',
+    partidos: [{ ...initialPartido }, { ...initialPartido }, { ...initialPartido }]
+  });
 
-    const fetchJornadas = async () => {
-
-      try {
-
-        setLoading(true);
-        setError(false);
-
-        const res = await fetch(`${API_URL}/api/jornadas`);
-
-        if (!res.ok) {
-          throw new Error(`Error HTTP: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        const jornadasActivas = Array.isArray(data)
-          ? data.filter(jornada => jornada.isActive === true)
-          : [];
-
-        setJornadas(jornadasActivas);
-
-      } catch (err) {
-
-        console.error("❌ Error al cargar jornadas:", err);
-        setError(true);
-
-      } finally {
-
-        setLoading(false);
-
-      }
-    };
-
-    fetchJornadas();
-
-  }, []);
-
-  /* =======================================================
-     UPDATE CURRENT TIME
-     
-     Se actualiza cada 30 segundos para que el estado
-     EN DIRECTO se actualice automáticamente.
-  ======================================================= */
-
-  useEffect(() => {
-
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 30000);
-
-    return () => clearInterval(timer);
-
-  }, []);
-
-  /* =======================================================
-     MONTHS
-  ======================================================= */
-
-  const meses = {
-    ENERO: 0,
-    FEBRERO: 1,
-    MARZO: 2,
-    ABRIL: 3,
-    MAYO: 4,
-    JUNIO: 5,
-    JULIO: 6,
-    AGOSTO: 7,
-    SEPTIEMBRE: 8,
-    OCTUBRE: 9,
-    NOVIEMBRE: 10,
-    DICIEMBRE: 11
+  const fetchJornadas = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas`, { headers: { 'Authorization': `Bearer ${token}` } });
+      setJornadas(await res.json());
+    } catch (error) { console.error(error); } finally { setLoading(false); }
   };
 
-  /* =======================================================
-     DAYS
-  ======================================================= */
+  useEffect(() => { fetchJornadas(); }, []);
 
-  const diasSemana = [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado'
-  ];
-
-  /* =======================================================
-     PARSE JOURNEY DATE
-     
-     Compatible con:
-     "10 Y 11 DE SEPTIEMBRE DE 2026"
-     "10 DE SEPTIEMBRE DE 2026"
-     "10/09/2026"
-  ======================================================= */
-
-  const parseJornadaDates = (fechas) => {
-
-    if (!fechas || typeof fechas !== 'string') {
-      return null;
+  const openModal = (jornada = null) => {
+    if (jornada) {
+      setEditingId(jornada.id);
+      const partidosRellenos = [...jornada.partidos];
+      while (partidosRellenos.length < 3) partidosRellenos.push({ ...initialPartido });
+      
+      setFormData({
+        numero: jornada.numero, competicion: jornada.competicion, ciudad: jornada.ciudad,
+        pabellon: jornada.pabellon, fechas: jornada.fechas, bannerUrl: jornada.bannerUrl || '',
+        partidos: partidosRellenos.map(p => ({ ...p, lobosScore: p.lobosScore ?? '', rivalScore: p.rivalScore ?? '' }))
+      });
+    } else {
+      setEditingId(null);
+      setFormData({ numero: '', competicion: 'Liga Nacional 26/27', ciudad: '', pabellon: '', fechas: '', bannerUrl: '', partidos: [{ ...initialPartido }, { ...initialPartido }, { ...initialPartido }] });
     }
-
-    const texto = fechas.trim().toUpperCase();
-
-    /* -----------------------------------------------
-       FORMAT: 10/09/2026
-    ------------------------------------------------ */
-
-    const slashMatch = texto.match(
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/
-    );
-
-    if (slashMatch) {
-
-      const day = parseInt(slashMatch[1], 10);
-      const month = parseInt(slashMatch[2], 10) - 1;
-      const year = parseInt(slashMatch[3], 10);
-
-      return {
-        year,
-        month,
-        days: [day]
-      };
-    }
-
-    /* -----------------------------------------------
-       YEAR
-    ------------------------------------------------ */
-
-    const yearMatch = texto.match(/(\d{4})/);
-
-    const year = yearMatch
-      ? parseInt(yearMatch[1], 10)
-      : new Date().getFullYear();
-
-    /* -----------------------------------------------
-       MONTH
-    ------------------------------------------------ */
-
-    const monthMatch = texto.match(
-      /DE\s+(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)/
-    );
-
-    const month = monthMatch
-      ? meses[monthMatch[1]]
-      : null;
-
-    /* -----------------------------------------------
-       DAYS
-    ------------------------------------------------ */
-
-    const rangeMatch = texto.match(
-      /(\d{1,2})\s*(?:Y|-|A)\s*(\d{1,2})/
-    );
-
-    if (rangeMatch) {
-
-      return {
-        year,
-        month,
-        days: [
-          parseInt(rangeMatch[1], 10),
-          parseInt(rangeMatch[2], 10)
-        ]
-      };
-    }
-
-    const singleDayMatch = texto.match(
-      /(?:^|\s)(\d{1,2})(?:\s+DE|\s*$)/
-    );
-
-    if (singleDayMatch) {
-
-      return {
-        year,
-        month,
-        days: [
-          parseInt(singleDayMatch[1], 10)
-        ]
-      };
-    }
-
-    return null;
+    setModalOpen(true);
   };
 
-  /* =======================================================
-     PARSE SPECIFIC DATE FROM PARTIDO
-     
-     Se procura primeiro uma data específica do partido.
-     Depois utiliza la fecha de la jornada.
-  ======================================================= */
-
-  const getMatchDate = (jornada, partido) => {
-
-    /*
-      Possíveis campos aceitos:
-
-      partido.fecha
-      partido.date
-      partido.fechaPartido
-
-      Se não existir, utiliza a data da jornada.
-    */
-
-    const specificDate =
-      partido?.fecha ||
-      partido?.date ||
-      partido?.fechaPartido;
-
-    if (specificDate) {
-
-      /* ISO: 2026-09-10 */
-
-      const isoMatch = String(specificDate).match(
-        /^(\d{4})-(\d{1,2})-(\d{1,2})/
-      );
-
-      if (isoMatch) {
-
-        return {
-          year: parseInt(isoMatch[1], 10),
-          month: parseInt(isoMatch[2], 10) - 1,
-          day: parseInt(isoMatch[3], 10)
-        };
-      }
-
-      /* 10/09/2026 */
-
-      const slashMatch = String(specificDate).match(
-        /^(\d{1,2})\/(\d{1,2})\/(\d{4})/
-      );
-
-      if (slashMatch) {
-
-        return {
-          year: parseInt(slashMatch[3], 10),
-          month: parseInt(slashMatch[2], 10) - 1,
-          day: parseInt(slashMatch[1], 10)
-        };
-      }
-    }
-
-    const parsed = parseJornadaDates(jornada?.fechas);
-
-    if (!parsed || parsed.days.length === 0) {
-      return null;
-    }
-
-    let dayIndex = 0;
-
-    const diaTexto = (
-      partido?.diaSemana ||
-      ''
-    ).toLowerCase();
-
-    if (diaTexto.includes('domingo')) {
-      dayIndex = 1;
-    }
-
-    /*
-      Se for sábado, usa primeiro dia.
-      Se for domingo e existir segundo dia, usa segundo.
-    */
-
-    const day =
-      parsed.days[dayIndex] ||
-      parsed.days[0];
-
-    if (parsed.month === null || !day) {
-      return null;
-    }
-
-    return {
-      year: parsed.year,
-      month: parsed.month,
-      day
-    };
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formDataUpload = new FormData();
+    formDataUpload.append('image', file);
+    setUploadingBanner(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formDataUpload
+      });
+      const data = await res.json();
+      setFormData(prev => ({ ...prev, bannerUrl: data.url }));
+    } catch (err) { alert('Error al subir el banner'); } finally { setUploadingBanner(false); }
   };
 
-  /* =======================================================
-     GET MATCH DATETIME
-  ======================================================= */
-
-  const getMatchDateTime = (jornada, partido) => {
-
-    const date = getMatchDate(jornada, partido);
-
-    if (!date) {
-      return null;
-    }
-
-    if (!partido?.horario) {
-      return new Date(
-        date.year,
-        date.month,
-        date.day,
-        0,
-        0,
-        0
-      );
-    }
-
-    const timeParts = String(partido.horario)
-      .split(':')
-      .map(Number);
-
-    const hours = Number.isFinite(timeParts[0])
-      ? timeParts[0]
-      : 0;
-
-    const minutes = Number.isFinite(timeParts[1])
-      ? timeParts[1]
-      : 0;
-
-    return new Date(
-      date.year,
-      date.month,
-      date.day,
-      hours,
-      minutes,
-      0
-    );
+  const updatePartido = (index, field, value) => {
+    const nuevosPartidos = [...formData.partidos];
+    nuevosPartidos[index][field] = value;
+    setFormData({ ...formData, partidos: nuevosPartidos });
   };
 
-  /* =======================================================
-     GET END TIME
-     
-     Assume duração aproximada de 2 horas.
-  ======================================================= */
-
-  const getMatchEndDateTime = (jornada, partido) => {
-
-    const start = getMatchDateTime(jornada, partido);
-
-    if (!start) {
-      return null;
-    }
-
-    const end = new Date(start);
-
-    /*
-      Rugby wheelchair:
-      usamos 2h como janela aproximada para transmissão.
-    */
-
-    end.setMinutes(
-      end.getMinutes() + 120
-    );
-
-    return end;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const url = editingId ? `${import.meta.env.VITE_API_URL}/api/jornadas/${editingId}` : `${import.meta.env.VITE_API_URL}/api/jornadas`;
+    try {
+      await fetch(url, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(formData)
+      });
+      setModalOpen(false);
+      fetchJornadas();
+    } catch (error) { console.error(error); }
   };
 
-  /* =======================================================
-     DYNAMIC MATCH STATUS
-  ======================================================= */
-
-  const getDynamicStatus = (jornada, partido) => {
-
-    /*
-      Estados manuais do backend têm prioridade.
-    */
-
-    const backendStatus = String(
-      partido?.status || ''
-    ).toUpperCase();
-
-    if (backendStatus === 'CANCELADO') {
-      return 'CANCELADO';
-    }
-
-    if (
-      backendStatus === 'FINALIZADO' ||
-      backendStatus === 'FINAL'
-    ) {
-      return 'FINALIZADO';
-    }
-
-    /*
-      Se não existe data/hora, fica programado.
-    */
-
-    const start = getMatchDateTime(
-      jornada,
-      partido
-    );
-
-    const end = getMatchEndDateTime(
-      jornada,
-      partido
-    );
-
-    if (!start || !end) {
-      return 'PROGRAMADO';
-    }
-
-    /*
-      PARTIDO EM DIRECTO
-    */
-
-    if (
-      currentTime >= start &&
-      currentTime <= end
-    ) {
-      return 'EN_DIRECTO';
-    }
-
-    /*
-      PARTIDO AINDA NÃO COMEÇOU
-    */
-
-    if (currentTime < start) {
-      return 'PROGRAMADO';
-    }
-
-    /*
-      PARTIDO JÁ PASSOU.
-
-      Se existe resultado, consideramos finalizado.
-    */
-
-    const hasScore =
-      partido?.lobosScore !== null &&
-      partido?.lobosScore !== undefined &&
-      partido?.rivalScore !== null &&
-      partido?.rivalScore !== undefined;
-
-    if (hasScore) {
-      return 'FINALIZADO';
-    }
-
-    /*
-      Evita que partidos antigos apareçam como
-      PROGRAMADO.
-    */
-
-    return 'PENDIENTE';
+  const toggleActiva = async (id, currentStatus) => {
+    const token = localStorage.getItem('token');
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ isActive: !currentStatus })
+      });
+      fetchJornadas();
+    } catch (error) { console.error(error); }
   };
 
-  /* =======================================================
-     GET TEAM INFORMATION
-     
-     Mantém compatibilidade com a API atual e permite
-     estrutura nova.
-  ======================================================= */
-
-  const getHomeTeam = (partido) => {
-
-    const equipoLocal =
-      partido?.equipoLocal ||
-      partido?.localTeam ||
-      {};
-
-    return {
-      name:
-        equipoLocal?.nombre ||
-        partido?.equipoLocalNombre ||
-        partido?.localNombre ||
-        'Lobos Quad Rugby',
-
-      logo:
-        equipoLocal?.logo ||
-        partido?.equipoLocalLogo ||
-        partido?.localLogo ||
-        null
-    };
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    const token = localStorage.getItem('token');
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/jornadas/${itemToDelete}`, {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+      });
+      fetchJornadas();
+      setItemToDelete(null);
+    } catch (error) { console.error(error); }
   };
 
-  const getAwayTeam = (partido) => {
+  const displayedJornadas = activeTab === 'activas' ? jornadas.filter(j => j.isActive) : jornadas.filter(j => !j.isActive);
 
-    const equipoVisitante =
-      partido?.equipoVisitante ||
-      partido?.awayTeam ||
-      {};
-
-    return {
-      name:
-        equipoVisitante?.nombre ||
-        partido?.equipoVisitanteNombre ||
-        partido?.visitanteNombre ||
-        partido?.rival ||
-        'Rival',
-
-      logo:
-        equipoVisitante?.logo ||
-        partido?.equipoVisitanteLogo ||
-        partido?.visitanteLogo ||
-        partido?.rivalLogo ||
-        null
-    };
-  };
-
-  /* =======================================================
-     FORMAT DAY
-  ======================================================= */
-
-  const getFormattedDay = (jornada, partido) => {
-
-    /*
-      Si diaSemana existe en backend,
-      lo utilizamos apenas para presentación.
-    */
-
-    if (partido?.diaSemana) {
-
-      const texto = String(
-        partido.diaSemana
-      );
-
-      return texto.charAt(0).toUpperCase() +
-        texto.slice(1);
-    }
-
-    /*
-      Caso contrário, calculamos automáticamente.
-    */
-
-    const date = getMatchDateTime(
-      jornada,
-      partido
-    );
-
-    if (!date) {
-      return '';
-    }
-
-    return diasSemana[
-      date.getDay()
-    ];
-  };
-
-  /* =======================================================
-     FORMAT FULL DATE
-  ======================================================= */
-
-  const formatFullDate = (jornada) => {
-
-    if (!jornada?.fechas) {
-      return '';
-    }
-
-    return jornada.fechas;
-  };
-
-  /* =======================================================
-     TEAM LOGO
-  ======================================================= */
-
-  const TeamLogo = ({
-    logo,
-    name,
-    size = "large"
-  }) => {
-
-    const dimensions =
-      size === "large"
-        ? "w-20 h-20 md:w-24 md:h-24"
-        : "w-14 h-14 md:w-16 md:h-16";
-
-    if (!logo) {
-
-      return (
-        <div
-          className={`${dimensions} rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center`}
-        >
-          <span className="text-zinc-600 text-[10px] font-bold uppercase text-center px-2">
-            {name?.substring(0, 3)}
-          </span>
-        </div>
-      );
-    }
-
-    return (
-      <div
-        className={`${dimensions} rounded-full bg-white/95 border border-zinc-700 p-2 flex items-center justify-center overflow-hidden group-hover:border-red-500/40 transition-colors duration-300`}
-      >
-        <img
-          src={getImageUrl(logo)}
-          alt={`Logo ${name}`}
-          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
-    );
-  };
-
-  /* =======================================================
-     STATUS BADGE
-  ======================================================= */
-
-  const StatusBadge = ({ status }) => {
-
-    if (status === 'EN_DIRECTO') {
-
-      return (
-        <span className="inline-flex items-center gap-2 px-4 py-2 border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full animate-pulse">
-          <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-          En directo
-        </span>
-      );
-    }
-
-    if (status === 'FINALIZADO') {
-
-      return (
-        <span className="inline-flex items-center gap-2 px-4 py-2 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">
-          Finalizado
-        </span>
-      );
-    }
-
-    if (status === 'CANCELADO') {
-
-      return (
-        <span className="inline-flex items-center gap-2 px-4 py-2 border border-red-500/30 bg-red-500/10 text-red-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">
-          Cancelado
-        </span>
-      );
-    }
-
-    if (status === 'PENDIENTE') {
-
-      return (
-        <span className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-500/20 bg-yellow-500/5 text-yellow-500 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">
-          Pendiente de resultado
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center gap-2 px-4 py-2 border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">
-        Programado
-      </span>
-    );
-  };
-
-  /* =======================================================
-     YOUTUBE BUTTON
-  ======================================================= */
-
-  const YoutubeButton = ({
-    link,
-    status
-  }) => {
-
-    if (!link) {
-      return null;
-    }
-
-    let label = 'Ver en vivo';
-
-    if (status === 'EN_DIRECTO') {
-      label = 'Ver ahora';
-    }
-
-    if (
-      status === 'FINALIZADO' ||
-      status === 'PENDIENTE'
-    ) {
-      label = 'Ver el partido';
-    }
-
-    return (
-      <a
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="
-          inline-flex items-center justify-center gap-2
-          px-5 py-2.5 md:px-6 md:py-3
-          bg-red-600
-          hover:bg-red-500
-          text-white
-          text-[10px] md:text-xs
-          font-bold
-          uppercase
-          tracking-[0.12em]
-          rounded-sm
-          transition-all
-          duration-300
-          hover:shadow-lg
-          hover:shadow-red-600/20
-          active:scale-95
-        "
-      >
-        <PlayIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
-        {label}
-      </a>
-    );
-  };
-
-  /* =======================================================
-     SCORE
-  ======================================================= */
-
-  const Score = ({
-    homeScore,
-    awayScore,
-    homeName,
-    awayName
-  }) => {
-
-    const home =
-      Number(homeScore);
-
-    const away =
-      Number(awayScore);
-
-    const homeWinner =
-      Number.isFinite(home) &&
-      Number.isFinite(away) &&
-      home > away;
-
-    const awayWinner =
-      Number.isFinite(home) &&
-      Number.isFinite(away) &&
-      away > home;
-
-    return (
-      <div className="flex items-center justify-center gap-4 md:gap-8">
-
-        <div className="text-center min-w-[70px] md:min-w-[90px]">
-
-          <p
-            className={`
-              font-display
-              text-4xl md:text-5xl
-              font-bold
-              leading-none
-              ${homeWinner
-                ? 'text-red-500'
-                : 'text-white'
-              }
-            `}
-          >
-            {homeScore}
-          </p>
-
-          <p className="mt-2 text-[9px] md:text-[10px] uppercase tracking-wider text-zinc-600 max-w-[90px] mx-auto truncate">
-            {homeName}
-          </p>
-
-        </div>
-
-        <span className="text-zinc-700 text-2xl md:text-3xl font-light">
-          -
-        </span>
-
-        <div className="text-center min-w-[70px] md:min-w-[90px]">
-
-          <p
-            className={`
-              font-display
-              text-4xl md:text-5xl
-              font-bold
-              leading-none
-              ${awayWinner
-                ? 'text-red-500'
-                : 'text-white'
-              }
-            `}
-          >
-            {awayScore}
-          </p>
-
-          <p className="mt-2 text-[9px] md:text-[10px] uppercase tracking-wider text-zinc-600 max-w-[90px] mx-auto truncate">
-            {awayName}
-          </p>
-
-        </div>
-
-      </div>
-    );
-  };
-
-  /* =======================================================
-     MATCH CARD
-  ======================================================= */
-
-  const MatchCard = ({
-    jornada,
-    partido,
-    index
-  }) => {
-
-    const status =
-      getDynamicStatus(
-        jornada,
-        partido
-      );
-
-    const home =
-      getHomeTeam(partido);
-
-    const away =
-      getAwayTeam(partido);
-
-    const dia =
-      getFormattedDay(
-        jornada,
-        partido
-      );
-
-    const youtubeLink =
-      partido?.youtubeLink ||
-      partido?.youtube ||
-      partido?.videoUrl ||
-      null;
-
-    const hasScore =
-      partido?.lobosScore !== null &&
-      partido?.lobosScore !== undefined &&
-      partido?.rivalScore !== null &&
-      partido?.rivalScore !== undefined;
-
-    return (
-      <article
-        className="
-          group
-          relative
-          bg-zinc-950
-          border border-zinc-800
-          hover:border-zinc-700
-          rounded-sm
-          overflow-hidden
-          transition-all
-          duration-300
-        "
-      >
-
-        {/* TOP LINE */}
-
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-700 to-transparent group-hover:via-red-600/60 transition-colors duration-500"></div>
-
-        <div className="p-5 md:p-8">
-
-          {/* ===============================================
-              DATE / TIME
-          =============================================== */}
-
-          <div className="text-center mb-6 md:mb-8">
-
-            <div className="flex items-center justify-center gap-2 text-zinc-500">
-
-              <Icon
-                path="M12 8v4l3 3 M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                className="w-3.5 h-3.5"
-              />
-
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
-                {dia}
-              </span>
-
-              {partido?.horario && (
-                <>
-                  <span className="text-zinc-700">·</span>
-
-                  <span className="text-red-500 text-sm md:text-base font-display font-bold tracking-wider">
-                    {partido.horario}
-                  </span>
-                </>
-              )}
-
-            </div>
-
-          </div>
-
-          {/* ===============================================
-              DESKTOP / TABLET
-          =============================================== */}
-
-          <div className="hidden sm:grid grid-cols-[1fr_auto_1fr] items-center gap-6 md:gap-10">
-
-            {/* HOME */}
-
-            <div className="flex flex-col items-center text-center">
-
-              <TeamLogo
-                logo={home.logo}
-                name={home.name}
-              />
-
-              <h3 className="mt-4 text-sm md:text-base font-bold uppercase tracking-wide text-white max-w-[180px]">
-                {home.name}
-              </h3>
-
-            </div>
-
-            {/* CENTER */}
-
-            <div className="flex flex-col items-center min-w-[130px]">
-
-              {status === 'FINALIZADO' && hasScore ? (
-
-                <Score
-                  homeScore={partido.lobosScore}
-                  awayScore={partido.rivalScore}
-                  homeName={home.name}
-                  awayName={away.name}
-                />
-
-              ) : (
-
-                <span className="font-display text-lg md:text-xl text-zinc-700">
-                  VS
-                </span>
-
-              )}
-
-            </div>
-
-            {/* AWAY */}
-
-            <div className="flex flex-col items-center text-center">
-
-              <TeamLogo
-                logo={away.logo}
-                name={away.name}
-              />
-
-              <h3 className="mt-4 text-sm md:text-base font-bold uppercase tracking-wide text-white max-w-[180px]">
-                {away.name}
-              </h3>
-
-            </div>
-
-          </div>
-
-          {/* ===============================================
-              MOBILE
-          =============================================== */}
-
-          <div className="sm:hidden">
-
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-
-              {/* HOME */}
-
-              <div className="flex flex-col items-center text-center">
-
-                <TeamLogo
-                  logo={home.logo}
-                  name={home.name}
-                  size="small"
-                />
-
-                <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-white leading-tight max-w-[100px]">
-                  {home.name}
-                </p>
-
-              </div>
-
-              {/* SCORE / VS */}
-
-              <div className="flex flex-col items-center px-2">
-
-                {status === 'FINALIZADO' && hasScore ? (
-
-                  <div className="flex items-center gap-2">
-
-                    <span className="font-display text-2xl font-bold text-white">
-                      {partido.lobosScore}
-                    </span>
-
-                    <span className="text-zinc-700">
-                      -
-                    </span>
-
-                    <span className="font-display text-2xl font-bold text-white">
-                      {partido.rivalScore}
-                    </span>
-
-                  </div>
-
-                ) : (
-
-                  <span className="font-display text-sm text-zinc-700">
-                    VS
-                  </span>
-
-                )}
-
-              </div>
-
-              {/* AWAY */}
-
-              <div className="flex flex-col items-center text-center">
-
-                <TeamLogo
-                  logo={away.logo}
-                  name={away.name}
-                  size="small"
-                />
-
-                <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-white leading-tight max-w-[100px]">
-                  {away.name}
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* ===============================================
-              DIVIDER
-          =============================================== */}
-
-          <div className="my-6 md:my-7 border-t border-zinc-900"></div>
-
-          {/* ===============================================
-              STATUS
-          =============================================== */}
-
-          <div className="flex flex-col items-center gap-4">
-
-            <StatusBadge
-              status={status}
-            />
-
-            {/* YOUTUBE */}
-
-            <YoutubeButton
-              link={youtubeLink}
-              status={status}
-            />
-
-          </div>
-
-          {/* ===============================================
-              CANCELLED MESSAGE
-          =============================================== */}
-
-          {status === 'CANCELADO' && (
-            <p className="mt-4 text-center text-[10px] text-red-400 uppercase tracking-wider">
-              Este partido ha sido cancelado.
-            </p>
-          )}
-
-          {/* ===============================================
-              PENDING MESSAGE
-          =============================================== */}
-
-          {status === 'PENDIENTE' && !hasScore && (
-            <p className="mt-4 text-center text-[10px] text-zinc-600 uppercase tracking-wider">
-              Resultado pendiente de actualización.
-            </p>
-          )}
-
-        </div>
-
-      </article>
-    );
-  };
-
-  /* =======================================================
-     LOADING
-  ======================================================= */
-
-  if (loading) {
-
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-
-        <div className="text-center">
-
-          <div className="w-8 h-8 border-2 border-zinc-800 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
-
-          <p className="text-zinc-500 text-xs uppercase tracking-[0.2em]">
-            Cargando competiciones...
-          </p>
-
-        </div>
-
-      </div>
-    );
-  }
-
-  /* =======================================================
-     ERROR
-  ======================================================= */
-
-  if (error) {
-
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-
-        <section className="min-h-[60vh] flex items-center justify-center px-4">
-
-          <div className="text-center max-w-lg">
-
-            <div className="w-14 h-14 border border-red-500/20 bg-red-500/5 flex items-center justify-center mx-auto mb-6">
-
-              <Icon
-                path="M12 9v3.75m0 3h.007M10.29 3.86l-7.82 13.5A1.5 1.5 0 003.77 19.6h16.46a1.5 1.5 0 001.3-2.24l-7.82-13.5a1.5 1.5 0 00-2.6 0z"
-                className="w-6 h-6 text-red-500"
-              />
-
-            </div>
-
-            <h1 className="font-display text-3xl text-white mb-3">
-              No se pudieron cargar las competiciones
-            </h1>
-
-            <p className="text-zinc-500 text-sm leading-relaxed">
-              Se ha producido un error al conectar con el calendario de competición. Inténtalo de nuevo más tarde.
-            </p>
-
-          </div>
-
-        </section>
-
-      </div>
-    );
-  }
-
-  /* =======================================================
-     MAIN PAGE
-  ======================================================= */
+  if (loading) return <div className="text-zinc-500">Cargando jornadas...</div>;
 
   return (
-
-    <div className="min-h-screen bg-zinc-950 text-white">
-
-      {/* ===================================================
-          HERO
-      =================================================== */}
-
-      <section className="relative py-20 md:py-28 bg-zinc-900 border-b border-zinc-800 overflow-hidden">
-
-        {/* Background */}
-
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-red-900/20 via-zinc-950 to-zinc-950"></div>
-
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-600/5 rounded-full blur-3xl"></div>
-
-        <div className="relative max-w-7xl mx-auto px-4 text-center">
-
-          <p className="text-red-500 font-bold tracking-[0.25em] text-[10px] md:text-xs mb-5 uppercase">
-            Temporada Rugby 26-27
-          </p>
-
-          <h1 className="font-display text-5xl sm:text-6xl md:text-8xl leading-none mb-6 text-white">
-            COMPETICIONES
-          </h1>
-
-          <p className="text-zinc-400 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Consulta el calendario de Lobos Quad Rugby, sigue nuestros partidos en directo y revisa los resultados de la temporada.
-          </p>
-
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-3xl text-white mb-1">Gestión de Jornadas</h1>
+          <p className="text-zinc-500 text-sm">Administre las jornadas, banners, horarios y enlaces de transmisión.</p>
         </div>
+        <button onClick={() => openModal()} className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm">
+          <Icon path="M12 4.5v15m7.5-7.5h-15" className="w-4 h-4" /> Nueva Jornada
+        </button>
+      </div>
 
-      </section>
+      <div className="flex border-b border-zinc-800">
+        <button onClick={() => setActiveTab('activas')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'activas' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>Jornadas Activas</button>
+        <button onClick={() => setActiveTab('historico')} className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'historico' ? 'border-red-600 text-red-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>Histórico</button>
+      </div>
 
-      {/* ===================================================
-          CONTENT
-      =================================================== */}
+      {displayedJornadas.length === 0 ? (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-12 text-center">
+          <p className="text-zinc-500 mb-4">{activeTab === 'activas' ? 'Aún no hay jornadas activas.' : 'No hay jornadas en el histórico.'}</p>
+          {activeTab === 'activas' && <button onClick={() => openModal()} className="px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm">Crear Primera Jornada</button>}
+        </div>
+      ) : (
+        /* ✅ CORREÇÃO: overflow-x-auto e min-w-[800px] adicionados aqui */
+        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
+          <table className="w-full text-left min-w-[800px]">
+            <thead className="bg-zinc-950 border-b border-zinc-800">
+              <tr>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Jornada</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Ubicación</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Fechas</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Partidos</th>
+                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800">
+              {displayedJornadas.map((j) => (
+                <tr key={j.id} className="hover:bg-zinc-800/30 transition-colors">
+                  <td className="px-6 py-4">
+                    <p className="text-white font-bold text-lg">Jornada {j.numero}</p>
+                    <p className="text-zinc-500 text-xs uppercase">{j.competicion}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-zinc-300 text-sm">{j.ciudad}</p>
+                    <p className="text-zinc-500 text-xs">{j.pabellon}</p>
+                  </td>
+                  <td className="px-6 py-4"><span className="text-zinc-300 text-sm">{j.fechas}</span></td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      {j.partidos.map((p, idx) => (
+                        <span key={idx} className="text-xs text-zinc-400">
+                          {p.diaSemana} {p.horario && <span className="text-zinc-300">({p.horario})</span>}: <span className="text-white">{p.rival}</span> 
+                          {p.status === 'FINALIZADO' && <span className="text-green-500 ml-1">({p.lobosScore}-{p.rivalScore})</span>}
+                          {p.youtubeLink && <span className="text-red-500 ml-1">🔴 En vivo</span>}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => openModal(j)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors" title="Editar">
+                        <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                      </button>
+                      <button onClick={() => toggleActiva(j.id, j.isActive)} className={`p-2 rounded-sm transition-colors ${j.isActive ? 'text-yellow-500 hover:bg-yellow-500/10' : 'text-green-500 hover:bg-green-500/10'}`} title={j.isActive ? 'Archivar' : 'Reactivar'}>
+                        <Icon path={j.isActive ? 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' : 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'} />
+                      </button>
+                      <button onClick={() => setItemToDelete(j.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Eliminar">
+                        <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <main className="max-w-5xl mx-auto px-4 py-12 md:py-20">
-
-        {jornadas.length === 0 ? (
-
-          /* ===============================================
-             EMPTY
-          =============================================== */
-
-          <div className="py-20 text-center">
-
-            <div className="w-16 h-16 border border-zinc-800 bg-zinc-900 flex items-center justify-center mx-auto mb-6">
-
-              <Icon
-                path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
-                className="w-6 h-6 text-zinc-600"
-              />
-
+      {/* MODAL DE CREACIÓN/EDICIÓN */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-3xl w-full my-8 shadow-2xl">
+            <div className="p-6 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900 z-10">
+              <h2 className="font-display text-2xl text-white">{editingId ? 'Editar Jornada' : 'Nueva Jornada'}</h2>
+              <button onClick={() => setModalOpen(false)} className="text-zinc-500 hover:text-white"><Icon path="M6 18L18 6M6 6l12 12" /></button>
             </div>
-
-            <p className="text-zinc-600 italic text-sm">
-              El calendario de la temporada se publicará próximamente.
-            </p>
-
-          </div>
-
-        ) : (
-
-          /* ===============================================
-             JOURNEYS
-          =============================================== */
-
-          <div className="space-y-12 md:space-y-16">
-
-            {jornadas.map((jornada) => (
-
-              <section
-                key={jornada.id}
-                className="
-                  bg-zinc-900
-                  border border-zinc-800
-                  rounded-sm
-                  overflow-hidden
-                "
-              >
-
-                {/* =========================================
-                    BANNER
-                ========================================= */}
-
-                {jornada.bannerUrl && (
-
-                  <div className="relative w-full h-44 md:h-64 overflow-hidden bg-zinc-800">
-
-                    <img
-                      src={getImageUrl(jornada.bannerUrl)}
-                      alt={`Jornada ${jornada.numero}`}
-                      className="w-full h-full object-cover opacity-60 group-hover:opacity-70"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-transparent"></div>
-
-                    <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-
-                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-1">
-                        {jornada.competicion || 'Competición'}
-                      </p>
-
-                      <h2 className="font-display text-3xl md:text-5xl text-white">
-                        Jornada {jornada.numero}
-                      </h2>
-
-                    </div>
-
-                  </div>
-
-                )}
-
-                {/* =========================================
-                    JOURNEY HEADER
-                ========================================= */}
-
-                <div
-                  className={`
-                    p-5 md:p-8
-                    ${jornada.bannerUrl
-                      ? 'pt-5 md:pt-7'
-                      : ''
-                    }
-                  `}
-                >
-
-                  {!jornada.bannerUrl && (
-
-                    <div className="border-b border-zinc-800 pb-6 mb-6">
-
-                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-2">
-                        {jornada.competicion || 'Competición'}
-                      </p>
-
-                      <h2 className="font-display text-3xl md:text-5xl text-white">
-                        Jornada {jornada.numero}
-                      </h2>
-
-                    </div>
-
-                  )}
-
-                  {/* JOURNEY INFO */}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-7 md:mb-8">
-
-                    {/* CITY */}
-
-                    <div className="flex items-start gap-3">
-
-                      <div className="w-9 h-9 shrink-0 bg-zinc-950 border border-zinc-800 flex items-center justify-center">
-
-                        <Icon
-                          path="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-                          className="w-4 h-4 text-red-500"
-                        />
-
-                      </div>
-
-                      <div>
-
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-600 mb-1">
-                          Ciudad
-                        </p>
-
-                        <p className="text-sm text-zinc-200 font-medium">
-                          {jornada.ciudad || 'Por confirmar'}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    {/* VENUE */}
-
-                    <div className="flex items-start gap-3">
-
-                      <div className="w-9 h-9 shrink-0 bg-zinc-950 border border-zinc-800 flex items-center justify-center">
-
-                        <Icon
-                          path="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"
-                          className="w-4 h-4 text-red-500"
-                        />
-
-                      </div>
-
-                      <div>
-
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-600 mb-1">
-                          Pabellón
-                        </p>
-
-                        <p className="text-sm text-zinc-200 font-medium">
-                          {jornada.pabellon || 'Por confirmar'}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    {/* DATE */}
-
-                    <div className="flex items-start gap-3">
-
-                      <div className="w-9 h-9 shrink-0 bg-zinc-950 border border-zinc-800 flex items-center justify-center">
-
-                        <Icon
-                          path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
-                          className="w-4 h-4 text-red-500"
-                        />
-
-                      </div>
-
-                      <div>
-
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-600 mb-1">
-                          Fecha
-                        </p>
-
-                        <p className="text-sm text-zinc-200 font-medium">
-                          {formatFullDate(jornada)}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  {/* =========================================
-                      MATCHES
-                  ========================================= */}
-
-                  <div className="space-y-4">
-
-                    {Array.isArray(jornada.partidos) &&
-                      jornada.partidos.length > 0 ? (
-
-                      jornada.partidos.map(
-                        (partido, index) => (
-
-                          <MatchCard
-                            key={
-                              partido.id ||
-                              `${jornada.id}-${index}`
-                            }
-                            jornada={jornada}
-                            partido={partido}
-                            index={index}
-                          />
-
-                        )
-                      )
-
-                    ) : (
-
-                      <div className="py-10 text-center border border-zinc-800 bg-zinc-950">
-
-                        <p className="text-zinc-600 text-xs uppercase tracking-wider">
-                          No hay partidos disponibles para esta jornada.
-                        </p>
-
-                      </div>
-
-                    )}
-
-                  </div>
-
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Número de Jornada *</label>
+                  <input type="number" value={formData.numero} onChange={(e) => setFormData({...formData, numero: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
                 </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Competición *</label>
+                  <select value={formData.competicion} onChange={(e) => setFormData({...formData, competicion: e.target.value})} className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
+                    <option>Liga Nacional 26/27</option>
+                    <option>Autonómico</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Ciudad *</label>
+                  <input type="text" value={formData.ciudad} onChange={(e) => setFormData({...formData, ciudad: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Pabellón *</label>
+                  <input type="text" value={formData.pabellon} onChange={(e) => setFormData({...formData, pabellon: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Fechas (Ej: 17 y 18 de Octubre) *</label>
+                  <input type="text" value={formData.fechas} onChange={(e) => setFormData({...formData, fechas: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Banner Promocional</label>
+                  <div className="flex items-center gap-4">
+                    {formData.bannerUrl && <img src={getImageUrl(formData.bannerUrl)} alt="Banner" className="h-16 w-auto border border-zinc-700 rounded-sm" />}
+                    <label className="flex items-center gap-2 px-4 py-2 bg-zinc-950 border border-zinc-700 hover:border-red-600 text-zinc-300 cursor-pointer rounded-sm text-sm">
+                      {uploadingBanner ? 'Subiendo...' : 'Elegir Imagen'}
+                      <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" disabled={uploadingBanner} />
+                    </label>
+                  </div>
+                </div>
+              </div>
 
-              </section>
+              <div className="border-t border-zinc-800 pt-4">
+                <h3 className="font-display text-lg text-white mb-4">Partidos de la Jornada</h3>
+                <div className="space-y-4">
+                  {formData.partidos.map((p, idx) => (
+                    <div key={idx} className="bg-zinc-950 border border-zinc-800 p-4 rounded-sm">
+                      <p className="text-zinc-500 text-xs uppercase tracking-widest mb-3">Partido {idx + 1} <span className="text-zinc-700">(Dejar Rival vacío si no se juega)</span></p>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-3">
+                        <input type="text" placeholder="Rival (Ej: Adapta)" value={p.rival} onChange={(e) => updatePartido(idx, 'rival', e.target.value)} className="bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none focus:border-red-600 md:col-span-2" />
+                        <select value={p.diaSemana} onChange={(e) => updatePartido(idx, 'diaSemana', e.target.value)} className="bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none">
+                          <option>Sábado</option><option>Domingo</option>
+                        </select>
+                        <input type="text" placeholder="Hora (Ej: 10:00)" value={p.horario} onChange={(e) => updatePartido(idx, 'horario', e.target.value)} className="bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none focus:border-red-600" />
+                        <select value={p.status} onChange={(e) => updatePartido(idx, 'status', e.target.value)} className="bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none">
+                          <option value="PROGRAMADO">Programado</option>
+                          <option value="FINALIZADO">Finalizado</option>
+                          <option value="CANCELADO">Cancelado</option>
+                        </select>
+                      </div>
+                      <div className="mb-3">
+                        <input type="text" placeholder="Enlace de YouTube (Opcional: https://youtube.com/...)" value={p.youtubeLink} onChange={(e) => updatePartido(idx, 'youtubeLink', e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none focus:border-red-600" />
+                      </div>
+                      {p.status === 'FINALIZADO' && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <input type="number" placeholder="Puntos Lobos" value={p.lobosScore} onChange={(e) => updatePartido(idx, 'lobosScore', e.target.value)} className="bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none" />
+                          <input type="number" placeholder="Puntos Rival" value={p.rivalScore} onChange={(e) => updatePartido(idx, 'rivalScore', e.target.value)} className="bg-zinc-900 border border-zinc-700 text-white px-3 py-2 rounded-sm text-sm outline-none" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            ))}
-
+              <div className="flex gap-3 pt-4 border-t border-zinc-800 sticky bottom-0 bg-zinc-900">
+                <button type="submit" className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors rounded-sm">{editingId ? 'Guardar Cambios' : 'Crear Jornada'}</button>
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm">Cancelar</button>
+              </div>
+            </form>
           </div>
-
-        )}
-
-      </main>
-
-      {/* ===================================================
-          CTA
-      =================================================== */}
-
-      <section className="py-16 md:py-24 bg-red-600 relative overflow-hidden">
-
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.15),_transparent_45%)]"></div>
-
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
-
-          <p className="text-red-100 text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] mb-4">
-            Lobos Quad Rugby
-          </p>
-
-          <h2 className="font-display text-4xl md:text-6xl mb-6 text-white">
-            ¿QUIERES VERNOS EN ACCIÓN?
-          </h2>
-
-          <p className="text-sm md:text-lg mb-8 md:mb-10 text-red-100 font-light max-w-2xl mx-auto">
-            Sigue nuestros próximos partidos, consulta los resultados y acompáñanos durante toda la temporada.
-          </p>
-
-          <Link
-            to="/entrenamientos"
-            className="
-              inline-flex
-              items-center
-              gap-3
-              px-8
-              md:px-10
-              py-4
-              md:py-5
-              bg-zinc-950
-              text-white
-              font-bold
-              text-xs
-              uppercase
-              tracking-[0.15em]
-              hover:bg-black
-              transition-all
-              duration-300
-              shadow-2xl
-            "
-          >
-
-            Ver Calendario y Ubicación
-
-            <Icon
-              path="M5 12h14m-6-6l6 6-6 6"
-              className="w-4 h-4"
-            />
-
-          </Link>
-
         </div>
+      )}
 
-      </section>
-
+      {/* MODAL DE ELIMINACIÓN */}
+      {itemToDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setItemToDelete(null)}>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-xl text-white mb-2">Confirmar Eliminación</h3>
+            <p className="text-zinc-400 text-sm mb-6">¿Está seguro? Se eliminarán también todos los partidos de esta jornada.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setItemToDelete(null)} className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-sm rounded-sm">Cancelar</button>
+              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm">Sí, Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
