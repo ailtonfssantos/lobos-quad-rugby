@@ -73,7 +73,7 @@ export default function Home() {
               <div>
                 <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-1.5">Lunes & Miércoles</p>
                 <h3 className="text-lg font-display font-bold text-white mb-1">17:00 – 19:30</h3>
-                <p className="text-zinc-400 text-sm">Entrenamiento regular</p>
+                <p className="text-zinc-400 text-sm">Entrenamiento de alta intensidad</p>
               </div>
             </div>
 

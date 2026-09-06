@@ -1080,16 +1080,13 @@ export default function Jornadas() {
                     <p className="text-red-500 text-[10px] uppercase tracking-[0.2em] font-bold">
                       Calendario
                     </p>
-
                     <h3 className="font-display text-xl text-white mt-1">
                       Partidos de la Jornada
                     </h3>
-
                     <p className="text-zinc-600 text-xs mt-1">
                       Añade todos los partidos que formen parte de esta jornada.
                     </p>
                   </div>
-
                   <button
                     type="button"
                     onClick={addPartido}
@@ -1107,13 +1104,11 @@ export default function Jornadas() {
                       className="bg-zinc-950 border border-zinc-800 rounded-sm overflow-hidden"
                     >
                       {/* MATCH HEADER */}
-
                       <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
                         <div>
                           <p className="text-white text-sm font-bold uppercase tracking-wider">
                             Partido {idx + 1}
                           </p>
-
                           <p className="text-zinc-600 text-[10px] uppercase tracking-wider mt-1">
                             Configuración del encuentro
                           </p>
