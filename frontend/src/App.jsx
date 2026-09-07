@@ -53,8 +53,9 @@ function AppContent() {
         <Route path="/cookies" element={<><Navbar /><PoliticaCookies /><Footer /></>} />
 
         {/* Admin */}
-        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="inscripciones" element={<Inscripciones />} />
           <Route path="patrocinadores" element={<Patrocinadores />} />

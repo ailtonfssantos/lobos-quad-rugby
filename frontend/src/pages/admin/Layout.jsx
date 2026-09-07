@@ -17,7 +17,7 @@ export default function AdminLayout() {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     if (!token) {
-      navigate('/admin');
+      navigate('/admin/login'); // <-- CAMBIADO AQUÍ
       return;
     }
     if (userData) setUser(JSON.parse(userData));
@@ -26,7 +26,7 @@ export default function AdminLayout() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/admin');
+    navigate('/admin/login');
   };
 
   if (!user) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">Cargando...</div>;
