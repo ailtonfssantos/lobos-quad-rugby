@@ -24,6 +24,7 @@ import Patrocinadores from './pages/admin/Patrocinadores';
 import Jugadores from './pages/admin/Jogadores';
 import Eventos from './pages/admin/Eventos';
 import Jornadas from './pages/admin/Jornadas';
+import Temporadas from './pages/admin/finanzas/Temporadas';
 
 // Componente principal que verifica a rota
 function AppContent() {
@@ -60,6 +61,7 @@ function AppContent() {
           <Route path="jugadores" element={<Jugadores />} /> 
           <Route path="eventos" element={<Eventos />} /> 
           <Route path="jornadas" element={<Jornadas />} />
+          <Route path="finanzas" element={<Temporadas />} />
         </Route>
       </Routes>
       

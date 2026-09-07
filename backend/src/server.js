@@ -16,6 +16,10 @@ import subvencionesRoutes from './routes/subvenciones.js';
 import jornadasRoutes from './routes/jornadas.js';
 import uploadRoutes from './routes/upload.js';
 
+// Novas rotas financeiras
+import temporadasRoutes from './routes/temporadas.js';
+import cuotasRoutes from './routes/cuotas.js';
+
 dotenv.config();
 
 const app = express();
@@ -51,6 +55,10 @@ app.use('/api/patrocinadores', patrocinadoresRoutes);
 app.use('/api/subvenciones', subvencionesRoutes);
 app.use('/api/jornadas', jornadasRoutes);
 app.use('/api/upload', uploadRoutes);
+
+// Novas rotas financeiras
+app.use('/api/temporadas', temporadasRoutes);
+app.use('/api/cuotas', cuotasRoutes);
 
 // ==========================================
 // ROTA DE TESTE (Health Check)

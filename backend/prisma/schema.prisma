@@ -7,6 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// MODELOS EXISTENTES (com novas relações adicionadas)
+// ═══════════════════════════════════════════════════════════════════════
+
 model Usuario {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -34,15 +38,18 @@ model Inscricao {
 }
 
 model Patrocinio {
-  id              Int      @id @default(autoincrement())
-  companyName     String
-  contactName     String
-  email           String
-  phone           String?
-  sponsorshipType String
-  message         String?
-  status          String   @default("PENDIENTE") // PENDIENTE, VISTO, APROBADO, RECHAZADO
-  createdAt       DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  companyName      String
+  contactName      String
+  email            String
+  phone            String?
+  sponsorshipType  String
+  message          String?
+  status           String   @default("PENDIENTE")
+  createdAt        DateTime @default(now())
+
+  // Nova relação com módulo financeiro
+  financeiro       PatrocinioFinanciero?
 }
 
 model Jogador {
@@ -55,6 +62,10 @@ model Jogador {
   bio            String?
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
+
+  // Novas relações com módulo financeiro
+  pagamentos     PagamentoCuota[]
+  participacoes  ParticipanteJornada[]
 }
 
 model Evento {
@@ -95,6 +106,11 @@ model Jornada {
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   partidos      Partido[]
+
+  // Novas relações com módulo financeiro
+  ingressos     Ingresso[]
+  gastos        Gasto[]
+  participantes ParticipanteJornada[]
 }
 
 model Partido {
@@ -102,7 +118,7 @@ model Partido {
   jornadaId             Int
   jornada               Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
   
-  // Campos existentes (tornados opcionais para compatibilidade)
+  // Campos existentes
   rival                 String?
   diaSemana             String
   horario               String
@@ -111,7 +127,7 @@ model Partido {
   rivalScore            Int?
   status                String   @default("PROGRAMADO")
 
-  // ✅ NOVOS CAMPOS para suportar a interface avançada
+  // Novos campos para estrutura avançada
   fecha                 String?
   equipoLocalNombre     String?
   equipoLocalLogo       String?
@@ -126,10 +142,193 @@ model Subvencion {
   valor          String
   entidad        String
   fechaConcesion String
-  tipo           String   // Ej: Administración
-  ambito         String   // Ej: Local
+  tipo           String
+  ambito         String
   departamento   String?
   convocatoria   String?
   basesLink      String?
   createdAt      DateTime @default(now())
+
+  // Nova relação com módulo financeiro
+  financeiro     SubvencionFinanceira?
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// NOVOS MODELOS - MÓDULO FINANCEIRO
+// ═══════════════════════════════════════════════════════════════════════
+
+// ───────────────────────────────────────────────────────────────────────
+// 1. TEMPORADA - Base de todo o sistema financeiro
+// ───────────────────────────────────────────────────────────────────────
+model Temporada {
+  id              Int      @id @default(autoincrement())
+  nome            String   // "Rugby 2026-2027"
+  dataInicio      DateTime
+  dataFim         DateTime
+  saldoInicial    Float    @default(0)
+  cuotaMensual    Float    // 50€ (CONFIGURÁVEL, não hardcoded)
+  estado          String   @default("ACTIVA") // ACTIVA / FINALIZADA
+  createdAt       DateTime @default(now())
+  
+  // Relações
+  cuotas          Cuota[]
+  pagamentos      PagamentoCuota[]
+  ingressos       Ingresso[]
+  gastos          Gasto[]
+  patrociniosFin  PatrocinioFinanciero[]
+  subvencoesFin   SubvencionFinanceira[]
+  participantes   ParticipanteJornada[]
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// 2. CUOTA - Configuração mensal por temporada
+// ───────────────────────────────────────────────────────────────────────
+model Cuota {
+  id              Int      @id @default(autoincrement())
+  temporadaId     Int
+  mes             Int      // 1-12
+  anio            Int      // 2026
+  importe         Float    // Por defeito = temporada.cuotaMensual
+  createdAt       DateTime @default(now())
+  
+  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  pagamentos      PagamentoCuota[]
+  
+  @@unique([temporadaId, mes, anio])
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// 3. PAGAMENTO_CUOTA - Registro de pagamento de cada atleta
+// ───────────────────────────────────────────────────────────────────────
+model PagamentoCuota {
+  id              Int      @id @default(autoincrement())
+  jogadorId       Int
+  cuotaId         Int
+  temporadaId     Int
+  importePago     Float    @default(0)
+  estado          String   @default("PENDIENTE") 
+                           // PAGADO, PENDIENTE, PARCIAL, EXENTO, DEVUELTO
+  metodoPago      String?  // TRANSFERENCIA, EFECTIVO, DOMICILIACION, OTRO
+  dataPago        DateTime?
+  observacoes     String?
+  createdAt       DateTime @default(now())
+  
+  jogador         Jogador  @relation(fields: [jogadorId], references: [id], onDelete: Cascade)
+  cuota           Cuota    @relation(fields: [cuotaId], references: [id], onDelete: Cascade)
+  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  
+  @@unique([jogadorId, cuotaId])
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// 4. INGRESSO - Todos os ingressos do clube
+// ───────────────────────────────────────────────────────────────────────
+model Ingresso {
+  id              Int      @id @default(autoincrement())
+  temporadaId     Int
+  data            DateTime
+  categoria       String   // CUOTAS, PATROCINIOS, SUBVENCIONES, DONACIONES, EVENTOS, OTROS
+  conceito        String
+  importe         Float
+  entidade        String?  // Empresa/pessoa que paga
+  jornadaId       Int?     // Opcional, se o ingresso é de uma jornada específica
+  referenciaTipo  String?  // "CUOTA", "PATROCINIO", "SUBVENCION" (para evitar duplicados)
+  referenciaId    Int?     // ID do registro relacionado
+  documento       String?  // URL do documento/factura
+  observacoes     String?
+  createdAt       DateTime @default(now())
+  
+  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  jornada         Jornada? @relation(fields: [jornadaId], references: [id])
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// 5. GASTO - Todos os gastos (gerais e de jornada)
+// ───────────────────────────────────────────────────────────────────────
+model Gasto {
+  id              Int      @id @default(autoincrement())
+  temporadaId     Int
+  jornadaId       Int?     // NULL = gasto geral, tem valor = gasto de jornada
+  data            DateTime
+  categoria       String   // HOTEL, GASOLINA, TRANSPORTE, PEAJES, ALIMENTACION, 
+                           // INSCRIPCION, MATERIAL, EQUIPAMIENTO, CAMARAS, TECNOLOGIA,
+                           // PIEZAS, MANTENIMIENTO, REPARACIONES, SEGUROS, 
+                           // ADMINISTRACION, PUBLICIDAD, OTROS
+  conceito        String
+  importe         Float
+  proveedor       String?
+  numeroFactura   String?
+  documento       String?  // URL do documento/factura
+  observacoes     String?
+  createdAt       DateTime @default(now())
+  
+  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  jornada         Jornada? @relation(fields: [jornadaId], references: [id])
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// 6. PARTICIPANTE_JORNADA - Que atletas foram a cada jornada
+// ───────────────────────────────────────────────────────────────────────
+model ParticipanteJornada {
+  id                  Int      @id @default(autoincrement())
+  jornadaId           Int
+  jogadorId           Int
+  temporadaId         Int
+  gastosIndividuais   Float    @default(0) // Gastos específicos desse atleta
+  observacoes         String?
+  createdAt           DateTime @default(now())
+  
+  jornada             Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jogador             Jogador  @relation(fields: [jogadorId], references: [id], onDelete: Cascade)
+  temporada           Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  
+  @@unique([jornadaId, jogadorId])
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// 7. PATROCINIO_FINANCEIRO - Controle contábil de patrocínios
+//    (Vinculado ao modelo Patrocinio existente)
+// ───────────────────────────────────────────────────────────────────────
+model PatrocinioFinanciero {
+  id              Int      @id @default(autoincrement())
+  patrocinioId    Int?     @unique  // ✅ Adicionado @unique
+  temporadaId     Int
+  empresa         String
+  importeTotal    Float
+  importeRecebido Float    @default(0)
+  estado          String   @default("PENDIENTE") // PENDIENTE, PARCIAL, RECIBIDO
+  dataCompromiso  DateTime?
+  dataRecepcion   DateTime?
+  documento       String?
+  observacoes     String?
+  createdAt       DateTime @default(now())
+  
+  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  patrocinio      Patrocinio? @relation(fields: [patrocinioId], references: [id])
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// 8. SUBVENCAO_FINANCEIRA - Controle contábil de subvenções
+//    (Vinculado ao modelo Subvencion existente)
+// ───────────────────────────────────────────────────────────────────────
+model SubvencionFinanceira {
+  id                  Int      @id @default(autoincrement())
+  subvencionId        Int?     @unique  // ✅ Adicionado @unique
+  temporadaId         Int
+  organismo           String
+  tipoAyuda           String
+  importeSolicitado   Float
+  importeConcedido    Float    @default(0)
+  importeRecebido     Float    @default(0) // SÓ ISTO aumenta o saldo
+  estado              String   @default("SOLICITADA") 
+                               // SOLICITADA, CONCEDIDA, RECIBIDA, DENEGADA, PENDIENTE
+  dataSolicitud       DateTime?
+  dataConcesion       DateTime?
+  dataRecepcion       DateTime?
+  documento           String?
+  observacoes         String?
+  createdAt           DateTime  @default(now())
+  
+  temporada           Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  subvencion          Subvencion? @relation(fields: [subvencionId], references: [id])
 }
