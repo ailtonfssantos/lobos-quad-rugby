@@ -258,6 +258,19 @@ export default function Jornadas() {
     }
   };
 
+    // Función para extraer el año de la temporada (ej: "25/26")
+    const getYearSuffix = (temporadaNome) => {
+      if (!temporadaNome) return "";
+      const match = temporadaNome.match(/(\d{4})-(\d{4})/);
+      if (match) {
+        return `${match[1].slice(2)}/${match[2].slice(2)}`;
+      }
+      return "";
+    };
+
+    const selectedTemporada = temporadas.find(t => t.id === formData.temporadaId);
+    const compSuffix = getYearSuffix(selectedTemporada?.nome) ? ` ${getYearSuffix(selectedTemporada?.nome)}` : "";
+
   if (loading) return <div className="text-zinc-500">Cargando jornadas...</div>;
 
   return (
@@ -434,8 +447,16 @@ export default function Jornadas() {
 
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Competición *</label>
-                    <select value={formData.competicion} onChange={(e) => updateJornada("competicion", e.target.value)} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
-                      <option>Liga Nacional</option><option>Competición Autonómica</option><option>Copa</option><option>Amistoso</option>
+                    <select 
+                      value={formData.competicion} 
+                      onChange={(e) => updateJornada("competicion", e.target.value)} 
+                      required 
+                      className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    >
+                      <option value={`Liga Nacional${compSuffix}`}>Liga Nacional{compSuffix}</option>
+                      <option value={`Competición Autonómica${compSuffix}`}>Competición Autonómica{compSuffix}</option>
+                      <option value={`Copa${compSuffix}`}>Copa{compSuffix}</option>
+                      <option value={`Amistoso${compSuffix}`}>Amistoso{compSuffix}</option>
                     </select>
                   </div>
                   <div>
@@ -567,6 +588,50 @@ export default function Jornadas() {
                       </div>
                     </div>
                   ))}
+                  {/* =========================================
+                        VISTA PREVIA DEL PARTIDO
+                  ========================================= */}
+                  <div className="border-t border-zinc-800 pt-5 mt-6">
+                    <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-3">Vista previa</p>
+                    <div className="bg-black border border-zinc-800 p-4 rounded-sm">
+                      <div className="text-center mb-4">
+                        <span className="text-zinc-500 text-[10px] uppercase tracking-wider">{p.diaSemana}</span>
+                        {p.fecha && <span className="text-zinc-600 text-[10px] ml-2">{p.fecha}</span>}
+                        {p.horario && <span className="text-red-500 font-bold text-sm ml-2">· {p.horario}</span>}
+                      </div>
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+                        <div className="text-center">
+                          <div className="w-14 h-14 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden">
+                            {p.equipoLocalLogo ? (
+                              <img src={getImageUrl(p.equipoLocalLogo)} alt="" className="w-full h-full object-contain p-1" />
+                            ) : (
+                              <span className="text-zinc-400 text-[8px]">LOGO</span>
+                            )}
+                          </div>
+                          <p className="mt-2 text-white text-xs font-bold truncate max-w-[100px] mx-auto">
+                            {p.equipoLocalNombre || "Lobos Quad Rugby"}
+                          </p>
+                        </div>
+                        <div className="text-zinc-700 font-display text-lg">
+                          {p.status === "FINALIZADO" && p.lobosScore !== "" && p.rivalScore !== ""
+                            ? `${p.lobosScore} - ${p.rivalScore}`
+                            : "VS"}
+                        </div>
+                        <div className="text-center">
+                          <div className="w-14 h-14 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden">
+                            {p.equipoVisitanteLogo ? (
+                              <img src={getImageUrl(p.equipoVisitanteLogo)} alt="" className="w-full h-full object-contain p-1" />
+                            ) : (
+                              <span className="text-zinc-400 text-[8px]">LOGO</span>
+                            )}
+                          </div>
+                          <p className="mt-2 text-white text-xs font-bold truncate max-w-[100px] mx-auto">
+                            {p.equipoVisitanteNombre || "Equipo visitante"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </section>
               <div className="flex flex-col md:flex-row gap-3 pt-5 border-t border-zinc-800 sticky bottom-0 bg-zinc-900">

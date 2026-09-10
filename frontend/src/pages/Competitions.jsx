@@ -223,20 +223,23 @@ export default function Competitions() {
     );
   };
 
-  const Score = ({ homeScore, awayScore, homeName, awayName }) => {
+    const Score = ({ homeScore, awayScore }) => {
     const home = Number(homeScore), away = Number(awayScore);
     const homeWinner = Number.isFinite(home) && Number.isFinite(away) && home > away;
     const awayWinner = Number.isFinite(home) && Number.isFinite(away) && away > home;
+    
     return (
       <div className="flex items-center justify-center gap-4 md:gap-8">
         <div className="text-center min-w-[70px] md:min-w-[90px]">
-          <p className={`font-display text-4xl md:text-5xl font-bold leading-none ${homeWinner ? "text-red-500" : "text-white"}`}>{homeScore}</p>
-          <p className="mt-2 text-[9px] md:text-[10px] uppercase tracking-wider text-zinc-600 max-w-[90px] mx-auto truncate">{homeName}</p>
+          <p className={`font-display text-4xl md:text-5xl font-bold leading-none ${homeWinner ? "text-red-500" : "text-white"}`}>
+            {homeScore}
+          </p>
         </div>
         <span className="text-zinc-700 text-2xl md:text-3xl font-light">-</span>
         <div className="text-center min-w-[70px] md:min-w-[90px]">
-          <p className={`font-display text-4xl md:text-5xl font-bold leading-none ${awayWinner ? "text-red-500" : "text-white"}`}>{awayScore}</p>
-          <p className="mt-2 text-[9px] md:text-[10px] uppercase tracking-wider text-zinc-600 max-w-[90px] mx-auto truncate">{awayName}</p>
+          <p className={`font-display text-4xl md:text-5xl font-bold leading-none ${awayWinner ? "text-red-500" : "text-white"}`}>
+            {awayScore}
+          </p>
         </div>
       </div>
     );
@@ -274,7 +277,7 @@ export default function Competitions() {
             </div>
             <div className="flex flex-col items-center min-w-[130px]">
               {status === "FINALIZADO" && hasScore ? (
-                <Score homeScore={partido.lobosScore} awayScore={partido.rivalScore} homeName={home.name} awayName={away.name} />
+                <Score homeScore={partido.lobosScore} awayScore={partido.rivalScore} />
               ) : (
                 <span className="font-display text-lg md:text-xl text-zinc-700">VS</span>
               )}
