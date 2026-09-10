@@ -105,9 +105,13 @@ model Jornada {
   bannerUrl     String?
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
+
+  // Temporada deportiva
+  temporadaId   Int?
+  temporada     Temporada? @relation(fields: [temporadaId], references: [id], onDelete: SetNull)
+
   partidos      Partido[]
 
-  // Novas relações com módulo financeiro
   ingressos     Ingresso[]
   gastos        Gasto[]
   participantes ParticipanteJornada[]
@@ -162,15 +166,14 @@ model Subvencion {
 // ───────────────────────────────────────────────────────────────────────
 model Temporada {
   id              Int      @id @default(autoincrement())
-  nome            String   // "Rugby 2026-2027"
+  nome            String
   dataInicio      DateTime
   dataFim         DateTime
   saldoInicial    Float    @default(0)
-  cuotaMensual    Float    // 50€ (CONFIGURÁVEL, não hardcoded)
-  estado          String   @default("ACTIVA") // ACTIVA / FINALIZADA
+  cuotaMensual    Float
+  estado          String   @default("ACTIVA")
   createdAt       DateTime @default(now())
-  
-  // Relações
+
   cuotas          Cuota[]
   pagamentos      PagamentoCuota[]
   ingressos       Ingresso[]
@@ -178,6 +181,9 @@ model Temporada {
   patrociniosFin  PatrocinioFinanciero[]
   subvencoesFin   SubvencionFinanceira[]
   participantes   ParticipanteJornada[]
+
+  // NUEVO
+  jornadas        Jornada[]
 }
 
 // ──────────────────────────────────────────────────────────────────────

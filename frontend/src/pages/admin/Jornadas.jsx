@@ -59,10 +59,12 @@ export default function Jornadas() {
      FORM DATA
   ======================================================= */
 
+  const [temporadas, setTemporadas] = useState([]);
+
   const [formData, setFormData] = useState({
     numero: "",
-    competicion: "Liga Nacional 26/27",
-    //temporada: 'Rugby 26-27',
+    temporadaId: "",
+    competicion: "Liga Nacional",
     ciudad: "",
     pabellon: "",
     fechas: "",
@@ -106,7 +108,30 @@ export default function Jornadas() {
   };
   useEffect(() => {
     fetchJornadas();
+    fetchTemporadas();
   }, []);
+
+  const fetchTemporadas = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(`${API_URL}/api/temporadas`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error HTTP: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      setTemporadas(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error al cargar temporadas:", error);
+    }
+  };
 
   /* =======================================================
      NORMALIZE MATCH
@@ -164,8 +189,10 @@ export default function Jornadas() {
       }
       setFormData({
         numero: jornada.numero ?? "",
-        competicion: jornada.competicion || "Liga Nacional 26/27",
-        //temporada: jornada.temporada || "Rugby 26-27",
+        temporadaId: jornada.temporadaId
+          ? String(jornada.temporadaId)
+          : "",
+        competicion: jornada.competicion || "Liga Nacional",
         ciudad: jornada.ciudad || "",
         pabellon: jornada.pabellon || "",
         fechas: jornada.fechas || "",
@@ -176,8 +203,8 @@ export default function Jornadas() {
       setEditingId(null);
       setFormData({
         numero: "",
-        competicion: "Liga Nacional 26/27",
-        //temporada: "Rugby 26-27",
+        temporadaId: "",
+        competicion: "Liga Nacional",
         ciudad: "",
         pabellon: "",
         fechas: "",
@@ -450,7 +477,6 @@ export default function Jornadas() {
 
     const payload = {
       ...formData,
-
       partidos: partidosFinales,
     };
 
@@ -952,8 +978,36 @@ export default function Jornadas() {
                     />
                   </div>
 
-                  {/* COMPETITION */}
+                  {/* TEMPORADA */}
+                  <div>
+                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">
+                      Temporada *
+                    </label>
 
+                    <select
+                      value={formData.temporadaId}
+                      onChange={(e) =>
+                        updateJornada("temporadaId", e.target.value)
+                      }
+                      required
+                      className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    >
+                      <option value="">
+                        Seleccionar temporada
+                      </option>
+
+                      {temporadas.map((temporada) => (
+                        <option
+                          key={temporada.id}
+                          value={temporada.id}
+                        >
+                          {temporada.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* COMPETICIÓN */}
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">
                       Competición *
@@ -964,35 +1018,15 @@ export default function Jornadas() {
                       onChange={(e) =>
                         updateJornada("competicion", e.target.value)
                       }
+                      required
                       className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
                     >
-                      <option>Liga Nacional 26/27</option>
-
-                      <option>Autonómico</option>
-
+                      <option>Liga Nacional</option>
+                      <option>Competición Autonómica</option>
                       <option>Copa</option>
-
                       <option>Amistoso</option>
                     </select>
                   </div>
-
-                  {/* SEASON */}
-
-                  {/*<div>
-                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">
-                      Temporada
-                    </label>
-
-                    <input
-                      type="text"
-                      value={formData.temporada}
-                      onChange={(e) =>
-                        updateJornada("temporada", e.target.value)
-                      }
-                      placeholder="Rugby 26-27"
-                      className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                    />
-                  </div>*/}
 
                   {/* CITY */}
 
