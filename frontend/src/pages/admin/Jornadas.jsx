@@ -34,6 +34,19 @@ export default function Jornadas() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
+  // ✅ FUNÇÃO PARA FORMATAR TÍTULO NO ADMIN (Remove "Jornada" se for campeonato)
+  const getAdminJornadaTitle = (jornada) => {
+    const num = String(jornada.numero || "").trim();
+    const isAutonomica = jornada.competicion?.toLowerCase().includes("autonómica");
+    const isCampeonato = jornada.competicion?.toLowerCase().includes("campeonato");
+    const isNumeric = /^\d+$/.test(num);
+
+    if (isAutonomica || isCampeonato || !isNumeric) {
+      return num || "Competición";
+    }
+    return `Jornada ${num}`;
+  };
+
   const fetchJornadas = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -95,21 +108,27 @@ export default function Jornadas() {
       setEditingId(jornada.id);
       const partidos = Array.isArray(jornada.partidos) ? jornada.partidos.map(normalizePartido) : [];
       while (partidos.length < 3) partidos.push(createEmptyPartido());
+      
+      // ✅ CORREÇÃO DA IMAGEM: Força trim() para remover espaços em branco acidentais
+      const cleanBannerUrl = jornada.bannerUrl ? String(jornada.bannerUrl).trim() : "";
+      
+      // Debug: verifique no console do navegador (F12) se a URL está vindo do banco
+      console.log(`[DEBUG] Jornada ${jornada.numero} - Banner URL:`, cleanBannerUrl);
+
       setFormData({
-        // ✅ Garantir que seja uma string válida, com fallback "1"
         numero: jornada.numero ? String(jornada.numero).trim() : "1",
         temporadaId: jornada.temporadaId ? String(jornada.temporadaId) : "",
         competicion: jornada.competicion || "Liga Nacional",
         ciudad: jornada.ciudad || "",
         pabellon: jornada.pabellon || "",
         fechas: jornada.fechas || "",
-        bannerUrl: jornada.bannerUrl || "",
+        bannerUrl: cleanBannerUrl, // Usa a URL limpa
         partidos,
       });
     } else {
       setEditingId(null);
       setFormData({
-        numero: "1", // ✅ Valor padrão seguro
+        numero: "1",
         temporadaId: "",
         competicion: "Liga Nacional",
         ciudad: "",
@@ -212,7 +231,6 @@ export default function Jornadas() {
       rivalLogo: p.equipoVisitanteLogo || p.rivalLogo || "",
     }));
 
-    // ✅ Forçar que numero seja uma string não vazia
     const numeroStr = formData.numero ? String(formData.numero).trim() : "1";
 
     const payload = { 
@@ -356,7 +374,8 @@ export default function Jornadas() {
                 return (
                   <tr key={j.id} className="hover:bg-zinc-800/30 transition-colors">
                     <td className="px-6 py-4">
-                      <p className="text-white font-bold text-lg">Jornada {j.numero}</p>
+                      {/* ✅ CORREÇÃO DO TÍTULO: Usa a função dinâmica */}
+                      <p className="text-white font-bold text-lg">{getAdminJornadaTitle(j)}</p>
                       <p className="text-zinc-500 text-xs uppercase">{j.competicion}</p>
                     </td>
                     <td className="px-6 py-4">
@@ -491,7 +510,9 @@ export default function Jornadas() {
                   <div className="md:col-span-2">
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Banner de la Jornada</label>
                     <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      {formData.bannerUrl && (<img src={getImageUrl(formData.bannerUrl)} alt="Banner" className="w-full md:w-64 h-24 object-cover border border-zinc-700 rounded-sm" />)}
+                      {formData.bannerUrl && (
+                        <img src={getImageUrl(formData.bannerUrl)} alt="Banner" className="w-full md:w-64 h-24 object-cover border border-zinc-700 rounded-sm" />
+                      )}
                       <label className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-zinc-950 border border-zinc-700 hover:border-red-600 text-zinc-300 cursor-pointer rounded-sm text-sm">
                         {uploadingBanner ? 'Subiendo...' : 'Elegir Imagen'}
                         <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" disabled={uploadingBanner} />
