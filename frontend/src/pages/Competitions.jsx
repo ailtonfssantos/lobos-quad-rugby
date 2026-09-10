@@ -402,7 +402,7 @@ export default function Competitions() {
 
           {/* TEXTOS ORIGINALES RESTAURADOS */}
           <p className="text-red-500 font-bold tracking-[0.25em] text-[10px] md:text-xs mb-5 uppercase">
-            {temporadaActual ? temporadaActual.nome : "Temporada Rugby 26-27"}
+            {temporadaActual ? `Calendario: ${temporadaActual.nome}` : "Calendario Oficial"}
           </p>
 
           <h1 className="font-display text-5xl sm:text-6xl md:text-8xl leading-none mb-6 text-white">
