@@ -13,6 +13,9 @@ export default function Temporadas() {
   const [editingId, setEditingId] = useState(null);
   const [generating, setGenerating] = useState(false);
   
+  // Estado para el modal de confirmación personalizado
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, id: null, nome: '' });
+
   const [formData, setFormData] = useState({
     nome: '',
     dataInicio: '',
@@ -77,32 +80,36 @@ export default function Temporadas() {
     }
   };
 
-  const handleArchive = async (id) => {
-    if (!window.confirm('¿Archivar esta temporada? Pasará a estado FINALIZADA.')) return;
-    const token = localStorage.getItem('token');
-    try {
-      await fetch(`${API_URL}/api/temporadas/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ estado: 'FINALIZADA' })
-      });
-      fetchTemporadas();
-    } catch (error) {
-      alert('Error al archivar');
-    }
+  // Funciones que abren el modal personalizado en lugar de window.confirm
+  const requestArchive = (id, nome) => {
+    setConfirmModal({ isOpen: true, action: 'archive', id, nome });
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Eliminar permanentemente? Esta acción no se puede deshacer.')) return;
+  const requestDelete = (id, nome) => {
+    setConfirmModal({ isOpen: true, action: 'delete', id, nome });
+  };
+
+  const executeConfirmAction = async () => {
+    const { action, id } = confirmModal;
     const token = localStorage.getItem('token');
+    
     try {
-      await fetch(`${API_URL}/api/temporadas/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      if (action === 'archive') {
+        await fetch(`${API_URL}/api/temporadas/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ estado: 'FINALIZADA' })
+        });
+      } else if (action === 'delete') {
+        await fetch(`${API_URL}/api/temporadas/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
       fetchTemporadas();
+      setConfirmModal({ isOpen: false, action: null, id: null, nome: '' });
     } catch (error) {
-      alert('Error al eliminar');
+      alert('Error al ejecutar la acción');
     }
   };
 
@@ -183,32 +190,20 @@ export default function Temporadas() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {/* Botón Generar Cuotas (Solo si está activa) */}
                       {temp.estado === 'ACTIVA' && (
-                        <button 
-                          onClick={() => handleGenerarCuotas(temp.id)}
-                          disabled={generating}
-                          className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-sm transition-colors"
-                          title="Generar Cuotas"
-                        >
+                        <button onClick={() => handleGenerarCuotas(temp.id)} disabled={generating} className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-sm transition-colors" title="Generar Cuotas">
                           <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" className="w-4 h-4" />
                         </button>
                       )}
-                      
-                      {/* Botón Editar */}
                       <button onClick={() => openModal(temp)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-sm transition-colors" title="Editar">
                         <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" className="w-4 h-4" />
                       </button>
-
-                      {/* Botón Archivar (Solo si está activa) */}
                       {temp.estado === 'ACTIVA' && (
-                        <button onClick={() => handleArchive(temp.id)} className="p-2 text-yellow-500 hover:bg-yellow-500/10 rounded-sm transition-colors" title="Archivar (Finalizar)">
+                        <button onClick={() => requestArchive(temp.id, temp.nome)} className="p-2 text-yellow-500 hover:bg-yellow-500/10 rounded-sm transition-colors" title="Archivar (Finalizar)">
                           <Icon path="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" className="w-4 h-4" />
                         </button>
                       )}
-
-                      {/* Botón Eliminar */}
-                      <button onClick={() => handleDelete(temp.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Eliminar permanentemente">
+                      <button onClick={() => requestDelete(temp.id, temp.nome)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors" title="Eliminar permanentemente">
                         <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" className="w-4 h-4" />
                       </button>
                     </div>
@@ -230,52 +225,51 @@ export default function Temporadas() {
                 <Icon path="M6 18L18 6M6 6l12 12" />
               </button>
             </div>
-            
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
                 <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Nombre de la Temporada *</label>
-                <input 
-                  type="text" 
-                  value={formData.nome} 
-                  onChange={(e) => setFormData({...formData, nome: e.target.value})} 
-                  required 
-                  placeholder="Ej: Rugby 2026-2027"
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" 
-                />
+                <input type="text" value={formData.nome} onChange={(e) => setFormData({...formData, nome: e.target.value})} required placeholder="Ej: Rugby 2026-2027" className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Fecha de Inicio *</label>
-                  <input 
-                    type="date" 
-                    value={formData.dataInicio} 
-                    onChange={(e) => setFormData({...formData, dataInicio: e.target.value})} 
-                    required 
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" 
-                  />
+                  <input type="date" value={formData.dataInicio} onChange={(e) => setFormData({...formData, dataInicio: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
                 </div>
                 <div>
                   <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Fecha de Fin *</label>
-                  <input 
-                    type="date" 
-                    value={formData.dataFim} 
-                    onChange={(e) => setFormData({...formData, dataFim: e.target.value})} 
-                    required 
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" 
-                  />
+                  <input type="date" value={formData.dataFim} onChange={(e) => setFormData({...formData, dataFim: e.target.value})} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
                 </div>
               </div>
-
               <div className="flex gap-3 pt-4 border-t border-zinc-800">
-                <button type="submit" className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors rounded-sm">
-                  {editingId ? 'Guardar Cambios' : 'Crear Temporada'}
-                </button>
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm">
-                  Cancelar
-                </button>
+                <button type="submit" className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors rounded-sm">{editingId ? 'Guardar Cambios' : 'Crear Temporada'}</button>
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm">Cancelar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMACIÓN DARK PREMIUM (Reemplaza a window.confirm) */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setConfirmModal({ isOpen: false, action: null, id: null, nome: '' })}>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 rounded-full mx-auto">
+              <Icon path={confirmModal.action === 'delete' ? "M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" : "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"} className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="font-display text-xl text-white text-center mb-2">
+              {confirmModal.action === 'delete' ? 'Confirmar Eliminación' : 'Confirmar Archivar'}
+            </h3>
+            <p className="text-zinc-400 text-sm text-center mb-6 leading-relaxed">
+              {confirmModal.action === 'delete' 
+                ? `¿Está seguro de que desea eliminar permanentemente la temporada "${confirmModal.nome}"? Esta acción no se puede deshacer.` 
+                : `¿Desea archivar la temporada "${confirmModal.nome}"? Pasará a estado "Finalizada" y sus jornadas asociadas reflejarán este cambio.`}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmModal({ isOpen: false, action: null, id: null, nome: '' })} className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-sm rounded-sm hover:bg-zinc-700 transition-colors">Cancelar</button>
+              <button onClick={executeConfirmAction} className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm hover:bg-red-700 transition-colors">
+                {confirmModal.action === 'delete' ? 'Sí, Eliminar' : 'Sí, Archivar'}
+              </button>
+            </div>
           </div>
         </div>
       )}

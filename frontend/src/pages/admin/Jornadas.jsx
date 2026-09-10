@@ -22,7 +22,7 @@ export default function Jornadas() {
   const [editingId, setEditingId] = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState("activas");
-  const [filtroTemporada, setFiltroTemporada] = useState("todas"); // <-- NUEVO ESTADO
+  const [filtroTemporada, setFiltroTemporada] = useState("todas");
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(null);
 
@@ -38,9 +38,7 @@ export default function Jornadas() {
     const token = localStorage.getItem("token");
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/jornadas`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`${API_URL}/api/jornadas`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
       const data = await res.json();
       setJornadas(Array.isArray(data) ? data : []);
@@ -54,9 +52,7 @@ export default function Jornadas() {
   const fetchTemporadas = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_URL}/api/temporadas`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`${API_URL}/api/temporadas`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
       setTemporadas(Array.isArray(await res.json()) ? await res.json() : []);
     } catch (error) {
@@ -69,7 +65,6 @@ export default function Jornadas() {
     fetchTemporadas();
   }, []);
 
-  // --- LÓGICA DE FILTRADO MEJORADA ---
   const displayedJornadas = jornadas.filter((j) => {
     const isActiveMatch = activeTab === "activas" ? j.isActive : !j.isActive;
     const temporadaMatch = filtroTemporada === "todas" || String(j.temporadaId) === String(filtroTemporada);
@@ -274,7 +269,7 @@ export default function Jornadas() {
         </button>
       </div>
 
-      {/* FILTRO DE TEMPORADAS (Estilo Dark Premium) */}
+      {/* FILTRO DE TEMPORADAS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900 border border-zinc-800 p-4 rounded-sm">
         <div className="flex items-center gap-3">
           <Icon path="M12 6v6l4 2" className="w-5 h-5 text-zinc-500" />
@@ -283,11 +278,7 @@ export default function Jornadas() {
         <select
           value={filtroTemporada}
           onChange={(e) => setFiltroTemporada(e.target.value)}
-          className="
-            appearance-none bg-zinc-950 border border-zinc-700 text-white px-4 py-2 pr-8 rounded-sm 
-            text-xs font-bold uppercase tracking-wider focus:border-red-600 outline-none cursor-pointer 
-            hover:border-zinc-500 transition-colors w-full sm:w-64
-          "
+          className="appearance-none bg-zinc-950 border border-zinc-700 text-white px-4 py-2 pr-8 rounded-sm text-xs font-bold uppercase tracking-wider focus:border-red-600 outline-none cursor-pointer hover:border-zinc-500 transition-colors w-full sm:w-64"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
             backgroundPosition: `right 0.5rem center`,
@@ -325,13 +316,17 @@ export default function Jornadas() {
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Temporada</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Ubicación</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Partidos</th>
+                {/* CORRECCIÓN 1 y 3: El estado ahora refleja el de la Temporada */}
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Estado</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {displayedJornadas.map((j) => {
-                const temporadaNombre = temporadas.find(t => t.id === j.temporadaId)?.nome || "Sin temporada";
+                // Obtenemos el estado de la temporada asociada
+                const estadoTemporada = j.temporada?.estado || "ACTIVA";
+                const temporadaNombre = j.temporada?.nome || "Sin temporada";
+                
                 return (
                   <tr key={j.id} className="hover:bg-zinc-800/30 transition-colors">
                     <td className="px-6 py-4">
@@ -366,9 +361,14 @@ export default function Jornadas() {
                         })}
                       </div>
                     </td>
+                    {/* CORRECCIÓN 1 y 3: Muestra Activa o Finalizada según la Temporada */}
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${j.isActive ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-zinc-800 text-zinc-500 border-zinc-700"}`}>
-                        {j.isActive ? "Activa" : "Archivada"}
+                      <span className={`inline-flex px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
+                        estadoTemporada === 'ACTIVA' 
+                          ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                          : "bg-zinc-800 text-zinc-500 border-zinc-700"
+                      }`}>
+                        {estadoTemporada === 'ACTIVA' ? "Activa" : "Finalizada"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -392,13 +392,9 @@ export default function Jornadas() {
         </div>
       )}
 
-      {/* ... (El resto del Modal de Crear/Editar y Modal de Eliminar se mantiene exactamente igual que en tu código anterior) ... */}
-      {/* Por brevedad, asumo que mantienes los modales de abajo tal cual los tenías, ya que no requieren cambios. */}
-      
-      {/* MODAL CREAR/EDITAR (Mantén tu código actual aquí) */}
+      {/* MODAL CREAR/EDITAR JORNADA (COMPLETO, INCLUYE SELECTOR DE TEMPORADA) */}
       {modalOpen && (
-         // ... tu código del modal ...
-         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full my-8 shadow-2xl">
             <div className="p-6 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900 z-20">
               <div>
@@ -418,13 +414,23 @@ export default function Jornadas() {
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Número de Jornada *</label>
                     <input type="number" value={formData.numero} onChange={(e) => updateJornada("numero", e.target.value)} required min="1" className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
                   </div>
+                  
+                  {/* CORRECCIÓN 4: SELECTOR DE TEMPORADA GARANTIZADO */}
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Temporada *</label>
-                    <select value={formData.temporadaId} onChange={(e) => updateJornada("temporadaId", e.target.value)} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
+                    <select 
+                      value={formData.temporadaId} 
+                      onChange={(e) => updateJornada("temporadaId", e.target.value)} 
+                      required 
+                      className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    >
                       <option value="">Seleccionar temporada</option>
-                      {temporadas.map((temporada) => (<option key={temporada.id} value={temporada.id}>{temporada.nome}</option>))}
+                      {temporadas.map((temporada) => (
+                        <option key={temporada.id} value={temporada.id}>{temporada.nome}</option>
+                      ))}
                     </select>
                   </div>
+
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Competición *</label>
                     <select value={formData.competicion} onChange={(e) => updateJornada("competicion", e.target.value)} required className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none">
@@ -456,9 +462,9 @@ export default function Jornadas() {
                   </div>
                 </div>
               </section>
-              {/* ... (Aquí va el resto de tu sección de Partidos y el botón de Guardar, igual que lo tenías) ... */}
+
               <section>
-                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                   <div>
                     <p className="text-red-500 text-[10px] uppercase tracking-[0.2em] font-bold">Calendario</p>
                     <h3 className="font-display text-xl text-white mt-1">Partidos de la Jornada</h3>
@@ -467,11 +473,10 @@ export default function Jornadas() {
                     <Icon path="M12 4.5v15m7.5-7.5h-15" className="w-4 h-4" /> Añadir Partido
                   </button>
                 </div>
-                {/* ... (Mantén tu mapeo de partidos aquí) ... */}
                 <div className="space-y-5">
                   {formData.partidos.map((p, idx) => (
                     <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-sm overflow-hidden">
-                       <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+                      <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
                         <div>
                           <p className="text-white text-sm font-bold uppercase tracking-wider">Partido {idx + 1}</p>
                         </div>
@@ -572,18 +577,18 @@ export default function Jornadas() {
         </div>
       )}
 
-      {/* MODAL ELIMINAR (Mantén tu código actual aquí) */}
+      {/* MODAL ELIMINAR JORNADA */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setItemToDelete(null)}>
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
-              <Icon path="M12 9v3.75m0 3h.007M10.29 3.86l-7.82 13.5A1.5 1.5 0 003.77 19.6h16.46a1.5 1.5 0 001.3-2.24l-7.82-13.5a1.5 1.5 0 00-2.6 0z" className="w-6 h-6 text-red-500" />
+            <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 rounded-full mx-auto">
+              <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="font-display text-xl text-white mb-2">Confirmar Eliminación</h3>
-            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">¿Está seguro de que desea eliminar esta jornada? También se eliminarán todos los partidos asociados.</p>
+            <h3 className="font-display text-xl text-white text-center mb-2">Confirmar Eliminación</h3>
+            <p className="text-zinc-400 text-sm text-center mb-6 leading-relaxed">¿Está seguro de que desea eliminar esta jornada? También se eliminarán todos los partidos asociados.</p>
             <div className="flex gap-3">
-              <button onClick={() => setItemToDelete(null)} className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-sm rounded-sm hover:bg-zinc-700">Cancelar</button>
-              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm hover:bg-red-500">Sí, Eliminar</button>
+              <button onClick={() => setItemToDelete(null)} className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-sm rounded-sm hover:bg-zinc-700 transition-colors">Cancelar</button>
+              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm hover:bg-red-500 transition-colors">Sí, Eliminar</button>
             </div>
           </div>
         </div>
