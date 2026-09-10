@@ -96,7 +96,8 @@ export default function Jornadas() {
       const partidos = Array.isArray(jornada.partidos) ? jornada.partidos.map(normalizePartido) : [];
       while (partidos.length < 3) partidos.push(createEmptyPartido());
       setFormData({
-        numero: jornada.numero ?? "",
+        // ✅ Garantir que seja uma string válida, com fallback "1"
+        numero: jornada.numero ? String(jornada.numero).trim() : "1",
         temporadaId: jornada.temporadaId ? String(jornada.temporadaId) : "",
         competicion: jornada.competicion || "Liga Nacional",
         ciudad: jornada.ciudad || "",
@@ -108,8 +109,13 @@ export default function Jornadas() {
     } else {
       setEditingId(null);
       setFormData({
-        numero: "", temporadaId: "", competicion: "Liga Nacional",
-        ciudad: "", pabellon: "", fechas: "", bannerUrl: "",
+        numero: "1", // ✅ Valor padrão seguro
+        temporadaId: "",
+        competicion: "Liga Nacional",
+        ciudad: "",
+        pabellon: "",
+        fechas: "",
+        bannerUrl: "",
         partidos: [createEmptyPartido(), createEmptyPartido(), createEmptyPartido()],
       });
     }
@@ -194,42 +200,46 @@ export default function Jornadas() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const token = localStorage.getItem("token");
-  const partidosValidos = formData.partidos.filter((p) => p.equipoVisitanteNombre || p.rival || p.horario || p.fecha);
-  
-  const partidosFinales = partidosValidos.map((p) => ({
-    ...p,
-    equipoLocal: { nombre: p.equipoLocalNombre || "Lobos Quad Rugby", logo: p.equipoLocalLogo || "" },
-    equipoVisitante: { nombre: p.equipoVisitanteNombre || p.rival || "", logo: p.equipoVisitanteLogo || p.rivalLogo || "" },
-    rival: p.equipoVisitanteNombre || p.rival || "",
-    rivalLogo: p.equipoVisitanteLogo || p.rivalLogo || "",
-  }));
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    const partidosValidos = formData.partidos.filter((p) => p.equipoVisitanteNombre || p.rival || p.horario || p.fecha);
+    
+    const partidosFinales = partidosValidos.map((p) => ({
+      ...p,
+      equipoLocal: { nombre: p.equipoLocalNombre || "Lobos Quad Rugby", logo: p.equipoLocalLogo || "" },
+      equipoVisitante: { nombre: p.equipoVisitanteNombre || p.rival || "", logo: p.equipoVisitanteLogo || p.rivalLogo || "" },
+      rival: p.equipoVisitanteNombre || p.rival || "",
+      rivalLogo: p.equipoVisitanteLogo || p.rivalLogo || "",
+    }));
 
-  const payload = { 
-    ...formData, 
-    numero: String(formData.numero), // ✅ FORÇAR COMO STRING
-    partidos: partidosFinales 
-  };
-  const url = editingId ? `${API_URL}/api/jornadas/${editingId}` : `${API_URL}/api/jornadas`;
+    // ✅ Forçar que numero seja uma string não vazia
+    const numeroStr = formData.numero ? String(formData.numero).trim() : "1";
 
-  try {
-    const res = await fetch(url, {
-      method: editingId ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(errorText || `Error HTTP: ${res.status}`);
+    const payload = { 
+      ...formData, 
+      numero: numeroStr, 
+      partidos: partidosFinales 
+    };
+
+    const url = editingId ? `${API_URL}/api/jornadas/${editingId}` : `${API_URL}/api/jornadas`;
+
+    try {
+      const res = await fetch(url, {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || `Error HTTP: ${res.status}`);
+      }
+      closeModal();
+      await fetchJornadas();
+    } catch (error) {
+      console.error("Error al guardar jornada:", error);
+      alert("No se pudo guardar la jornada: " + error.message);
     }
-    closeModal();
-    await fetchJornadas();
-  } catch (error) {
-    console.error("Error al guardar jornada:", error);
-    alert("No se pudo guardar la jornada.");
-  }
-};
+  };
 
   const toggleActiva = async (id, currentStatus) => {
     const token = localStorage.getItem("token");

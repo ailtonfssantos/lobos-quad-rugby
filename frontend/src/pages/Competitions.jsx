@@ -90,6 +90,21 @@ export default function Competitions() {
 
   const temporadaActual = temporadas.find(t => t.id === selectedTemporadaId);
 
+    // Função para formatar o título da jornada
+  const getJornadaTitle = (jornada) => {
+    const num = String(jornada.numero || "").trim();
+    const isAutonomica = jornada.competicion?.toLowerCase().includes("autonómica");
+    const isCampeonato = jornada.competicion?.toLowerCase().includes("campeonato");
+    const isNumeric = /^\d+$/.test(num);
+
+    // Se for autonómica, campeonato, ou o "número" for na verdade um texto
+    if (isAutonomica || isCampeonato || !isNumeric) {
+      return num || "Competición";
+    }
+    // Caso contrário, é uma jornada numérica normal
+    return `Jornada ${num}`;
+  };
+
   /* =======================================================
      FUNCIONES DE FECHA Y ESTADO
   ======================================================= */
@@ -451,16 +466,14 @@ export default function Competitions() {
                   <div className="relative w-full h-44 md:h-64 overflow-hidden bg-zinc-800">
                     <img src={getImageUrl(jornada.bannerUrl)} alt={`Jornada ${jornada.numero}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-70" />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-1">{jornada.competicion || "Competición"}</p>
-                        <h2 className="font-display text-3xl md:text-5xl text-white">
-                          {jornada.competicion?.toLowerCase().includes("autonómica") || 
-                          jornada.competicion?.toLowerCase().includes("campeonato") ||
-                          !/^\d+$/.test(String(jornada.numero)) 
-                            ? jornada.numero 
-                            : `Jornada ${jornada.numero}`}
-                        </h2>
+                    {!jornada.bannerUrl && (
+                    <div className="border-b border-zinc-800 pb-6 mb-6">
+                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-2">{jornada.competicion || "Competición"}</p>
+                      <h2 className="font-display text-3xl md:text-5xl text-white">
+                        {getJornadaTitle(jornada)}
+                      </h2>
                     </div>
+                  )}
                   </div>
                 )}
 

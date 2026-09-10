@@ -105,6 +105,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
 /* =========================================================
    PROTEGIDA: Actualizar Jornada
+   ✅ ROTA PUT ATUALIZADA E BLINDADA
 ========================================================= */
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
@@ -113,8 +114,12 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     const updateData = {};
 
-    if (numero !== undefined) updateData.numero = parseInt(numero);
-    if (temporadaId !== undefined) updateData.temporadaId = parseInt(temporadaId); // <-- Añadido
+    // Forçar numero como string válida, nunca undefined
+    if (numero !== undefined && numero !== null) {
+      updateData.numero = String(numero).trim();
+    }
+    
+    if (temporadaId !== undefined) updateData.temporadaId = parseInt(temporadaId);
     if (competicion !== undefined) updateData.competicion = competicion;
     if (ciudad !== undefined) updateData.ciudad = ciudad;
     if (pabellon !== undefined) updateData.pabellon = pabellon;
