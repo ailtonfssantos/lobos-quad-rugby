@@ -760,10 +760,15 @@ export default function Jornadas() {
                     <p className="text-white font-bold text-lg">
                       Jornada {j.numero}
                     </p>
-
                     <p className="text-zinc-500 text-xs uppercase">
                       {j.competicion}
                     </p>
+                    {/* AÑADIDO: Mostrar nombre de la temporada */}
+                    {j.temporada && (
+                      <p className="text-red-500/80 text-[10px] font-bold uppercase tracking-wider mt-1">
+                        {j.temporada.nome}
+                      </p>
+                    )}
                   </td>
 
                   {/* LOCATION */}

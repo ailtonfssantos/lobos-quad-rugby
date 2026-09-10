@@ -5,10 +5,6 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 const router = Router();
 const prisma = new PrismaClient();
 
-/* =========================================================
-   HELPERS
-========================================================= */
-
 const normalizePartido = (p = {}) => {
   const equipoLocalNombre = p.equipoLocal?.nombre || p.equipoLocalNombre || 'Lobos Quad Rugby';
   const equipoLocalLogo = p.equipoLocal?.logo || p.equipoLocalLogo || null;
@@ -31,13 +27,19 @@ const normalizePartido = (p = {}) => {
 };
 
 /* =========================================================
-   PUBLICA: Obtener todas las jornadas con sus partidos
+   PUBLICA: Obtener todas las jornadas con sus partidos y temporada
 ========================================================= */
 router.get('/', async (req, res) => {
   try {
     const jornadas = await prisma.jornada.findMany({
-      include: { partidos: true },
-      orderBy: { numero: 'asc' }
+      include: { 
+        partidos: true, 
+        temporada: true // <-- Añadido para que el frontend sepa a qué temporada pertenece
+      },
+      orderBy: [
+        { temporada: { dataInicio: 'desc' } }, // Ordenar por temporada más reciente primero
+        { numero: 'asc' }
+      ]
     });
     res.json(jornadas);
   } catch (error) {
@@ -51,9 +53,10 @@ router.get('/', async (req, res) => {
 ========================================================= */
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { numero, competicion, ciudad, pabellon, fechas, bannerUrl, partidos } = req.body;
+    const { numero, temporadaId, competicion, ciudad, pabellon, fechas, bannerUrl, partidos } = req.body;
 
     if (!numero) return res.status(400).json({ error: 'El número de jornada es obligatorio' });
+    if (!temporadaId) return res.status(400).json({ error: 'La temporada es obligatoria' });
     if (!competicion) return res.status(400).json({ error: 'La competición es obligatoria' });
     if (!ciudad) return res.status(400).json({ error: 'La ciudad es obligatoria' });
     if (!pabellon) return res.status(400).json({ error: 'El pabellón es obligatorio' });
@@ -65,6 +68,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const nuevaJornada = await prisma.jornada.create({
       data: {
         numero: parseInt(numero),
+        temporadaId: parseInt(temporadaId), // <-- Añadido
         competicion,
         ciudad,
         pabellon,
@@ -89,7 +93,7 @@ router.post('/', authMiddleware, async (req, res) => {
           }))
         }
       },
-      include: { partidos: true }
+      include: { partidos: true, temporada: true }
     });
 
     res.status(201).json(nuevaJornada);
@@ -105,11 +109,12 @@ router.post('/', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { numero, competicion, ciudad, pabellon, fechas, bannerUrl, isActive, partidos } = req.body;
+    const { numero, temporadaId, competicion, ciudad, pabellon, fechas, bannerUrl, isActive, partidos } = req.body;
 
     const updateData = {};
 
     if (numero !== undefined) updateData.numero = parseInt(numero);
+    if (temporadaId !== undefined) updateData.temporadaId = parseInt(temporadaId); // <-- Añadido
     if (competicion !== undefined) updateData.competicion = competicion;
     if (ciudad !== undefined) updateData.ciudad = ciudad;
     if (pabellon !== undefined) updateData.pabellon = pabellon;
@@ -150,7 +155,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const actualizada = await prisma.jornada.update({
       where: { id: parseInt(id) },
       data: updateData,
-      include: { partidos: true }
+      include: { partidos: true, temporada: true }
     });
 
     res.json(actualizada);
