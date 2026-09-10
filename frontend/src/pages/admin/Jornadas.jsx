@@ -585,53 +585,54 @@ export default function Jornadas() {
                             </div>
                           </div>
                         )}
+
+                        {/* =========================================
+                              VISTA PREVIA DEL PARTIDO (DENTRO del partido)
+                        ========================================= */}
+                        <div className="border-t border-zinc-800 pt-5 mt-6">
+                          <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-3">Vista previa</p>
+                          <div className="bg-black border border-zinc-800 p-4 rounded-sm">
+                            <div className="text-center mb-4">
+                              <span className="text-zinc-500 text-[10px] uppercase tracking-wider">{p.diaSemana}</span>
+                              {p.fecha && <span className="text-zinc-600 text-[10px] ml-2">{p.fecha}</span>}
+                              {p.horario && <span className="text-red-500 font-bold text-sm ml-2">· {p.horario}</span>}
+                            </div>
+                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+                              <div className="text-center">
+                                <div className="w-14 h-14 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden">
+                                  {p.equipoLocalLogo ? (
+                                    <img src={getImageUrl(p.equipoLocalLogo)} alt="" className="w-full h-full object-contain p-1" />
+                                  ) : (
+                                    <span className="text-zinc-400 text-[8px]">LOGO</span>
+                                  )}
+                                </div>
+                                <p className="mt-2 text-white text-xs font-bold truncate max-w-[100px] mx-auto">
+                                  {p.equipoLocalNombre || "Lobos Quad Rugby"}
+                                </p>
+                              </div>
+                              <div className="text-zinc-700 font-display text-lg">
+                                {p.status === "FINALIZADO" && p.lobosScore !== "" && p.rivalScore !== ""
+                                  ? `${p.lobosScore} - ${p.rivalScore}`
+                                  : "VS"}
+                              </div>
+                              <div className="text-center">
+                                <div className="w-14 h-14 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden">
+                                  {p.equipoVisitanteLogo ? (
+                                    <img src={getImageUrl(p.equipoVisitanteLogo)} alt="" className="w-full h-full object-contain p-1" />
+                                  ) : (
+                                    <span className="text-zinc-400 text-[8px]">LOGO</span>
+                                  )}
+                                </div>
+                                <p className="mt-2 text-white text-xs font-bold truncate max-w-[100px] mx-auto">
+                                  {p.equipoVisitanteNombre || "Equipo visitante"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
-                  {/* =========================================
-                        VISTA PREVIA DEL PARTIDO
-                  ========================================= */}
-                  <div className="border-t border-zinc-800 pt-5 mt-6">
-                    <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-3">Vista previa</p>
-                    <div className="bg-black border border-zinc-800 p-4 rounded-sm">
-                      <div className="text-center mb-4">
-                        <span className="text-zinc-500 text-[10px] uppercase tracking-wider">{p.diaSemana}</span>
-                        {p.fecha && <span className="text-zinc-600 text-[10px] ml-2">{p.fecha}</span>}
-                        {p.horario && <span className="text-red-500 font-bold text-sm ml-2">· {p.horario}</span>}
-                      </div>
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                        <div className="text-center">
-                          <div className="w-14 h-14 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden">
-                            {p.equipoLocalLogo ? (
-                              <img src={getImageUrl(p.equipoLocalLogo)} alt="" className="w-full h-full object-contain p-1" />
-                            ) : (
-                              <span className="text-zinc-400 text-[8px]">LOGO</span>
-                            )}
-                          </div>
-                          <p className="mt-2 text-white text-xs font-bold truncate max-w-[100px] mx-auto">
-                            {p.equipoLocalNombre || "Lobos Quad Rugby"}
-                          </p>
-                        </div>
-                        <div className="text-zinc-700 font-display text-lg">
-                          {p.status === "FINALIZADO" && p.lobosScore !== "" && p.rivalScore !== ""
-                            ? `${p.lobosScore} - ${p.rivalScore}`
-                            : "VS"}
-                        </div>
-                        <div className="text-center">
-                          <div className="w-14 h-14 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden">
-                            {p.equipoVisitanteLogo ? (
-                              <img src={getImageUrl(p.equipoVisitanteLogo)} alt="" className="w-full h-full object-contain p-1" />
-                            ) : (
-                              <span className="text-zinc-400 text-[8px]">LOGO</span>
-                            )}
-                          </div>
-                          <p className="mt-2 text-white text-xs font-bold truncate max-w-[100px] mx-auto">
-                            {p.equipoVisitanteNombre || "Equipo visitante"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </section>
               <div className="flex flex-col md:flex-row gap-3 pt-5 border-t border-zinc-800 sticky bottom-0 bg-zinc-900">
