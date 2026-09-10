@@ -90,7 +90,7 @@ export default function Competitions() {
 
   const temporadaActual = temporadas.find(t => t.id === selectedTemporadaId);
 
-    // Função para formatar o título da jornada
+  // ✅ Função para formatar o título da jornada corretamente
   const getJornadaTitle = (jornada) => {
     const num = String(jornada.numero || "").trim();
     const isAutonomica = jornada.competicion?.toLowerCase().includes("autonómica");
@@ -269,10 +269,10 @@ export default function Competitions() {
     const hasScore = partido?.lobosScore !== null && partido?.lobosScore !== undefined && partido?.rivalScore !== null && partido?.rivalScore !== undefined;
 
     // Determinar ganador para mobile
-    const homeScore = Number(partido.lobosScore) || 0;
-    const awayScore = Number(partido.rivalScore) || 0;
-    const homeWinnerMobile = homeScore > awayScore;
-    const awayWinnerMobile = awayScore > homeScore;
+    const homeScoreNum = Number(partido.lobosScore) || 0;
+    const awayScoreNum = Number(partido.rivalScore) || 0;
+    const homeWinnerMobile = homeScoreNum > awayScoreNum;
+    const awayWinnerMobile = awayScoreNum > homeScoreNum;
 
     return (
       <article className="group relative bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-sm overflow-hidden transition-all duration-300">
@@ -462,26 +462,30 @@ export default function Competitions() {
           <div className="space-y-12 md:space-y-16">
             {jornadasFiltradas.map((jornada) => (
               <section key={jornada.id} className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+                
+                {/* ✅ BLOQUE CON BANNER: Título superpuesto correctamente */}
                 {jornada.bannerUrl && (
                   <div className="relative w-full h-44 md:h-64 overflow-hidden bg-zinc-800">
                     <img src={getImageUrl(jornada.bannerUrl)} alt={`Jornada ${jornada.numero}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-70" />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-transparent"></div>
-                    {!jornada.bannerUrl && (
+                    <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
+                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-1">{jornada.competicion || "Competición"}</p>
+                      <h2 className="font-display text-3xl md:text-5xl text-white">
+                        {getJornadaTitle(jornada)}
+                      </h2>
+                    </div>
+                  </div>
+                )}
+
+                <div className={`p-5 md:p-8 ${jornada.bannerUrl ? "pt-5 md:pt-7" : ""}`}>
+                  
+                  {/* ✅ BLOQUE SIN BANNER: Título en la parte superior del contenido */}
+                  {!jornada.bannerUrl && (
                     <div className="border-b border-zinc-800 pb-6 mb-6">
                       <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-2">{jornada.competicion || "Competición"}</p>
                       <h2 className="font-display text-3xl md:text-5xl text-white">
                         {getJornadaTitle(jornada)}
                       </h2>
-                    </div>
-                  )}
-                  </div>
-                )}
-
-                <div className={`p-5 md:p-8 ${jornada.bannerUrl ? "pt-5 md:pt-7" : ""}`}>
-                  {!jornada.bannerUrl && (
-                    <div className="border-b border-zinc-800 pb-6 mb-6">
-                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-2">{jornada.competicion || "Competición"}</p>
-                      <h2 className="font-display text-3xl md:text-5xl text-white">Jornada {jornada.numero}</h2>
                     </div>
                   )}
 
