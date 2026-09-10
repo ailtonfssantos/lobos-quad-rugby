@@ -21,10 +21,10 @@ router.get('/', async (req, res) => {
 // ✅ POST PROTEGIDO: Solo admins pueden crear
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { nome, dataInicio, dataFim, saldoInicial, cuotaMensual } = req.body;
+    const { nome, dataInicio, dataFim } = req.body;
 
-    // Validação básica
-    if (!nome || !dataInicio || !dataFim || !cuotaMensual) {
+    // Validación básica (sin saldo ni cuota por ahora)
+    if (!nome || !dataInicio || !dataFim) {
       return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
@@ -33,8 +33,8 @@ router.post('/', authMiddleware, async (req, res) => {
         nome,
         dataInicio: new Date(dataInicio),
         dataFim: new Date(dataFim),
-        saldoInicial: parseFloat(saldoInicial) || 0,
-        cuotaMensual: parseFloat(cuotaMensual),
+        saldoInicial: 0, // Valor por defecto hasta que se implemente
+        cuotaMensual: 0, // Valor por defecto hasta que se implemente
         estado: 'ACTIVA'
       }
     });
@@ -46,11 +46,11 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT: Atualizar temporada (ex: mudar para FINALIZADA)
+// ✅ PUT PROTEGIDO: Actualizar temporada (Editar o Archivar)
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, dataInicio, dataFim, saldoInicial, cuotaMensual, estado } = req.body;
+    const { nome, dataInicio, dataFim, estado } = req.body;
 
     const temporada = await prisma.temporada.update({
       where: { id: parseInt(id) },
@@ -58,8 +58,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
         nome,
         dataInicio: dataInicio ? new Date(dataInicio) : undefined,
         dataFim: dataFim ? new Date(dataFim) : undefined,
-        saldoInicial: saldoInicial !== undefined ? parseFloat(saldoInicial) : undefined,
-        cuotaMensual: cuotaMensual ? parseFloat(cuotaMensual) : undefined,
         estado
       }
     });
@@ -68,6 +66,18 @@ router.put('/:id', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar temporada:', error);
     res.status(500).json({ error: 'Error al actualizar temporada' });
+  }
+});
+
+// ✅ DELETE PROTEGIDO: Eliminar temporada
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.temporada.delete({ where: { id: parseInt(id) } });
+    res.json({ message: 'Temporada eliminada correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar temporada:', error);
+    res.status(500).json({ error: 'Error al eliminar temporada' });
   }
 });
 

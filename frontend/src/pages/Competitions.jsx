@@ -255,25 +255,43 @@ export default function Competitions() {
           
           {/* SELECTOR DE TEMPORADAS */}
           {temporadas.length > 0 && (
-            <div className="mb-8 flex justify-center">
+            <div className="mb-8 flex justify-center relative z-20">
               <select
                 value={selectedTemporadaId || ""}
                 onChange={(e) => setSelectedTemporadaId(e.target.value ? parseInt(e.target.value) : null)}
-                className="bg-zinc-950 border border-zinc-700 text-white px-6 py-3 rounded-sm text-sm font-bold uppercase tracking-wider focus:border-red-600 outline-none cursor-pointer hover:border-zinc-500 transition-colors"
+                className="
+                  appearance-none
+                  bg-zinc-900/80 backdrop-blur-md
+                  border border-zinc-700 
+                  text-white 
+                  px-6 py-3 pr-10
+                  rounded-sm 
+                  text-xs font-bold uppercase tracking-[0.15em] 
+                  focus:border-red-600 focus:ring-1 focus:ring-red-600/50
+                  outline-none 
+                  cursor-pointer 
+                  hover:border-zinc-500 hover:bg-zinc-800
+                  transition-all duration-300
+                  shadow-lg shadow-black/50
+                "
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                  backgroundPosition: `right 0.75rem center`,
+                  backgroundRepeat: `no-repeat`,
+                  backgroundSize: `1.25rem 1.25rem`
+                }}
               >
                 {temporadas.map((temp) => (
-                  <option key={temp.id} value={temp.id}>{temp.nome}</option>
+                  <option key={temp.id} value={temp.id} className="bg-zinc-900 text-white">
+                    {temp.nome}
+                  </option>
                 ))}
               </select>
             </div>
           )}
 
           <p className="text-red-500 font-bold tracking-[0.25em] text-[10px] md:text-xs mb-5 uppercase">
-            {temporadaActual ? temporadaActual.nome : "Calendario"}
-          </p>
-          <h1 className="font-display text-5xl sm:text-6xl md:text-8xl leading-none mb-6 text-white">COMPETICIONES</h1>
-          <p className="text-zinc-400 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Consulta el calendario de Lobos Quad Rugby, sigue nuestros partidos en directo y revisa los resultados de la temporada.
+            {temporadaActual ? temporadaActual.nome : "Calendario Oficial"}
           </p>
         </div>
       </section>
