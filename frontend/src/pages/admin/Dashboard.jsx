@@ -37,11 +37,13 @@ export default function Dashboard() {
       
       const jornadasArray = Array.isArray(jornadas) ? jornadas : [];
 
-      // ✅ CORRECCIÓN: Usar el estado de la Temporada como fuente de verdad
-      const activeJornadas = jornadasArray.filter(j => j.temporada?.estado === 'ACTIVA');
-      const historicJornadas = jornadasArray.filter(j => j.temporada?.estado === 'FINALIZADA' || j.isActive === false);
+      // ✅ CORRECCIÓN: Filtrar por el estado individual de la jornada (isActive)
+      const activeJornadas = jornadasArray.filter(j => j.isActive === true);
       
-      // Ordena por número para pegar a próxima (a de menor número entre as ativas)
+      // ✅ CORRECCIÓN: Histórico incluye las archivadas (isActive: false) o de temporadas finalizadas
+      const historicJornadas = jornadasArray.filter(j => j.isActive === false || j.temporada?.estado === 'FINALIZADA');
+      
+      // La próxima jornada es la de menor número entre las que están REALMENTE activas
       const nextJornada = activeJornadas.length > 0 
         ? activeJornadas.sort((a, b) => a.numero - b.numero)[0] 
         : null;
@@ -142,7 +144,7 @@ export default function Dashboard() {
           <p className="text-zinc-600 text-xs mt-1">{stats.eventosHistorico} en histórico</p>
         </Link>
 
-        {/* 5. Jornadas (CORREGIDO) */}
+        {/* 5. Jornadas (LÓGICA CORREGIDA) */}
         <Link to="/admin/jornadas" className="bg-zinc-900 border border-zinc-800 p-6 rounded-sm hover:border-purple-600/50 transition-colors duration-300 group md:col-span-2 lg:col-span-2">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 rounded-sm bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
@@ -151,7 +153,6 @@ export default function Dashboard() {
           </div>
           <p className="text-zinc-500 text-xs uppercase tracking-[0.15em] font-medium mb-2">Jornadas de Competición</p>
           
-          {/* ✅ Ahora muestra las activas y las del histórico correctamente */}
           <div className="flex items-baseline gap-2 mb-1">
             <p className="font-display text-4xl text-purple-500">{stats.jornadasActivas}</p>
             <p className="text-zinc-500 text-sm">activas</p>
