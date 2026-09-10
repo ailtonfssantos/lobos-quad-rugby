@@ -109,7 +109,8 @@ const buildPartidosData = (partidos) => {
 
 /* =========================================================
    PUBLICA
-   Obtener todas las jornadas con temporada y partidos
+   Obtener todas las jornadas
+   con temporada + partidos
 ========================================================= */
 
 router.get('/', async (req, res) => {
@@ -120,11 +121,6 @@ router.get('/', async (req, res) => {
         partidos: true
       },
       orderBy: [
-        {
-          temporada: {
-            dataInicio: 'desc'
-          }
-        },
         {
           numero: 'asc'
         }
@@ -302,11 +298,12 @@ router.put('/:id', authMiddleware, async (req, res) => {
        COMPROBAR JORNADA
     ===================================================== */
 
-    const jornadaExistente = await prisma.jornada.findUnique({
-      where: {
-        id: jornadaId
-      }
-    });
+    const jornadaExistente =
+      await prisma.jornada.findUnique({
+        where: {
+          id: jornadaId
+        }
+      });
 
     if (!jornadaExistente) {
       return res.status(404).json({
@@ -315,7 +312,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 
     /* =====================================================
-       PREPARAR DATOS
+       PREPARAR UPDATE
     ===================================================== */
 
     const updateData = {};
@@ -339,10 +336,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
         temporadaId !== null &&
         temporadaId !== ''
       ) {
-        temporadaIdParsed = parseInt(
-          temporadaId,
-          10
-        );
+        temporadaIdParsed =
+          parseInt(temporadaId, 10);
 
         if (Number.isNaN(temporadaIdParsed)) {
           return res.status(400).json({
@@ -395,7 +390,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     /* =====================================================
        PARTIDOS
-       Se actualizan dentro de la misma transacción
     ===================================================== */
 
     if (partidos !== undefined) {
@@ -415,7 +409,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 
     /* =====================================================
-       ACTUALIZAR
+       UPDATE
     ===================================================== */
 
     const actualizada =

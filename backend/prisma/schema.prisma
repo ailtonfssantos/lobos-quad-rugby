@@ -106,12 +106,13 @@ model Jornada {
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
 
-  // Temporada deportiva
+  // Relación con la temporada
   temporadaId   Int?
   temporada     Temporada? @relation(fields: [temporadaId], references: [id], onDelete: SetNull)
 
   partidos      Partido[]
 
+  // Relaciones con módulo financiero
   ingressos     Ingresso[]
   gastos        Gasto[]
   participantes ParticipanteJornada[]
