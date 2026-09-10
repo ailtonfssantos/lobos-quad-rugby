@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [subvencionesResumen, setSubvencionesResumen] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+    useEffect(() => {
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };
 
@@ -37,16 +37,45 @@ export default function Dashboard() {
       
       const jornadasArray = Array.isArray(jornadas) ? jornadas : [];
 
-      // ✅ CORRECCIÓN: Filtrar por el estado individual de la jornada (isActive)
-      const activeJornadas = jornadasArray.filter(j => j.isActive === true);
+      // ✅ FILTRADO ROBUSTO:
+      // 1. Jornadas ACTIVAS: deben tener temporada ACTIVA Y estar activas individualmente
+      const activeJornadas = jornadasArray.filter(j => 
+        j.isActive === true && j.temporada?.estado === 'ACTIVA'
+      );
       
-      // ✅ CORRECCIÓN: Histórico incluye las archivadas (isActive: false) o de temporadas finalizadas
-      const historicJornadas = jornadasArray.filter(j => j.isActive === false || j.temporada?.estado === 'FINALIZADA');
+      // 2. Jornadas en HISTÓRICO: 
+      //    - Las que tienen isActive === false, O
+      //    - Las que pertenecen a temporada FINALIZADA, O
+      //    - Las que NO tienen temporada asignada (jornadas antiguas huérfanas)
+      const historicJornadas = jornadasArray.filter(j => 
+        j.isActive === false || 
+        j.temporada?.estado === 'FINALIZADA' || 
+        !j.temporada
+      );
       
-      // La próxima jornada es la de menor número entre las que están REALMENTE activas
-      const nextJornada = activeJornadas.length > 0 
-        ? activeJornadas.sort((a, b) => a.numero - b.numero)[0] 
-        : null;
+      // 3. Próxima jornada: la de MENOR número entre las ACTIVAS de la temporada actual
+      const sortedActiveJornadas = [...activeJornadas].sort((a, b) => {
+        const numA = parseInt(a.numero) || 999;
+        const numB = parseInt(b.numero) || 999;
+        return numA - numB;
+      });
+      
+      const nextJornada = sortedActiveJornadas.length > 0 ? sortedActiveJornadas[0] : null;
+
+      // DEBUG: Para ver qué está pasando
+      console.log('📊 DEBUG Dashboard Jornadas:');
+      console.log('Total jornadas en BD:', jornadasArray.length);
+      console.log('Jornadas ACTIVAS (temporada ACTIVA + isActive=true):', activeJornadas.length);
+      console.log('Jornadas en HISTÓRICO:', historicJornadas.length);
+      console.log('Próxima jornada:', nextJornada ? `Jornada ${nextJornada.numero} - ${nextJornada.ciudad}` : 'Ninguna');
+      console.log('Detalle de todas las jornadas:', jornadasArray.map(j => ({
+        id: j.id,
+        numero: j.numero,
+        ciudad: j.ciudad,
+        isActive: j.isActive,
+        tieneTemporada: !!j.temporada,
+        estadoTemporada: j.temporada?.estado || 'SIN TEMPORADA'
+      })));
 
       setStats({
         inscripcionesPendientes: Array.isArray(inscripciones) ? inscripciones.filter(i => i.status === 'PENDIENTE').length : 0,
@@ -60,7 +89,7 @@ export default function Dashboard() {
         proximaJornada: nextJornada
       });
 
-      // Lógica de resumo de subvenções
+      // Lógica de resumo de subvenções (sin cambios)
       const summaries = {};
       (Array.isArray(subvenciones) ? subvenciones : []).forEach(sub => {
         const year = sub.ano;
