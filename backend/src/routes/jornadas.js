@@ -55,7 +55,7 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const { numero, temporadaId, competicion, ciudad, pabellon, fechas, bannerUrl, partidos } = req.body;
 
-    if (!numero) return res.status(400).json({ error: 'El número de jornada es obligatorio' });
+    if (!numero) return res.status(400).json({ error: 'El identificador de jornada es obligatorio'});
     if (!temporadaId) return res.status(400).json({ error: 'La temporada es obligatoria' });
     if (!competicion) return res.status(400).json({ error: 'La competición es obligatoria' });
     if (!ciudad) return res.status(400).json({ error: 'La ciudad es obligatoria' });
@@ -67,7 +67,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const nuevaJornada = await prisma.jornada.create({
       data: {
-        numero: parseInt(numero),
+        numero: numero,
         temporadaId: parseInt(temporadaId), // <-- Añadido
         competicion,
         ciudad,

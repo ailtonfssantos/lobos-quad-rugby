@@ -422,7 +422,14 @@ export default function Jornadas() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Número de Jornada *</label>
-                    <input type="number" value={formData.numero} onChange={(e) => updateJornada("numero", e.target.value)} required min="1" className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
+                    <input 
+                      type="text" 
+                      value={formData.numero} 
+                      onChange={(e) => updateJornada("numero", e.target.value)} 
+                      required 
+                      placeholder="Ej: 1 o Campeonato de España" 
+                      className="..." 
+                    />
                   </div>
                   
                   <div>

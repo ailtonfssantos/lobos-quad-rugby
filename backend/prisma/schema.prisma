@@ -97,7 +97,7 @@ model InscricaoEvento {
 
 model Jornada {
   id            Int       @id @default(autoincrement())
-  numero        Int
+  numero        String
   competicion   String
   ciudad        String
   pabellon      String

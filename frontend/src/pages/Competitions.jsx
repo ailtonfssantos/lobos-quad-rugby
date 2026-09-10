@@ -91,7 +91,7 @@ export default function Competitions() {
   const temporadaActual = temporadas.find(t => t.id === selectedTemporadaId);
 
   /* =======================================================
-     FUNCIONES DE FECHA Y ESTADO (Código original intacto)
+     FUNCIONES DE FECHA Y ESTADO
   ======================================================= */
   const meses = {
     ENERO: 0, FEBRERO: 1, MARZO: 2, ABRIL: 3, MAYO: 4, JUNIO: 5,
@@ -223,7 +223,7 @@ export default function Competitions() {
     );
   };
 
-    const Score = ({ homeScore, awayScore }) => {
+  const Score = ({ homeScore, awayScore }) => {
     const home = Number(homeScore), away = Number(awayScore);
     const homeWinner = Number.isFinite(home) && Number.isFinite(away) && home > away;
     const awayWinner = Number.isFinite(home) && Number.isFinite(away) && away > home;
@@ -252,6 +252,12 @@ export default function Competitions() {
     const dia = getFormattedDay(jornada, partido);
     const youtubeLink = partido?.youtubeLink || partido?.youtube || partido?.videoUrl || null;
     const hasScore = partido?.lobosScore !== null && partido?.lobosScore !== undefined && partido?.rivalScore !== null && partido?.rivalScore !== undefined;
+
+    // Determinar ganador para mobile
+    const homeScore = Number(partido.lobosScore) || 0;
+    const awayScore = Number(partido.rivalScore) || 0;
+    const homeWinnerMobile = homeScore > awayScore;
+    const awayWinnerMobile = awayScore > homeScore;
 
     return (
       <article className="group relative bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-sm overflow-hidden transition-all duration-300">
@@ -288,6 +294,7 @@ export default function Competitions() {
             </div>
           </div>
 
+          {/* MOBILE - CORREGIDO: Placar com cor dinâmica */}
           <div className="sm:hidden">
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <div className="flex flex-col items-center text-center">
@@ -297,9 +304,13 @@ export default function Competitions() {
               <div className="flex flex-col items-center px-2">
                 {status === "FINALIZADO" && hasScore ? (
                   <div className="flex items-center gap-2">
-                    <span className="font-display text-2xl font-bold text-white">{partido.lobosScore}</span>
+                    <span className={`font-display text-2xl font-bold ${homeWinnerMobile ? "text-red-500" : "text-white"}`}>
+                      {partido.lobosScore}
+                    </span>
                     <span className="text-zinc-700">-</span>
-                    <span className="font-display text-2xl font-bold text-white">{partido.rivalScore}</span>
+                    <span className={`font-display text-2xl font-bold ${awayWinnerMobile ? "text-red-500" : "text-white"}`}>
+                      {partido.rivalScore}
+                    </span>
                   </div>
                 ) : (
                   <span className="font-display text-sm text-zinc-700">VS</span>
