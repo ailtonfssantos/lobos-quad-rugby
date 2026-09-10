@@ -453,7 +453,13 @@ export default function Competitions() {
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-transparent"></div>
                     <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
                       <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-1">{jornada.competicion || "Competición"}</p>
-                      <h2 className="font-display text-3xl md:text-5xl text-white">Jornada {jornada.numero}</h2>
+                        <h2 className="font-display text-3xl md:text-5xl text-white">
+                          {jornada.competicion?.toLowerCase().includes("autonómica") || 
+                          jornada.competicion?.toLowerCase().includes("campeonato") ||
+                          !/^\d+$/.test(String(jornada.numero)) 
+                            ? jornada.numero 
+                            : `Jornada ${jornada.numero}`}
+                        </h2>
                     </div>
                   </div>
                 )}

@@ -194,38 +194,42 @@ export default function Jornadas() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    const partidosValidos = formData.partidos.filter((p) => p.equipoVisitanteNombre || p.rival || p.horario || p.fecha);
-    
-    const partidosFinales = partidosValidos.map((p) => ({
-      ...p,
-      equipoLocal: { nombre: p.equipoLocalNombre || "Lobos Quad Rugby", logo: p.equipoLocalLogo || "" },
-      equipoVisitante: { nombre: p.equipoVisitanteNombre || p.rival || "", logo: p.equipoVisitanteLogo || p.rivalLogo || "" },
-      rival: p.equipoVisitanteNombre || p.rival || "",
-      rivalLogo: p.equipoVisitanteLogo || p.rivalLogo || "",
-    }));
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+  const partidosValidos = formData.partidos.filter((p) => p.equipoVisitanteNombre || p.rival || p.horario || p.fecha);
+  
+  const partidosFinales = partidosValidos.map((p) => ({
+    ...p,
+    equipoLocal: { nombre: p.equipoLocalNombre || "Lobos Quad Rugby", logo: p.equipoLocalLogo || "" },
+    equipoVisitante: { nombre: p.equipoVisitanteNombre || p.rival || "", logo: p.equipoVisitanteLogo || p.rivalLogo || "" },
+    rival: p.equipoVisitanteNombre || p.rival || "",
+    rivalLogo: p.equipoVisitanteLogo || p.rivalLogo || "",
+  }));
 
-    const payload = { ...formData, partidos: partidosFinales };
-    const url = editingId ? `${API_URL}/api/jornadas/${editingId}` : `${API_URL}/api/jornadas`;
-
-    try {
-      const res = await fetch(url, {
-        method: editingId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || `Error HTTP: ${res.status}`);
-      }
-      closeModal();
-      await fetchJornadas();
-    } catch (error) {
-      console.error("Error al guardar jornada:", error);
-      alert("No se pudo guardar la jornada.");
-    }
+  const payload = { 
+    ...formData, 
+    numero: String(formData.numero), // ✅ FORÇAR COMO STRING
+    partidos: partidosFinales 
   };
+  const url = editingId ? `${API_URL}/api/jornadas/${editingId}` : `${API_URL}/api/jornadas`;
+
+  try {
+    const res = await fetch(url, {
+      method: editingId ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || `Error HTTP: ${res.status}`);
+    }
+    closeModal();
+    await fetchJornadas();
+  } catch (error) {
+    console.error("Error al guardar jornada:", error);
+    alert("No se pudo guardar la jornada.");
+  }
+};
 
   const toggleActiva = async (id, currentStatus) => {
     const token = localStorage.getItem("token");
@@ -421,14 +425,14 @@ export default function Jornadas() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Número de Jornada *</label>
+                    <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Número de Jornada / Identificador *</label>
                     <input 
                       type="text" 
                       value={formData.numero} 
                       onChange={(e) => updateJornada("numero", e.target.value)} 
                       required 
-                      placeholder="Ej: 1 o Campeonato de España" 
-                      className="..." 
+                      placeholder="Ej: 1, 2, 3 o Campeonato de España" 
+                      className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" 
                     />
                   </div>
                   
