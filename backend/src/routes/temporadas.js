@@ -5,8 +5,8 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET: Listar todas as temporadas
-router.get('/', authMiddleware, async (req, res) => {
+// ✅ GET PÚBLICO: Cualquiera puede ver las temporadas
+router.get('/', async (req, res) => {
   try {
     const temporadas = await prisma.temporada.findMany({
       orderBy: { dataInicio: 'desc' }
@@ -18,7 +18,7 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// POST: Criar nova temporada
+// ✅ POST PROTEGIDO: Solo admins pueden crear
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { nome, dataInicio, dataFim, saldoInicial, cuotaMensual } = req.body;
