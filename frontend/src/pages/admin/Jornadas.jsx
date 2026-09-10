@@ -49,12 +49,16 @@ export default function Jornadas() {
     }
   };
 
+  // ✅ FUNCIÓN CORREGIDA: Lee la respuesta una sola vez
   const fetchTemporadas = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_URL}/api/temporadas`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/temporadas`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
       if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
-      setTemporadas(Array.isArray(await res.json()) ? await res.json() : []);
+      const data = await res.json(); 
+      setTemporadas(Array.isArray(data) ? data : []); 
     } catch (error) {
       console.error("Error al cargar temporadas:", error);
     }
@@ -316,14 +320,12 @@ export default function Jornadas() {
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Temporada</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Ubicación</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Partidos</th>
-                {/* CORRECCIÓN 1 y 3: El estado ahora refleja el de la Temporada */}
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">Estado</th>
                 <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {displayedJornadas.map((j) => {
-                // Obtenemos el estado de la temporada asociada
                 const estadoTemporada = j.temporada?.estado || "ACTIVA";
                 const temporadaNombre = j.temporada?.nome || "Sin temporada";
                 
@@ -361,7 +363,6 @@ export default function Jornadas() {
                         })}
                       </div>
                     </td>
-                    {/* CORRECCIÓN 1 y 3: Muestra Activa o Finalizada según la Temporada */}
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
                         estadoTemporada === 'ACTIVA' 
@@ -392,7 +393,7 @@ export default function Jornadas() {
         </div>
       )}
 
-      {/* MODAL CREAR/EDITAR JORNADA (COMPLETO, INCLUYE SELECTOR DE TEMPORADA) */}
+      {/* MODAL CREAR/EDITAR JORNADA */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full my-8 shadow-2xl">
@@ -415,7 +416,7 @@ export default function Jornadas() {
                     <input type="number" value={formData.numero} onChange={(e) => updateJornada("numero", e.target.value)} required min="1" className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
                   </div>
                   
-                  {/* CORRECCIÓN 4: SELECTOR DE TEMPORADA GARANTIZADO */}
+                  {/* SELECTOR DE TEMPORADA (Ahora funcionará perfectamente) */}
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Temporada *</label>
                     <select 
