@@ -35,7 +35,12 @@ export default function Dashboard() {
       fetch(`${import.meta.env.VITE_API_URL}/api/subvenciones`, { headers }).then(r => r.json()).catch(() => [])
     ]).then(([inscripciones, patrocinios, jugadores, eventos, jornadas, subvenciones]) => {
       
-      const activeJornadas = Array.isArray(jornadas) ? jornadas.filter(j => j.isActive) : [];
+      const jornadasArray = Array.isArray(jornadas) ? jornadas : [];
+
+      // ✅ CORRECCIÓN: Usar el estado de la Temporada como fuente de verdad
+      const activeJornadas = jornadasArray.filter(j => j.temporada?.estado === 'ACTIVA');
+      const historicJornadas = jornadasArray.filter(j => j.temporada?.estado === 'FINALIZADA' || j.isActive === false);
+      
       // Ordena por número para pegar a próxima (a de menor número entre as ativas)
       const nextJornada = activeJornadas.length > 0 
         ? activeJornadas.sort((a, b) => a.numero - b.numero)[0] 
@@ -49,7 +54,7 @@ export default function Dashboard() {
         eventosActivos: Array.isArray(eventos) ? eventos.filter(e => e.isActive).length : 0,
         eventosHistorico: Array.isArray(eventos) ? eventos.filter(e => !e.isActive).length : 0,
         jornadasActivas: activeJornadas.length,
-        jornadasHistorico: Array.isArray(jornadas) ? jornadas.filter(j => !j.isActive).length : 0,
+        jornadasHistorico: historicJornadas.length,
         proximaJornada: nextJornada
       });
 
@@ -60,7 +65,6 @@ export default function Dashboard() {
         if (!summaries[year]) summaries[year] = { count: 0, total: 0 };
         summaries[year].count += 1;
         
-        // Parser robusto: entende "4.332,83" e "4332.83"
         const valStr = String(sub.valor).trim();
         let numericValue = 0;
         if (valStr.includes(',')) {
@@ -138,7 +142,7 @@ export default function Dashboard() {
           <p className="text-zinc-600 text-xs mt-1">{stats.eventosHistorico} en histórico</p>
         </Link>
 
-        {/* 5. Jornadas (RESTAURADO E MELHORADO) */}
+        {/* 5. Jornadas (CORREGIDO) */}
         <Link to="/admin/jornadas" className="bg-zinc-900 border border-zinc-800 p-6 rounded-sm hover:border-purple-600/50 transition-colors duration-300 group md:col-span-2 lg:col-span-2">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 rounded-sm bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
@@ -146,10 +150,13 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="text-zinc-500 text-xs uppercase tracking-[0.15em] font-medium mb-2">Jornadas de Competición</p>
-          <div className="flex items-baseline gap-2 mb-3">
+          
+          {/* ✅ Ahora muestra las activas y las del histórico correctamente */}
+          <div className="flex items-baseline gap-2 mb-1">
             <p className="font-display text-4xl text-purple-500">{stats.jornadasActivas}</p>
             <p className="text-zinc-500 text-sm">activas</p>
           </div>
+          <p className="text-zinc-600 text-xs mb-3">{stats.jornadasHistorico} en histórico</p>
           
           {stats.proximaJornada ? (
             <div className="mt-4 pt-4 border-t border-zinc-800">
