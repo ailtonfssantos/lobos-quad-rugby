@@ -49,7 +49,6 @@ export default function Jornadas() {
     }
   };
 
-  // ✅ FUNCIÓN CORREGIDA: Lee la respuesta una sola vez
   const fetchTemporadas = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -258,18 +257,17 @@ export default function Jornadas() {
     }
   };
 
-    // Función para extraer el año de la temporada (ej: "25/26")
-    const getYearSuffix = (temporadaNome) => {
-      if (!temporadaNome) return "";
-      const match = temporadaNome.match(/(\d{4})-(\d{4})/);
-      if (match) {
-        return `${match[1].slice(2)}/${match[2].slice(2)}`;
-      }
-      return "";
-    };
+  const getYearSuffix = (temporadaNome) => {
+    if (!temporadaNome) return "";
+    const match = temporadaNome.match(/(\d{4})-(\d{4})/);
+    if (match) {
+      return `${match[1].slice(2)}/${match[2].slice(2)}`;
+    }
+    return "";
+  };
 
-    const selectedTemporada = temporadas.find(t => t.id === formData.temporadaId);
-    const compSuffix = getYearSuffix(selectedTemporada?.nome) ? ` ${getYearSuffix(selectedTemporada?.nome)}` : "";
+  const selectedTemporada = temporadas.find(t => t.id === formData.temporadaId);
+  const compSuffix = getYearSuffix(selectedTemporada?.nome) ? ` ${getYearSuffix(selectedTemporada?.nome)}` : "";
 
   if (loading) return <div className="text-zinc-500">Cargando jornadas...</div>;
 
@@ -286,7 +284,6 @@ export default function Jornadas() {
         </button>
       </div>
 
-      {/* FILTRO DE TEMPORADAS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900 border border-zinc-800 p-4 rounded-sm">
         <div className="flex items-center gap-3">
           <Icon path="M12 6v6l4 2" className="w-5 h-5 text-zinc-500" />
@@ -406,7 +403,6 @@ export default function Jornadas() {
         </div>
       )}
 
-      {/* MODAL CREAR/EDITAR JORNADA */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full my-8 shadow-2xl">
@@ -429,7 +425,6 @@ export default function Jornadas() {
                     <input type="number" value={formData.numero} onChange={(e) => updateJornada("numero", e.target.value)} required min="1" className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none" />
                   </div>
                   
-                  {/* SELECTOR DE TEMPORADA (Ahora funcionará perfectamente) */}
                   <div>
                     <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-2">Temporada *</label>
                     <select 
@@ -576,19 +571,17 @@ export default function Jornadas() {
                         {p.status === "FINALIZADO" && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">Puntos Lobos</label>
+                              <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">Puntos Equipo Local</label>
                               <input type="number" min="0" value={p.lobosScore} onChange={(e) => updatePartido(idx, "lobosScore", e.target.value)} placeholder="54" className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-lg font-bold outline-none focus:border-red-600" />
                             </div>
                             <div>
-                              <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">Puntos Rival</label>
+                              <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">Puntos Equipo Visitante</label>
                               <input type="number" min="0" value={p.rivalScore} onChange={(e) => updatePartido(idx, "rivalScore", e.target.value)} placeholder="48" className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-lg font-bold outline-none focus:border-red-600" />
                             </div>
                           </div>
                         )}
 
-                        {/* =========================================
-                              VISTA PREVIA DEL PARTIDO (DENTRO del partido)
-                        ========================================= */}
+                        {/* VISTA PREVIA */}
                         <div className="border-t border-zinc-800 pt-5 mt-6">
                           <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-3">Vista previa</p>
                           <div className="bg-black border border-zinc-800 p-4 rounded-sm">
@@ -644,7 +637,6 @@ export default function Jornadas() {
         </div>
       )}
 
-      {/* MODAL ELIMINAR JORNADA */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setItemToDelete(null)}>
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>

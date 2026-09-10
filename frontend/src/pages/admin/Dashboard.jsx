@@ -186,7 +186,7 @@ export default function Dashboard() {
             <p className="font-display text-4xl text-purple-500">{stats.jornadasActivas}</p>
             <p className="text-zinc-500 text-sm">activas</p>
           </div>
-          <p className="text-zinc-600 text-xs mb-3">{stats.jornadasHistorico} en histórico</p>
+          <p className="text-zinc-600 text-xs mb-3">{stats.jornadasHistorico} finalizadas</p>
           
           {stats.proximaJornada ? (
             <div className="mt-4 pt-4 border-t border-zinc-800">
