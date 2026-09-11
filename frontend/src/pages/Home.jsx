@@ -247,7 +247,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-30
+              opacity-100
               grayscale-[25%]
             "
           />
