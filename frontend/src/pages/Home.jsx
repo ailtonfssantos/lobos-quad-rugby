@@ -246,7 +246,7 @@ export default function Home() {
         {/* Fotografía */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/assets/equipo.jpg"
+            src="/assets/lobosquad1.webp"
             alt="Equipo Lobos Quad Rugby"
             className="
               w-full h-full object-cover
