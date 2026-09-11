@@ -303,7 +303,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-75
+              opacity-85
               grayscale-[25%]
             "
           />
@@ -479,16 +479,16 @@ export default function Home() {
                       {/* Lobos - COM FUNDO BRANCO e logo do banco de dados */}
                       <div className="flex-1 text-center">
                         <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                          {getLobosLogo(proximoPartido) ? (
+                          {getOpponentLogo(proximoPartido) ? (
                             <img
-                              src={getLobosLogo(proximoPartido)}
-                              alt="Lobos Quad Rugby"
+                              src={getOpponentLogo(proximoPartido)}
+                              alt={getOpponentName(proximoPartido)}
                               className="max-w-full max-h-full object-contain"
                             />
                           ) : (
                             <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
-                              <span className="text-zinc-600 text-xs font-bold">
-                LOBOS
+                              <span className="text-zinc-600 text-xl">
+                                
                               </span>
                             </div>
                           )}
