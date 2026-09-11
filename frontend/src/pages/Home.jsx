@@ -248,14 +248,19 @@ export default function Home() {
   }, [partidos]);
 
   const ultimoResultado = useMemo(() => {
+    // ✅ CORREÇÃO: Busca TODOS os jogos finalizados, ordenados pela data mais recente
     const finished = partidos
       .filter(isFinishedMatch)
-      .filter((partido) => getMatchDate(partido))
       .sort((a, b) => {
-        return (
-          new Date(getMatchDate(b)).getTime() -
-          new Date(getMatchDate(a)).getTime()
-        );
+        const dateA = getMatchDate(a);
+        const dateB = getMatchDate(b);
+        
+        // Se não tiver data, usa data antiga para não aparecer primeiro
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
       });
 
     return finished[0] || null;
@@ -444,7 +449,6 @@ export default function Home() {
                 <>
                   <div className="text-center">
                     <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
-                      {/* ✅ CORREÇÃO 2: Mostra apenas o nome da temporada */}
                       {proximoPartido.temporada?.nome
                         ? proximoPartido.temporada.nome
                         : proximoPartido.competicion || 'Competición'}
