@@ -3,9 +3,6 @@ import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-// ✅ URL do logo dos Lobos no Cloudinary (fallback garantido)
-const LOBOS_LOGO_URL = 'https://res.cloudinary.com/xfbrfkdp/image/upload/v1788730912/lobos-quad-rugby/ju1e8s9nsfzqtjfvyslf.png';
-
 const Icon = ({ path, className = 'w-6 h-6' }) => (
   <svg
     className={className}
@@ -98,7 +95,6 @@ const isUpcomingMatch = (partido) => {
   return date.getTime() >= Date.now();
 };
 
-// ✅ FUNÇÕES IGUAIS AO COMPETICIONES.JSX
 const getHomeTeam = (partido) => ({
   name: partido?.equipoLocal?.nombre || partido?.equipoLocalNombre || partido?.localNombre || "Lobos Quad Rugby",
   logo: partido?.equipoLocal?.logo || partido?.equipoLocalLogo || partido?.localLogo || null,
@@ -141,24 +137,29 @@ const getOpponentScore = (partido) => {
   return null;
 };
 
-const getStatusLabel = (partido) => {
+// ✅ NOVA FUNÇÃO: Retorna texto e cores corretas para o badge de status
+const getMatchBadge = (partido) => {
   const status = getMatchStatus(partido);
 
   if (isFinishedMatch(partido)) {
-    return 'Finalizado';
-  }
-
-  if (
-    ['programado', 'scheduled', 'confirmado', 'confirmed'].includes(status)
-  ) {
-    return 'Programado';
+    return {
+      text: 'Finalizado',
+      className: 'px-2.5 py-1 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[9px] font-bold uppercase tracking-widest'
+    };
   }
 
   if (['cancelado', 'cancelada', 'cancelled'].includes(status)) {
-    return 'Cancelado';
+    return {
+      text: 'Cancelado',
+      className: 'px-2.5 py-1 border border-red-500/30 bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-widest'
+    };
   }
 
-  return 'Próximo partido';
+  // Padrão: Programado (Azul)
+  return {
+    text: 'Programado',
+    className: 'px-2.5 py-1 border border-blue-500/30 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-widest'
+  };
 };
 
 export default function Home() {
@@ -246,7 +247,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-75
+              opacity-30
               grayscale-[25%]
             "
           />
@@ -395,11 +396,15 @@ export default function Home() {
                 Próximo desafío
               </span>
 
-              {proximoPartido && (
-                <span className="px-2.5 py-1 border border-red-600/30 bg-red-600/10 text-red-500 text-[9px] font-bold uppercase tracking-widest">
-                  {getStatusLabel(proximoPartido)}
-                </span>
-              )}
+              {/* ✅ BADGE DINÂMICO COM CORES CORRETAS */}
+              {proximoPartido && (() => {
+                const badge = getMatchBadge(proximoPartido);
+                return (
+                  <span className={badge.className}>
+                    {badge.text}
+                  </span>
+                );
+              })()}
             </div>
 
             {loadingJornadas ? (
@@ -417,7 +422,7 @@ export default function Home() {
 
                   <div className="flex items-center justify-center gap-5 md:gap-8">
 
-                    {/* ✅ TIME DA ESQUERDA (MANDANTE) - Dinâmico */}
+                    {/* TIME DA ESQUERDA (MANDANTE) */}
                     <div className="flex-1 text-center">
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
                         {getHomeTeam(proximoPartido).logo ? (
@@ -444,7 +449,7 @@ export default function Home() {
                       VS
                     </div>
 
-                    {/* ✅ TIME DA DIREITA (VISITANTE) - Dinâmico */}
+                    {/* TIME DA DIREITA (VISITANTE) */}
                     <div className="flex-1 text-center">
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
                         {getAwayTeam(proximoPartido).logo ? (
