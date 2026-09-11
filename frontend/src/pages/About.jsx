@@ -1,4 +1,4 @@
-// frontend/src/pages/About.jsx
+// src/pages/About.jsx
 import Hero from './About/Hero';
 import WhoWeAre from './About/WhoWeAre';
 import Numbers from './About/Numbers';
