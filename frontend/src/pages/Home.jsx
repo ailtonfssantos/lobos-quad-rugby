@@ -98,65 +98,16 @@ const isUpcomingMatch = (partido) => {
   return date.getTime() >= Date.now();
 };
 
-const getOpponentName = (partido) => {
-  if (partido?.rival) return partido.rival;
+// ✅ FUNÇÕES IGUAIS AO COMPETICIONES.JSX
+const getHomeTeam = (partido) => ({
+  name: partido?.equipoLocal?.nombre || partido?.equipoLocalNombre || partido?.localNombre || "Lobos Quad Rugby",
+  logo: partido?.equipoLocal?.logo || partido?.equipoLocalLogo || partido?.localLogo || null,
+});
 
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoVisitante?.nombre || 'Rival';
-  }
-
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoLocal?.nombre || 'Rival';
-  }
-
-  return (
-    partido?.equipoVisitante?.nombre ||
-    partido?.equipoLocal?.nombre ||
-    'Rival'
-  );
-};
-
-const getOpponentLogo = (partido) => {
-  if (partido?.rivalLogo) return partido.rivalLogo;
-
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoVisitante?.logo || null;
-  }
-
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoLocal?.logo || null;
-  }
-
-  return partido?.equipoVisitante?.logo || partido?.equipoLocal?.logo || null;
-};
-
-// ✅ FUNÇÃO: Busca o logo dos Lobos do banco de dados, com fallback para URL direta
-const getLobosLogo = (partido) => {
-  // Tenta buscar do banco primeiro
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoLocal?.logo || LOBOS_LOGO_URL;
-  }
-
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoVisitante?.logo || LOBOS_LOGO_URL;
-  }
-
-  // Fallback direto para a URL do Cloudinary
-  return LOBOS_LOGO_URL;
-};
-
-// ✅ FUNÇÃO: Busca o nome dos Lobos do banco de dados
-const getLobosName = (partido) => {
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoLocal?.nombre || 'Lobos Quad Rugby';
-  }
-
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoVisitante?.nombre || 'Lobos Quad Rugby';
-  }
-
-  return 'Lobos Quad Rugby';
-};
+const getAwayTeam = (partido) => ({
+  name: partido?.equipoVisitante?.nombre || partido?.equipoVisitanteNombre || partido?.visitanteNombre || partido?.rival || "Rival",
+  logo: partido?.equipoVisitante?.logo || partido?.equipoVisitanteLogo || partido?.visitanteLogo || partido?.rivalLogo || null,
+});
 
 const getLobosScore = (partido) => {
   if (partido?.lobosScore !== undefined && partido?.lobosScore !== null) {
@@ -466,18 +417,26 @@ export default function Home() {
 
                   <div className="flex items-center justify-center gap-5 md:gap-8">
 
-                    {/* Lobos - COM FUNDO BRANCO e logo do banco de dados */}
+                    {/* ✅ TIME DA ESQUERDA (MANDANTE) - Dinâmico */}
                     <div className="flex-1 text-center">
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                        <img
-                          src={getLobosLogo(proximoPartido)}
-                          alt="Lobos Quad Rugby"
-                          className="max-w-full max-h-full object-contain"
-                        />
+                        {getHomeTeam(proximoPartido).logo ? (
+                          <img
+                            src={getHomeTeam(proximoPartido).logo}
+                            alt={getHomeTeam(proximoPartido).name}
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 flex items-center justify-center">
+                            <span className="text-red-600 text-xs font-bold text-center leading-tight">
+                              LOBOS<br />QUAD<br />RUGBY
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <p className="font-display text-base md:text-lg">
-                        {getLobosName(proximoPartido)}
+                        {getHomeTeam(proximoPartido).name}
                       </p>
                     </div>
 
@@ -485,13 +444,13 @@ export default function Home() {
                       VS
                     </div>
 
-                    {/* Rival - COM FUNDO BRANCO */}
+                    {/* ✅ TIME DA DIREITA (VISITANTE) - Dinâmico */}
                     <div className="flex-1 text-center">
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                        {getOpponentLogo(proximoPartido) ? (
+                        {getAwayTeam(proximoPartido).logo ? (
                           <img
-                            src={getOpponentLogo(proximoPartido)}
-                            alt={getOpponentName(proximoPartido)}
+                            src={getAwayTeam(proximoPartido).logo}
+                            alt={getAwayTeam(proximoPartido).name}
                             className="max-w-full max-h-full object-contain"
                           />
                         ) : (
@@ -504,7 +463,7 @@ export default function Home() {
                       </div>
 
                       <p className="font-display text-base md:text-lg">
-                        {getOpponentName(proximoPartido)}
+                        {getAwayTeam(proximoPartido).name}
                       </p>
                     </div>
                   </div>
