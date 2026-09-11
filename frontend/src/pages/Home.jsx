@@ -402,14 +402,14 @@ export default function Home() {
               </span>
 
               {/* ✅ BADGE DINÂMICO COM CORES CORRETAS */}
-              {proximoPartido && (() => {
+              {/*{proximoPartido && (() => {
                 const badge = getMatchBadge(proximoPartido);
                 return (
                   <span className={badge.className}>
                     {badge.text}
                   </span>
                 );
-              })()}
+              })()}*/}
             </div>
 
             {loadingJornadas ? (
