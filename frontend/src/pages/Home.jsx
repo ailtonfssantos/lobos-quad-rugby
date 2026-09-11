@@ -42,6 +42,7 @@ const getMatchStatus = (partido) => {
   return String(partido?.status || '').toLowerCase();
 };
 
+// ✅ FUNÇÃO CORRIGIDA: Verifica se é string vazia também
 const isFinishedMatch = (partido) => {
   const status = getMatchStatus(partido);
 
@@ -58,12 +59,16 @@ const isFinishedMatch = (partido) => {
     return true;
   }
 
-  return (
-    partido?.lobosScore !== null &&
-    partido?.lobosScore !== undefined &&
-    partido?.rivalScore !== null &&
-    partido?.rivalScore !== undefined
-  );
+  // ✅ Verifica se os placares são válidos (não null, não undefined, não string vazia)
+  const lobosScoreValid = partido?.lobosScore !== null && 
+                          partido?.lobosScore !== undefined && 
+                          String(partido?.lobosScore).trim() !== '';
+  
+  const rivalScoreValid = partido?.rivalScore !== null && 
+                          partido?.rivalScore !== undefined && 
+                          String(partido?.rivalScore).trim() !== '';
+
+  return lobosScoreValid && rivalScoreValid;
 };
 
 const isUpcomingMatch = (partido) => {
@@ -137,7 +142,7 @@ const getOpponentScore = (partido) => {
   return null;
 };
 
-// ✅ NOVA FUNÇÃO: Retorna texto e cores corretas para o badge de status
+// ✅ FUNÇÃO: Retorna texto e cores corretas para o badge de status
 const getMatchBadge = (partido) => {
   const status = getMatchStatus(partido);
 
@@ -247,7 +252,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-100
+              opacity-95
               grayscale-[25%]
             "
           />
