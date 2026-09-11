@@ -229,7 +229,7 @@ export default function Home() {
             jornadaId: jornada.id,
             jornadaNumero: jornada.numero,
             competicion: jornada.competicion,
-            temporada: jornada.temporada,
+            temporada: jornada.temporada, // <-- Esto es un objeto
             ciudad: jornada.ciudad,
             pabellon: jornada.pabellon,
             fechasJornada: jornada.fechas,
@@ -451,8 +451,9 @@ export default function Home() {
                   <div className="text-center">
                     <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
                       {proximoPartido.competicion || 'Competición'}
-                      {proximoPartido.temporada
-                        ? ` · ${proximoPartido.temporada}`
+                      {/* ✅ CORREÇÃO: Usa .nome em vez do objeto inteiro */}
+                      {proximoPartido.temporada?.nome
+                        ? ` · ${proximoPartido.temporada.nome}`
                         : ''}
                     </p>
 
@@ -592,7 +593,8 @@ export default function Home() {
 
                 {ultimoResultado && (
                   <span className="text-zinc-600 text-[9px] uppercase tracking-widest">
-                    {ultimoResultado.temporada || ''}
+                    {/* ✅ CORREÇÃO: Usa .nome em vez do objeto inteiro */}
+                    {ultimoResultado.temporada?.nome || ''}
                   </span>
                 )}
               </div>
