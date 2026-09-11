@@ -214,12 +214,6 @@ export default function Home() {
     fetchJornadas();
   }, []);
 
-  /*
-   * Convertimos todas las jornadas en una lista de partidos.
-   * Así podemos encontrar automáticamente:
-   * - el próximo partido
-   * - el último resultado
-   */
   const partidos = useMemo(() => {
     return jornadas
       .flatMap((jornada) =>
@@ -229,7 +223,7 @@ export default function Home() {
             jornadaId: jornada.id,
             jornadaNumero: jornada.numero,
             competicion: jornada.competicion,
-            temporada: jornada.temporada, // <-- Esto es un objeto
+            temporada: jornada.temporada,
             ciudad: jornada.ciudad,
             pabellon: jornada.pabellon,
             fechasJornada: jornada.fechas,
@@ -283,14 +277,14 @@ export default function Home() {
             className="
               w-full h-full object-cover
               object-center
-              md:object-[center_35%]
-              opacity-65
-              grayscale-[35%]
+              md:object-[center_25%]
+              opacity-75
+              grayscale-[25%]
             "
           />
 
           {/* Overlay premium */}
-          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-black/45" />
 
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/20 to-zinc-950" />
 
@@ -450,25 +444,21 @@ export default function Home() {
                 <>
                   <div className="text-center">
                     <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
-                      {proximoPartido.competicion || 'Competición'}
-                      {/* ✅ CORREÇÃO: Usa .nome em vez do objeto inteiro */}
+                      {/* ✅ CORREÇÃO 2: Mostra apenas o nome da temporada */}
                       {proximoPartido.temporada?.nome
-                        ? ` · ${proximoPartido.temporada.nome}`
-                        : ''}
+                        ? proximoPartido.temporada.nome
+                        : proximoPartido.competicion || 'Competición'}
                     </p>
 
                     <div className="flex items-center justify-center gap-5 md:gap-8">
 
-                      {/* Lobos */}
+                      {/* Lobos - COM FUNDO BRANCO */}
                       <div className="flex-1 text-center">
-                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center">
+                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
                           <img
                             src="/assets/logo-lobos.png"
                             alt="Lobos Quad Rugby"
                             className="max-w-full max-h-full object-contain"
-                            onError={(event) => {
-                              event.currentTarget.style.display = 'none';
-                            }}
                           />
                         </div>
 
@@ -481,9 +471,9 @@ export default function Home() {
                         VS
                       </div>
 
-                      {/* Rival */}
+                      {/* Rival - COM FUNDO BRANCO */}
                       <div className="flex-1 text-center">
-                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center">
+                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
                           {getOpponentLogo(proximoPartido) ? (
                             <img
                               src={getOpponentLogo(proximoPartido)}
@@ -593,7 +583,6 @@ export default function Home() {
 
                 {ultimoResultado && (
                   <span className="text-zinc-600 text-[9px] uppercase tracking-widest">
-                    {/* ✅ CORREÇÃO: Usa .nome em vez do objeto inteiro */}
                     {ultimoResultado.temporada?.nome || ''}
                   </span>
                 )}
