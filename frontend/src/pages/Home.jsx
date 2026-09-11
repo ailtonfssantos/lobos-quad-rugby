@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
+// ✅ URL do logo dos Lobos no Cloudinary (fallback garantido)
+const LOBOS_LOGO_URL = 'https://res.cloudinary.com/xfbrfkdp/image/upload/v1788730912/lobos-quad-rugby/ju1e8s9nsfzqtjfvyslf.png';
+
 const Icon = ({ path, className = 'w-6 h-6' }) => (
   <svg
     className={className}
@@ -127,17 +130,19 @@ const getOpponentLogo = (partido) => {
   return partido?.equipoVisitante?.logo || partido?.equipoLocal?.logo || null;
 };
 
-// ✅ FUNÇÃO: Busca o logo dos Lobos do banco de dados
+// ✅ FUNÇÃO: Busca o logo dos Lobos do banco de dados, com fallback para URL direta
 const getLobosLogo = (partido) => {
+  // Tenta buscar do banco primeiro
   if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoLocal?.logo || null;
+    return partido?.equipoLocal?.logo || LOBOS_LOGO_URL;
   }
 
   if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
-    return partido?.equipoVisitante?.logo || null;
+    return partido?.equipoVisitante?.logo || LOBOS_LOGO_URL;
   }
 
-  return null;
+  // Fallback direto para a URL do Cloudinary
+  return LOBOS_LOGO_URL;
 };
 
 // ✅ FUNÇÃO: Busca o nome dos Lobos do banco de dados
@@ -290,7 +295,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-55
+              opacity-75
               grayscale-[25%]
             "
           />
@@ -464,19 +469,11 @@ export default function Home() {
                     {/* Lobos - COM FUNDO BRANCO e logo do banco de dados */}
                     <div className="flex-1 text-center">
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                        {getLobosLogo(proximoPartido) ? (
-                          <img
-                            src={getLobosLogo(proximoPartido)}
-                            alt="lobos-logo.png"
-                            className="max-w-full max-h-full object-contain"
-                          />
-                        ) : (
-                          <div className="w-14 h-14 flex items-center justify-center">
-                            <span className="text-red-600 text-xs font-bold text-center leading-tight">
-                              LOBOS<br />QUAD<br />RUGBY
-                            </span>
-                          </div>
-                        )}
+                        <img
+                          src={getLobosLogo(proximoPartido)}
+                          alt="Lobos Quad Rugby"
+                          className="max-w-full max-h-full object-contain"
+                        />
                       </div>
 
                       <p className="font-display text-base md:text-lg">
