@@ -84,7 +84,7 @@ export default function Footer() {
             <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Navegación</h4>
             <ul className="space-y-4">
               <li><Link to="/" onClick={scrollToTop} className="hover:text-red-500 transition-colors text-sm uppercase tracking-wider">Inicio</Link></li>
-              <li><Link to="/sobre-nosotros" className="hover:text-red-500 transition-colors text-sm uppercase tracking-wider">Sobre Nosotros</Link></li>
+              <li><Link to="/sobre-nosotros" className="hover:text-red-500 transition-colors text-sm uppercase tracking-wider">El Club</Link></li>
               <li><Link to="/equipo" className="hover:text-red-500 transition-colors text-sm uppercase tracking-wider">Equipo</Link></li>
               <li><Link to="/entrenamientos" className="hover:text-red-500 transition-colors text-sm uppercase tracking-wider">Entrenamientos</Link></li>
               <li><Link to="/competiciones" className="hover:text-red-500 transition-colors text-sm uppercase tracking-wider">Competiciones</Link></li>

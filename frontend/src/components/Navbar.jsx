@@ -7,7 +7,7 @@ export default function Navbar() {
 
   const links = [
     { path: '/', label: 'Inicio' },
-    { path: '/sobre-nosotros', label: 'Sobre Nosotros' },
+    { path: '/sobre-nosotros', label: 'El Club' },
     { path: '/equipo', label: 'Equipo' },
     { path: '/entrenamientos', label: 'Entrenamientos' },
     { path: '/competiciones', label: 'Competiciones' },
