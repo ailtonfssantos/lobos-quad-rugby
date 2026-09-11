@@ -467,7 +467,7 @@ export default function Home() {
                         {getLobosLogo(proximoPartido) ? (
                           <img
                             src={getLobosLogo(proximoPartido)}
-                            alt={getOpponentName(proximoPartido)}
+                            alt={getLobosName(proximoPartido)}
                             className="max-w-full max-h-full object-contain"
                           />
                         ) : (
