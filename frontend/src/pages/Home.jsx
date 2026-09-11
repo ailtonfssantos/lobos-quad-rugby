@@ -140,6 +140,19 @@ const getLobosLogo = (partido) => {
   return null;
 };
 
+// ✅ FUNÇÃO: Busca o nome dos Lobos do banco de dados
+const getLobosName = (partido) => {
+  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
+    return partido?.equipoLocal?.nombre || 'Lobos Quad Rugby';
+  }
+
+  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
+    return partido?.equipoVisitante?.nombre || 'Lobos Quad Rugby';
+  }
+
+  return 'Lobos Quad Rugby';
+};
+
 const getLobosScore = (partido) => {
   if (partido?.lobosScore !== undefined && partido?.lobosScore !== null) {
     return partido.lobosScore;
@@ -277,7 +290,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-60
+              opacity-55
               grayscale-[25%]
             "
           />
@@ -454,20 +467,20 @@ export default function Home() {
                         {getLobosLogo(proximoPartido) ? (
                           <img
                             src={getLobosLogo(proximoPartido)}
-                            alt="Lobos Quad Rugby"
+                            alt={getOpponentName(proximoPartido)}
                             className="max-w-full max-h-full object-contain"
                           />
                         ) : (
-                          <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
-                            <span className="text-zinc-600 text-xs font-bold">
-                              LOBOS
+                          <div className="w-14 h-14 flex items-center justify-center">
+                            <span className="text-red-600 text-xs font-bold text-center leading-tight">
+                              LOBOS<br />QUAD<br />RUGBY
                             </span>
                           </div>
                         )}
                       </div>
 
                       <p className="font-display text-base md:text-lg">
-                        LOBOS
+                        {getLobosName(proximoPartido)}
                       </p>
                     </div>
 
