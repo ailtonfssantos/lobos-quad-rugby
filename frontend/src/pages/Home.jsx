@@ -127,6 +127,19 @@ const getOpponentLogo = (partido) => {
   return partido?.equipoVisitante?.logo || partido?.equipoLocal?.logo || null;
 };
 
+// ✅ NOVA FUNÇÃO: Busca o logo dos Lobos do banco de dados
+const getLobosLogo = (partido) => {
+  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
+    return partido?.equipoLocal?.logo || null;
+  }
+
+  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
+    return partido?.equipoVisitante?.logo || null;
+  }
+
+  return null;
+};
+
 const getLobosScore = (partido) => {
   if (partido?.lobosScore !== undefined && partido?.lobosScore !== null) {
     return partido.lobosScore;
@@ -248,18 +261,25 @@ export default function Home() {
   }, [partidos]);
 
   const ultimoResultado = useMemo(() => {
-    // ✅ CORREÇÃO: Busca TODOS os jogos finalizados, ordenados pela data mais recente
+    // ✅ CORREÇÃO: Busca jogos finalizados e ordena do MAIS ANTIGO para o mais recente
+    // Assim mostramos o último jogo REALMENTE jogado, não um do futuro
     const finished = partidos
       .filter(isFinishedMatch)
+      .filter((partido) => {
+        const date = getMatchDate(partido);
+        if (!date) return false;
+        // Só inclui jogos com data passada ou de hoje
+        return new Date(date).getTime() <= Date.now();
+      })
       .sort((a, b) => {
         const dateA = getMatchDate(a);
         const dateB = getMatchDate(b);
         
-        // Se não tiver data, usa data antiga para não aparecer primeiro
         if (!dateA && !dateB) return 0;
         if (!dateA) return 1;
         if (!dateB) return -1;
         
+        // Ordena do mais recente para o mais antigo
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       });
 
@@ -456,14 +476,22 @@ export default function Home() {
 
                     <div className="flex items-center justify-center gap-5 md:gap-8">
 
-                      {/* Lobos - COM FUNDO BRANCO */}
+                      {/* Lobos - COM FUNDO BRANCO e logo do banco de dados */}
                       <div className="flex-1 text-center">
                         <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                          <img
-                            src="/assets/logo-lobos.png"
-                            alt="Lobos Quad Rugby"
-                            className="max-w-full max-h-full object-contain"
-                          />
+                          {getLobosLogo(proximoPartido) ? (
+                            <img
+                              src={getLobosLogo(proximoPartido)}
+                              alt="Lobos Quad Rugby"
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
+                              <span className="text-zinc-600 text-xs font-bold">
+                LOBOS
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <p className="font-display text-base md:text-lg">
