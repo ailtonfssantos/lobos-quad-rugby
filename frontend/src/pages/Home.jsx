@@ -127,7 +127,7 @@ const getOpponentLogo = (partido) => {
   return partido?.equipoVisitante?.logo || partido?.equipoLocal?.logo || null;
 };
 
-// ✅ NOVA FUNÇÃO: Busca o logo dos Lobos do banco de dados
+// ✅ FUNÇÃO: Busca o logo dos Lobos do banco de dados
 const getLobosLogo = (partido) => {
   if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
     return partido?.equipoLocal?.logo || null;
@@ -260,32 +260,6 @@ export default function Home() {
     return upcoming[0] || null;
   }, [partidos]);
 
-  const ultimoResultado = useMemo(() => {
-    // ✅ CORREÇÃO: Busca jogos finalizados e ordena do MAIS ANTIGO para o mais recente
-    // Assim mostramos o último jogo REALMENTE jogado, não um do futuro
-    const finished = partidos
-      .filter(isFinishedMatch)
-      .filter((partido) => {
-        const date = getMatchDate(partido);
-        if (!date) return false;
-        // Só inclui jogos com data passada ou de hoje
-        return new Date(date).getTime() <= Date.now();
-      })
-      .sort((a, b) => {
-        const dateA = getMatchDate(a);
-        const dateB = getMatchDate(b);
-        
-        if (!dateA && !dateB) return 0;
-        if (!dateA) return 1;
-        if (!dateB) return -1;
-        
-        // Ordena do mais recente para o mais antigo
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      });
-
-    return finished[0] || null;
-  }, [partidos]);
-
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-red-600/30">
       
@@ -303,7 +277,7 @@ export default function Home() {
               w-full h-full object-cover
               object-center
               md:object-[center_25%]
-              opacity-85
+              opacity-60
               grayscale-[25%]
             "
           />
@@ -407,7 +381,7 @@ export default function Home() {
       </section>
 
       {/* =========================================================
-          2. PRÓXIMA JORNADA / ÚLTIMO RESULTADO
+          2. PRÓXIMA JORNADA (ÚNICA SEÇÃO)
       ========================================================== */}
       <section className="relative bg-zinc-900 border-y border-zinc-800">
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-14 md:py-16">
@@ -444,263 +418,165 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* PRÓXIMO PARTIDO - ÚNICO CARD */}
+          <div className="relative overflow-hidden bg-zinc-950 border border-zinc-800 p-7 md:p-9 rounded-sm">
 
-            {/* PRÓXIMO PARTIDO */}
-            <div className="relative overflow-hidden bg-zinc-950 border border-zinc-800 p-7 md:p-9 rounded-sm">
+            <div className="flex items-center justify-between mb-8">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                Próximo desafío
+              </span>
 
-              <div className="flex items-center justify-between mb-8">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-                  Próximo desafío
+              {proximoPartido && (
+                <span className="px-2.5 py-1 border border-red-600/30 bg-red-600/10 text-red-500 text-[9px] font-bold uppercase tracking-widest">
+                  {getStatusLabel(proximoPartido)}
                 </span>
+              )}
+            </div>
 
-                {proximoPartido && (
-                  <span className="px-2.5 py-1 border border-red-600/30 bg-red-600/10 text-red-500 text-[9px] font-bold uppercase tracking-widest">
-                    {getStatusLabel(proximoPartido)}
-                  </span>
-                )}
+            {loadingJornadas ? (
+              <div className="py-8 text-center text-zinc-600 text-sm">
+                Cargando próxima jornada...
               </div>
+            ) : proximoPartido ? (
+              <>
+                <div className="text-center">
+                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
+                    {proximoPartido.temporada?.nome
+                      ? proximoPartido.temporada.nome
+                      : proximoPartido.competicion || 'Competición'}
+                  </p>
 
-              {loadingJornadas ? (
-                <div className="py-8 text-center text-zinc-600 text-sm">
-                  Cargando próxima jornada...
+                  <div className="flex items-center justify-center gap-5 md:gap-8">
+
+                    {/* Lobos - COM FUNDO BRANCO e logo do banco de dados */}
+                    <div className="flex-1 text-center">
+                      <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
+                        {getLobosLogo(proximoPartido) ? (
+                          <img
+                            src={getLobosLogo(proximoPartido)}
+                            alt="Lobos Quad Rugby"
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
+                            <span className="text-zinc-600 text-xs font-bold">
+                              LOBOS
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="font-display text-base md:text-lg">
+                        LOBOS
+                      </p>
+                    </div>
+
+                    <div className="font-display text-2xl text-zinc-700">
+                      VS
+                    </div>
+
+                    {/* Rival - COM FUNDO BRANCO */}
+                    <div className="flex-1 text-center">
+                      <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
+                        {getOpponentLogo(proximoPartido) ? (
+                          <img
+                            src={getOpponentLogo(proximoPartido)}
+                            alt={getOpponentName(proximoPartido)}
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
+                            <span className="text-zinc-600 text-xl">
+                              ⚔
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="font-display text-base md:text-lg">
+                        {getOpponentName(proximoPartido)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-zinc-800 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+
+                    <div>
+                      <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
+                        Fecha
+                      </p>
+
+                      <p className="text-zinc-300 text-xs capitalize">
+                        {formatDate(getMatchDate(proximoPartido))}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
+                        Hora
+                      </p>
+
+                      <p className="text-zinc-300 text-xs">
+                        {getMatchTime(proximoPartido) || 'Por confirmar'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
+                        Lugar
+                      </p>
+
+                      <p className="text-zinc-300 text-xs">
+                        {proximoPartido.pabellon ||
+                          proximoPartido.ciudad ||
+                          'Por confirmar'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ) : proximoPartido ? (
-                <>
-                  <div className="text-center">
-                    <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
-                      {proximoPartido.temporada?.nome
-                        ? proximoPartido.temporada.nome
-                        : proximoPartido.competicion || 'Competición'}
-                    </p>
 
-                    <div className="flex items-center justify-center gap-5 md:gap-8">
-
-                      {/* Lobos - COM FUNDO BRANCO e logo do banco de dados */}
-                      <div className="flex-1 text-center">
-                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                          {getOpponentLogo(proximoPartido) ? (
-                            <img
-                              src={getOpponentLogo(proximoPartido)}
-                              alt={getOpponentName(proximoPartido)}
-                              className="max-w-full max-h-full object-contain"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
-                              <span className="text-zinc-600 text-xl">
-                                
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <p className="font-display text-base md:text-lg">
-                          LOBOS
-                        </p>
-                      </div>
-
-                      <div className="font-display text-2xl text-zinc-700">
-                        VS
-                      </div>
-
-                      {/* Rival - COM FUNDO BRANCO */}
-                      <div className="flex-1 text-center">
-                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
-                          {getOpponentLogo(proximoPartido) ? (
-                            <img
-                              src={getOpponentLogo(proximoPartido)}
-                              alt={getOpponentName(proximoPartido)}
-                              className="max-w-full max-h-full object-contain"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
-                              <span className="text-zinc-600 text-xl">
-                                ⚔
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <p className="font-display text-base md:text-lg">
-                          {getOpponentName(proximoPartido)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 pt-6 border-t border-zinc-800 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-
-                      <div>
-                        <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
-                          Fecha
-                        </p>
-
-                        <p className="text-zinc-300 text-xs capitalize">
-                          {formatDate(getMatchDate(proximoPartido))}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
-                          Hora
-                        </p>
-
-                        <p className="text-zinc-300 text-xs">
-                          {getMatchTime(proximoPartido) || 'Por confirmar'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
-                          Lugar
-                        </p>
-
-                        <p className="text-zinc-300 text-xs">
-                          {proximoPartido.pabellon ||
-                            proximoPartido.ciudad ||
-                            'Por confirmar'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-7 text-center">
-                    <Link
-                      to="/competiciones"
-                      className="
-                        inline-flex items-center gap-2
-                        text-red-500
-                        hover:text-red-400
-                        text-[10px]
-                        uppercase
-                        tracking-[0.2em]
-                        font-bold
-                        transition-colors
-                      "
-                    >
-                      Ver detalles de la jornada
-                      <Icon
-                        path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                        className="w-4 h-4"
-                      />
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="font-display text-xl text-zinc-300 mb-2">
-                    Próxima jornada por confirmar
-                  </p>
-
-                  <p className="text-zinc-600 text-sm">
-                    Consulta el calendario completo de competiciones.
-                  </p>
-
+                <div className="mt-7 text-center">
                   <Link
                     to="/competiciones"
-                    className="inline-flex mt-6 text-red-500 text-xs uppercase tracking-widest font-bold"
+                    className="
+                      inline-flex items-center gap-2
+                      text-red-500
+                      hover:text-red-400
+                      text-[10px]
+                      uppercase
+                      tracking-[0.2em]
+                      font-bold
+                      transition-colors
+                    "
                   >
-                    Ver competiciones →
+                    Ver detalles de la jornada
+                    <Icon
+                      path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                      className="w-4 h-4"
+                    />
                   </Link>
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="py-8 text-center">
+                <p className="font-display text-xl text-zinc-300 mb-2">
+                  Próxima jornada por confirmar
+                </p>
 
-            {/* ÚLTIMO RESULTADO */}
-            <div className="relative overflow-hidden bg-zinc-950 border border-zinc-800 p-7 md:p-9 rounded-sm">
+                <p className="text-zinc-600 text-sm">
+                  Consulta el calendario completo de competiciones.
+                </p>
 
-              <div className="flex items-center justify-between mb-8">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-                  Último resultado
-                </span>
-
-                {ultimoResultado && (
-                  <span className="text-zinc-600 text-[9px] uppercase tracking-widest">
-                    {ultimoResultado.temporada?.nome || ''}
-                  </span>
-                )}
+                <Link
+                  to="/competiciones"
+                  className="inline-flex mt-6 text-red-500 text-xs uppercase tracking-widest font-bold"
+                >
+                  Ver competiciones →
+                </Link>
               </div>
-
-              {ultimoResultado ? (
-                <>
-                  <div className="text-center">
-
-                    <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-7">
-                      {ultimoResultado.competicion || 'Competición'}
-                    </p>
-
-                    <div className="flex items-center justify-center gap-7 md:gap-12">
-
-                      <div>
-                        <p className="font-display text-lg mb-3">
-                          LOBOS
-                        </p>
-
-                        <p className="font-display text-5xl md:text-6xl text-white">
-                          {getLobosScore(ultimoResultado)}
-                        </p>
-                      </div>
-
-                      <div className="text-zinc-700 text-xl">
-                        —
-                      </div>
-
-                      <div>
-                        <p className="font-display text-lg mb-3 max-w-[130px] truncate">
-                          {getOpponentName(ultimoResultado)}
-                        </p>
-
-                        <p className="font-display text-5xl md:text-6xl text-zinc-400">
-                          {getOpponentScore(ultimoResultado)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 pt-6 border-t border-zinc-800">
-                      <p className="text-zinc-500 text-xs capitalize">
-                        {formatDate(getMatchDate(ultimoResultado))}
-                      </p>
-
-                      <p className="text-zinc-600 text-[10px] uppercase tracking-widest mt-2">
-                        Jornada {ultimoResultado.jornadaNumero || '—'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-7 text-center">
-                    <Link
-                      to="/competiciones"
-                      className="
-                        inline-flex items-center gap-2
-                        text-zinc-400
-                        hover:text-white
-                        text-[10px]
-                        uppercase
-                        tracking-[0.2em]
-                        font-bold
-                        transition-colors
-                      "
-                    >
-                      Ver historial
-                      <Icon
-                        path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                        className="w-4 h-4"
-                      />
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="font-display text-xl text-zinc-300 mb-2">
-                    Aún no hay resultados
-                  </p>
-
-                  <p className="text-zinc-600 text-sm">
-                    Los resultados aparecerán aquí cuando finalice una jornada.
-                  </p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
+
         </div>
       </section>
 
