@@ -297,7 +297,7 @@ export default function Home() {
             </h1>
 
             <p className="mt-8 text-base md:text-xl text-zinc-300 font-light italic max-w-xl leading-relaxed">
-              "Más que un deporte. Somos una manada."
+              "Más que un deporte. Somos una familia."
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-9">
@@ -339,7 +339,7 @@ export default function Home() {
                   rounded-sm
                 "
               >
-                Únete a la manada
+                Únete al equipo
               </Link>
             </div>
           </div>
