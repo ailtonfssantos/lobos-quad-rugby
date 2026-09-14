@@ -63,7 +63,7 @@ export default function About() {
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
             <div className="lg:col-span-7">
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight">
-                Somos una <span className="text-gray-600">manada.</span>
+                Somos más que <span className="text-gray-600">un club.</span>
               </h1>
             </div>
 
@@ -77,6 +77,7 @@ export default function About() {
               <div className="pt-4 flex items-center gap-4 text-sm uppercase tracking-wider text-white">
                 <span className="text-red-500 italic text-2xl font-black leading-none">"</span>
                 <span className="text-gray-300">No necesito que sea fácil, solo que sea posible.</span>
+                <span className="text-red-500 italic text-2xl font-black leading-none">"</span>
               </div>
             </div>
           </div>
@@ -162,9 +163,6 @@ export default function About() {
               <div className="mt-12 sm:mt-16">
                 <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y salud</h3>
                 <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">Promoción de actividades físico-deportivas no competitivas para personas con discapacidad que desean mantener y mejorar su calidad de vida y autonomía.</p>
-                <Link to="/unete" className="inline-flex items-center gap-2 mt-6 sm:mt-7 text-xs uppercase tracking-widest text-white hover:text-red-500 transition-colors">
-                  Únete a los Lobos <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                </Link>
               </div>
             </article>
           </div>
@@ -272,7 +270,7 @@ export default function About() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 sm:gap-8 mb-10 sm:mb-12">
             <div>
               <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">Dentro de la pista</span>
-              <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black uppercase">La manada en acción</h2>
+              <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black uppercase">El equipo en acción</h2>
             </div>
             <div className="flex items-center gap-3">
               <button type="button" onClick={previousImage} aria-label="Imagen anterior" className="w-10 h-10 sm:w-12 sm:h-12 border border-white/20 flex items-center justify-center hover:border-white hover:bg-white/10 transition-all">
