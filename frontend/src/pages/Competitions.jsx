@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { API_URL, getImageUrl } from "../config";
 
@@ -25,6 +25,30 @@ const PlayIcon = ({ className = "w-4 h-4" }) => (
     <path d="M8 5.14v13.72c0 .78.85 1.26 1.52.86l10.94-6.86a1 1 0 000-1.72L9.52 4.28C8.85 3.88 8 4.36 8 5.14Z" />
   </svg>
 );
+
+/* =========================================================
+   HELPER: Extrair anos do nome da temporada
+========================================================= */
+const extractSeasonYears = (seasonName) => {
+  if (!seasonName) return { full: "2024-2025", short: "2024-25" };
+  
+  // Extrai anos do formato "2024-2025" ou "2024/2025" ou similar
+  const match = seasonName.match(/(\d{4})[-/](\d{4})/);
+  
+  if (match) {
+    const startYear = match[1];
+    const endYear = match[2];
+    const shortEnd = endYear.slice(2); // "2025" -> "25"
+    
+    return {
+      full: `${startYear}-${endYear}`,
+      short: `${startYear.slice(2)}-${shortEnd}`
+    };
+  }
+  
+  // Fallback
+  return { full: "2024-2025", short: "2024-25" };
+};
 
 /* =========================================================
    MAIN COMPONENT
@@ -89,6 +113,11 @@ export default function Competitions() {
   );
 
   const temporadaActual = temporadas.find(t => t.id === selectedTemporadaId);
+
+  // ✅ Extrair anos formatados da temporada atual
+  const seasonYears = useMemo(() => {
+    return extractSeasonYears(temporadaActual?.nome);
+  }, [temporadaActual]);
 
   // ✅ Função para formatar o título da jornada corretamente
   const getJornadaTitle = (jornada) => {
@@ -384,7 +413,7 @@ export default function Competitions() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* ===================================================
-          HERO - NOVO DESIGN
+          HERO - DINÂMICO BASEADO NA TEMPORADA SELECIONADA
       =================================================== */}
       <section className="relative overflow-hidden">
         {/* Imagem de fundo */}
@@ -402,15 +431,15 @@ export default function Competitions() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-32 lg:pb-28">
           <div className="max-w-4xl">
-            {/* Label superior */}
+            {/* Label superior - DINÂMICO */}
             <p className="text-red-500 font-bold tracking-[0.25em] text-[10px] uppercase mb-3">
-              CALENDARIO OFICIAL 2024-2025
+              CALENDARIO OFICIAL {seasonYears.full}
             </p>
 
-            {/* Título principal */}
+            {/* Título principal - DINÂMICO */}
             <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl leading-none tracking-tight mb-6">
               <span className="block text-white">TEMPORADA</span>
-              <span className="block text-red-600">2024-25</span>
+              <span className="block text-red-600">{seasonYears.short}</span>
             </h1>
 
             {/* Subtítulo */}

@@ -249,7 +249,7 @@ export default function Footer() {
           >
             <div>
               <div className="text-[8px] font-bold uppercase tracking-[0.25em] text-red-500">
-                La manada te espera
+                El equipo te espera
               </div>
 
               <div className="mt-2 text-xl sm:text-2xl font-display font-bold uppercase tracking-wide text-white">
