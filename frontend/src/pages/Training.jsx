@@ -502,30 +502,9 @@ export default function Training() {
             </h1>
 
             <p className="text-zinc-400 text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed">
-              El lugar donde empieza la manada.
+              El lugar donde empieza el equipo.
               Entrenamos, competimos y crecemos juntos.
             </p>
-
-          </div>
-
-          {/* Mini info */}
-          <div className="mt-12 pt-8 border-t border-zinc-800 flex flex-wrap gap-x-8 gap-y-4">
-
-            <div className="flex items-center gap-3 text-zinc-400">
-              <ClockIcon className="w-4 h-4 text-red-500" />
-
-              <span className="text-[10px] uppercase tracking-[0.15em]">
-                Lunes y miércoles · 17:00–19:30
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 text-zinc-400">
-              <MapPinIcon className="w-4 h-4 text-red-500" />
-
-              <span className="text-[10px] uppercase tracking-[0.15em]">
-                Pabellón Malvarrosa · Valencia
-              </span>
-            </div>
 
           </div>
 
@@ -546,7 +525,7 @@ export default function Training() {
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
-                  01
+                  
                 </p>
               </div>
 
@@ -663,7 +642,7 @@ export default function Training() {
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
-                  02 · Calendario
+                   · Calendario
                 </p>
               </div>
 
@@ -984,7 +963,7 @@ export default function Training() {
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
-                  03 · Encuéntranos
+                   · Encuéntranos
                 </p>
               </div>
 
@@ -1049,7 +1028,7 @@ export default function Training() {
 
         {/* Decorative number */}
         <div className="absolute -right-6 -bottom-16 font-display text-[180px] md:text-[260px] leading-none text-black/10 select-none">
-          04
+          
         </div>
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
@@ -1065,7 +1044,7 @@ export default function Training() {
           </h2>
 
           <p className="text-red-100 text-base md:text-xl max-w-2xl mx-auto mb-9 leading-relaxed">
-            Únete a la manada y descubre el rugby en
+            Únete al equipo y descubre el rugby en
             silla de ruedas.
           </p>
 

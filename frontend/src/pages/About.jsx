@@ -160,8 +160,7 @@ export default function About() {
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
               </div>
               <div className="mt-12 sm:mt-16">
-                <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y</h3>
-                <h3 className="text-xl sm:text-2xl font-black uppercase">salud</h3>
+                <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y Salud</h3><br></br>
                 <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">Promoción de actividades físico-deportivas no competitivas para personas con discapacidad que desean mantener y mejorar su calidad de vida y autonomía.</p>
               </div>
             </article>

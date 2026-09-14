@@ -533,7 +533,7 @@ export default function Team() {
             <div className="w-16 h-16 mx-auto mb-6 border border-red-600/40 flex items-center justify-center text-red-500">
               <RefreshIcon className="w-6 h-6" />
             </div>
-            <p className="text-white font-display text-2xl mb-3">No hemos podido cargar la manada</p>
+            <p className="text-white font-display text-2xl mb-3">No hemos podido cargar el equipo</p>
             <p className="text-zinc-500 leading-relaxed mb-8">{error}</p>
             <button
               type="button"
@@ -560,7 +560,7 @@ export default function Team() {
                 <div>
                   <div className="flex items-center gap-4 mb-4">
                     <div className="h-[2px] w-10 bg-red-600" />
-                    <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">01</p>
+                    <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]"></p>
                   </div>
                   <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
                     Cuerpo Técnico
@@ -595,7 +595,7 @@ export default function Team() {
                 <div>
                   <div className="flex items-center gap-4 mb-4">
                     <div className="h-[2px] w-10 bg-red-600" />
-                    <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">02</p>
+                    <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]"></p>
                   </div>
                   <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
                     Plantilla de
