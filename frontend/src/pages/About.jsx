@@ -77,7 +77,6 @@ export default function About() {
               <div className="pt-4 flex items-center gap-4 text-sm uppercase tracking-wider text-white">
                 <span className="text-red-500 italic text-2xl font-black leading-none">"</span>
                 <span className="text-gray-300">No necesito que sea fácil, solo que sea posible.</span>
-                <span className="text-red-500 italic text-2xl font-black leading-none">"</span>
               </div>
             </div>
           </div>
@@ -161,7 +160,8 @@ export default function About() {
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
               </div>
               <div className="mt-12 sm:mt-16">
-                <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y salud</h3>
+                <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y salud</h3><br></br>
+                <h3 className="text-xl sm:text-2xl font-black uppercase">salud</h3>
                 <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">Promoción de actividades físico-deportivas no competitivas para personas con discapacidad que desean mantener y mejorar su calidad de vida y autonomía.</p>
               </div>
             </article>
