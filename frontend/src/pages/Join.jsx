@@ -220,7 +220,7 @@ export default function Join() {
           <img
             src="/assets/partido.jpg"
             alt="Equipo Lobos Quad Rugby entrenando"
-            className="w-full h-full object-cover object-center opacity-40 grayscale"
+            className="w-full h-full object-cover object-center opacity-90 grayscale"
           />
 
           {/* Overlays */}
