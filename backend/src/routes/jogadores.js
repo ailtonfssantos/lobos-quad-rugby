@@ -23,10 +23,8 @@ router.get('/', async (req, res) => {
     }
 
     const whereClause = isAdmin ? {} : { isActive: true };
-
     const jogadores = await prisma.jogador.findMany({
-      where: whereClause,
-      orderBy: { name: 'asc' }
+      where: whereClause
     });
     
     res.json(jogadores);
@@ -39,7 +37,7 @@ router.get('/', async (req, res) => {
 // Rota PROTEGIDA: Crear jugador
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    console.log('📩 Datos recibidos para crear:', req.body); // <-- Esto nos ayudará a depurar
+    console.log('📩 Datos recibidos para crear:', req.body);
     
     const novoJogador = await prisma.jogador.create({ 
       data: {
