@@ -1,1210 +1,391 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { API_URL, getImageUrl } from '../config';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { API_URL, getImageUrl } from "../config";
 
 /* =========================================================
-   ICONS
+   ICON COMPONENT
 ========================================================= */
-
-const Icon = ({ path, className = 'w-5 h-5' }) => (
+const Icon = ({ path, className = "w-5 h-5" }) => (
   <svg
     className={className}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
     strokeWidth={1.5}
-    aria-hidden="true"
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d={path}
-    />
-  </svg>
-);
-
-const PlayIcon = ({ className = 'w-4 h-4' }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    aria-hidden="true"
-  >
-    <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.06-6.86a1.02 1.02 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
   </svg>
 );
 
 /* =========================================================
-   DATE HELPERS
+   YOUTUBE / PLAY ICON
 ========================================================= */
-
-const SPANISH_MONTHS = {
-  enero: 0,
-  febrero: 1,
-  marzo: 2,
-  abril: 3,
-  mayo: 4,
-  junio: 5,
-  julio: 6,
-  agosto: 7,
-  septiembre: 8,
-  octubre: 9,
-  noviembre: 10,
-  diciembre: 11,
-};
-
-const normalizeText = (value = '') =>
-  String(value)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-
-const parseSpanishDate = (value, fallbackYear = new Date().getFullYear()) => {
-  if (!value) return null;
-
-  const text = String(value)
-    .toLowerCase()
-    .replace(/\./g, '')
-    .replace(/,/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  /* dd/mm/yyyy */
-  const numericMatch = text.match(
-    /^(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?$/
-  );
-
-  if (numericMatch) {
-    const day = Number(numericMatch[1]);
-    const month = Number(numericMatch[2]) - 1;
-    let year = numericMatch[3]
-      ? Number(numericMatch[3])
-      : fallbackYear;
-
-    if (year < 100) {
-      year += 2000;
-    }
-
-    const date = new Date(year, month, day);
-
-    if (!Number.isNaN(date.getTime())) {
-      return date;
-    }
-  }
-
-  /* "10 septiembre 2026" */
-  const monthMatch = text.match(
-    /^(\d{1,2})\s+([a-záéíóúñ]+)(?:\s+(\d{4}))?$/
-  );
-
-  if (monthMatch) {
-    const day = Number(monthMatch[1]);
-    const monthName = normalizeText(monthMatch[2]);
-    const month = SPANISH_MONTHS[monthName];
-    const year = monthMatch[3]
-      ? Number(monthMatch[3])
-      : fallbackYear;
-
-    if (month !== undefined) {
-      const date = new Date(year, month, day);
-
-      if (!Number.isNaN(date.getTime())) {
-        return date;
-      }
-    }
-  }
-
-  return null;
-};
-
-const parseJornadaDates = (value) => {
-  if (!value) {
-    return {
-      start: null,
-      end: null,
-    };
-  }
-
-  const text = String(value)
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  /*
-    Examples supported:
-    10/09/2026
-    10/09/2026 - 11/09/2026
-    10 y 11 de septiembre de 2026
-    10-11 septiembre 2026
-    10 septiembre 2026
-  */
-
-  const fullDates = [
-    ...text.matchAll(/(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/g),
-  ];
-
-  if (fullDates.length >= 2) {
-    return {
-      start: parseSpanishDate(fullDates[0][1]),
-      end: parseSpanishDate(fullDates[1][1]),
-    };
-  }
-
-  if (fullDates.length === 1) {
-    return {
-      start: parseSpanishDate(fullDates[0][1]),
-      end: parseSpanishDate(fullDates[0][1]),
-    };
-  }
-
-  const monthPattern =
-    /(\d{1,2})(?:\s*(?:y|-|\/)\s*(\d{1,2}))?\s+de?\s*([a-záéíóúñ]+)(?:\s+de?\s*(\d{4}))?/i;
-
-  const monthMatch = text.match(monthPattern);
-
-  if (monthMatch) {
-    const firstDay = Number(monthMatch[1]);
-    const secondDay = monthMatch[2]
-      ? Number(monthMatch[2])
-      : firstDay;
-
-    const monthName = normalizeText(monthMatch[3]);
-    const month = SPANISH_MONTHS[monthName];
-
-    const year = monthMatch[4]
-      ? Number(monthMatch[4])
-      : new Date().getFullYear();
-
-    if (month !== undefined) {
-      return {
-        start: new Date(year, month, firstDay),
-        end: new Date(year, month, secondDay),
-      };
-    }
-  }
-
-  const simpleMonthMatch = text.match(
-    /(\d{1,2})(?:\s*(?:y|-|\/)\s*(\d{1,2}))?\s+([a-záéíóúñ]+)\s*(\d{4})?/i
-  );
-
-  if (simpleMonthMatch) {
-    const firstDay = Number(simpleMonthMatch[1]);
-    const secondDay = simpleMonthMatch[2]
-      ? Number(simpleMonthMatch[2])
-      : firstDay;
-
-    const monthName = normalizeText(simpleMonthMatch[3]);
-    const month = SPANISH_MONTHS[monthName];
-
-    const year = simpleMonthMatch[4]
-      ? Number(simpleMonthMatch[4])
-      : new Date().getFullYear();
-
-    if (month !== undefined) {
-      return {
-        start: new Date(year, month, firstDay),
-        end: new Date(year, month, secondDay),
-      };
-    }
-  }
-
-  const singleDate = parseSpanishDate(text);
-
-  return {
-    start: singleDate,
-    end: singleDate,
-  };
-};
-
-/* =========================================================
-   MATCH DATE / TIME
-========================================================= */
-
-const getMatchDate = (match, jornada) => {
-  const specificDate =
-    match?.fecha ||
-    match?.date ||
-    match?.fechaPartido;
-
-  if (specificDate) {
-    const parsed = new Date(specificDate);
-
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-
-    const spanishParsed = parseSpanishDate(specificDate);
-
-    if (spanishParsed) {
-      return spanishParsed;
-    }
-  }
-
-  const jornadaDates = parseJornadaDates(jornada?.fechas);
-
-  if (!jornadaDates.start) {
-    return null;
-  }
-
-  /*
-    If the match has a day of the week, use it to choose
-    the correct date inside the jornada range.
-  */
-
-  const day = normalizeText(
-    match?.diaSemana ||
-      match?.dayOfWeek ||
-      match?.dia ||
-      ''
-  );
-
-  if (day) {
-    const isSunday = day.includes('domingo');
-
-    if (isSunday && jornadaDates.end) {
-      return jornadaDates.end;
-    }
-
-    const isSaturday = day.includes('sabado');
-
-    if (isSaturday) {
-      return jornadaDates.start;
-    }
-  }
-
-  return jornadaDates.start;
-};
-
-const getMatchDateTime = (match, jornada) => {
-  const date = getMatchDate(match, jornada);
-
-  if (!date) return null;
-
-  const result = new Date(date);
-
-  const horario =
-    match?.horario ||
-    match?.hora ||
-    match?.time ||
-    '';
-
-  if (horario) {
-    const timeMatch = String(horario).match(
-      /(\d{1,2})[:.](\d{2})/
-    );
-
-    if (timeMatch) {
-      result.setHours(
-        Number(timeMatch[1]),
-        Number(timeMatch[2]),
-        0,
-        0
-      );
-    }
-  }
-
-  return result;
-};
-
-/*
-  The backend does not currently provide an explicit
-  match duration, so we use 120 minutes only for live
-  status estimation.
-*/
-const getMatchEndDateTime = (match, jornada) => {
-  const start = getMatchDateTime(match, jornada);
-
-  if (!start) return null;
-
-  const end = new Date(start);
-  end.setMinutes(end.getMinutes() + 120);
-
-  return end;
-};
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-const getMatchStatus = (match, jornada, currentTime) => {
-  const backendStatus = normalizeText(match?.status);
-
-  if (
-    backendStatus === 'cancelado' ||
-    backendStatus === 'cancelled'
-  ) {
-    return 'CANCELADO';
-  }
-
-  if (
-    backendStatus === 'finalizado' ||
-    backendStatus === 'final'
-  ) {
-    return 'FINALIZADO';
-  }
-
-  const start = getMatchDateTime(match, jornada);
-  const end = getMatchEndDateTime(match, jornada);
-
-  if (start && end) {
-    if (currentTime >= start && currentTime <= end) {
-      return 'EN_DIRECTO';
-    }
-
-    if (currentTime < start) {
-      return 'PROGRAMADO';
-    }
-  }
-
-  const hasScores =
-    match?.lobosScore !== null &&
-    match?.lobosScore !== undefined &&
-    match?.rivalScore !== null &&
-    match?.rivalScore !== undefined;
-
-  if (start && currentTime > start && hasScores) {
-    return 'FINALIZADO';
-  }
-
-  return 'PENDIENTE';
-};
-
-/* =========================================================
-   TEAM HELPERS
-========================================================= */
-
-const getHomeTeam = (match) => {
-  return (
-    match?.equipoLocal?.nombre ||
-    match?.homeTeam?.nombre ||
-    match?.local ||
-    match?.equipoLocalNombre ||
-    'Lobos Quad Rugby'
-  );
-};
-
-const getAwayTeam = (match) => {
-  return (
-    match?.equipoVisitante?.nombre ||
-    match?.awayTeam?.nombre ||
-    match?.visitante ||
-    match?.equipoVisitanteNombre ||
-    match?.rival ||
-    'Rival'
-  );
-};
-
-const getHomeLogo = (match) => {
-  return (
-    match?.equipoLocal?.logo ||
-    match?.homeTeam?.logo ||
-    match?.localLogo ||
-    match?.equipoLocalLogo ||
-    '/assets/logo-lobos.png'
-  );
-};
-
-const getAwayLogo = (match) => {
-  return (
-    match?.equipoVisitante?.logo ||
-    match?.awayTeam?.logo ||
-    match?.visitanteLogo ||
-    match?.equipoVisitanteLogo ||
-    match?.rivalLogo
-  );
-};
-
-/* =========================================================
-   FORMATTERS
-========================================================= */
-
-const formatDate = (date) => {
-  if (!date) return '';
-
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
-};
-
-const formatShortDate = (date) => {
-  if (!date) return '';
-
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'short',
-  })
-    .format(date)
-    .replace('.', '')
-    .toUpperCase();
-};
-
-const formatTime = (match, date) => {
-  const horario =
-    match?.horario ||
-    match?.hora ||
-    match?.time;
-
-  if (horario) {
-    const matchTime = String(horario).match(
-      /(\d{1,2})[:.](\d{2})/
-    );
-
-    if (matchTime) {
-      return `${matchTime[1].padStart(2, '0')}:${matchTime[2]}`;
-    }
-  }
-
-  if (date) {
-    return new Intl.DateTimeFormat('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).format(date);
-  }
-
-  return '';
-};
-
-const getJornadaTitle = (jornada) => {
-  const competition = normalizeText(
-    jornada?.competicion || ''
-  );
-
-  const numero = String(jornada?.numero ?? '').trim();
-
-  if (
-    competition.includes('autonomica') ||
-    competition.includes('campeonato')
-  ) {
-    return numero || 'Competición';
-  }
-
-  if (/^\d+$/.test(numero)) {
-    return `Jornada ${numero}`;
-  }
-
-  return numero || 'Jornada';
-};
-
-const getJornadaNumber = (jornada) => {
-  const value = Number(jornada?.numero);
-
-  return Number.isFinite(value) ? value : null;
-};
-
-/* =========================================================
-   TEAM LOGO
-========================================================= */
-
-const TeamLogo = ({
-  src,
-  name,
-  size = 'normal',
-}) => {
-  const [imageError, setImageError] = useState(false);
-
-  const sizeClass =
-    size === 'large'
-      ? 'w-20 h-20 sm:w-24 sm:h-24'
-      : 'w-14 h-14 sm:w-16 sm:h-16';
-
-  const initials = String(name || 'EQ')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase();
-
-  const imageUrl = src ? getImageUrl(src) : null;
-
-  if (!imageUrl || imageError) {
-    return (
-      <div
-        className={`${sizeClass} shrink-0 border border-white/10 bg-zinc-900 flex items-center justify-center`}
-        aria-label={name}
-      >
-        <span className="text-sm font-bold tracking-widest text-zinc-500">
-          {initials}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={`${sizeClass} shrink-0 border border-white/10 bg-white flex items-center justify-center overflow-hidden`}
-    >
-      <img
-        src={imageUrl}
-        alt={name}
-        className="w-full h-full object-contain p-2"
-        onError={() => setImageError(true)}
-      />
-    </div>
-  );
-};
-
-/* =========================================================
-   STATUS BADGE
-========================================================= */
-
-const StatusBadge = ({ status }) => {
-  const config = {
-    EN_DIRECTO: {
-      label: 'EN DIRECTO',
-      className:
-        'border-red-500/60 bg-red-500/10 text-red-400',
-      live: true,
-    },
-    FINALIZADO: {
-      label: 'FINALIZADO',
-      className:
-        'border-white/15 bg-white/[0.04] text-zinc-300',
-    },
-    CANCELADO: {
-      label: 'CANCELADO',
-      className:
-        'border-red-500/30 bg-red-500/5 text-red-400',
-    },
-    PROGRAMADO: {
-      label: 'PROGRAMADO',
-      className:
-        'border-white/15 bg-transparent text-zinc-400',
-    },
-    PENDIENTE: {
-      label: 'PENDIENTE',
-      className:
-        'border-white/10 bg-transparent text-zinc-500',
-    },
-  };
-
-  const current = config[status] || config.PENDIENTE;
-
-  return (
-    <span
-      className={`inline-flex items-center gap-2 border px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] ${current.className}`}
-    >
-      {current.live && (
-        <span
-          className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
-          aria-hidden="true"
-        />
-      )}
-
-      {current.label}
-    </span>
-  );
-};
-
-/* =========================================================
-   YOUTUBE BUTTON
-========================================================= */
-
-const YoutubeButton = ({ link, status }) => {
-  if (!link) return null;
-
-  return (
-    <a
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 border border-white/15 px-4 py-2.5 text-[10px] font-bold tracking-[0.15em] uppercase text-white transition-colors hover:border-red-500 hover:text-red-400"
-      aria-label={
-        status === 'EN_DIRECTO'
-          ? 'Ver partido en directo en YouTube'
-          : 'Ver partido en YouTube'
-      }
-    >
-      <PlayIcon className="w-3.5 h-3.5" />
-
-      {status === 'EN_DIRECTO'
-        ? 'Ver en directo'
-        : 'Ver en YouTube'}
-    </a>
-  );
-};
-
-/* =========================================================
-   SCORE
-========================================================= */
-
-const Score = ({ match, status }) => {
-  const homeScore = match?.lobosScore;
-  const awayScore = match?.rivalScore;
-
-  const hasScores =
-    homeScore !== null &&
-    homeScore !== undefined &&
-    awayScore !== null &&
-    awayScore !== undefined;
-
-  if (!hasScores) {
-    return (
-      <div className="text-center">
-        <div className="text-2xl sm:text-3xl font-display font-bold text-zinc-700 tracking-wider">
-          VS
-        </div>
-
-        {status === 'PROGRAMADO' && (
-          <div className="mt-2 text-[9px] uppercase tracking-[0.2em] text-zinc-600">
-            Por jugar
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  const homeWins = Number(homeScore) > Number(awayScore);
-  const awayWins = Number(awayScore) > Number(homeScore);
-
-  return (
-    <div className="text-center min-w-[110px]">
-      <div className="flex items-center justify-center gap-3">
-        <span
-          className={`text-3xl sm:text-4xl font-display font-bold ${
-            homeWins ? 'text-white' : 'text-zinc-500'
-          }`}
-        >
-          {homeScore}
-        </span>
-
-        <span className="text-zinc-700 text-xl">—</span>
-
-        <span
-          className={`text-3xl sm:text-4xl font-display font-bold ${
-            awayWins ? 'text-white' : 'text-zinc-500'
-          }`}
-        >
-          {awayScore}
-        </span>
-      </div>
-
-      {status === 'FINALIZADO' && (
-        <div className="mt-2 text-[9px] uppercase tracking-[0.2em] text-zinc-600">
-          Resultado final
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* =========================================================
-   MATCH CARD
-========================================================= */
-
-const MatchCard = ({
-  match,
-  jornada,
-  currentTime,
-}) => {
-  const status = getMatchStatus(
-    match,
-    jornada,
-    currentTime
-  );
-
-  const date = getMatchDateTime(match, jornada);
-
-  const homeTeam = getHomeTeam(match);
-  const awayTeam = getAwayTeam(match);
-
-  const homeLogo = getHomeLogo(match);
-  const awayLogo = getAwayLogo(match);
-
-  return (
-    <article
-      className={`group relative border bg-zinc-950/80 transition-all duration-300 ${
-        status === 'EN_DIRECTO'
-          ? 'border-red-500/40'
-          : 'border-white/10 hover:border-white/20'
-      }`}
-    >
-      {/* Accent line */}
-      <div
-        className={`absolute top-0 left-0 right-0 h-px ${
-          status === 'EN_DIRECTO'
-            ? 'bg-red-500'
-            : 'bg-white/10 group-hover:bg-white/20'
-        }`}
-      />
-
-      <div className="p-5 sm:p-7">
-        {/* Match metadata */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-white/5">
-          <div className="flex items-center gap-4">
-            {date && (
-              <div className="text-2xl sm:text-3xl font-display font-bold text-white uppercase">
-                {formatShortDate(date)}
-              </div>
-            )}
-
-            <div className="h-8 w-px bg-white/10" />
-
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-                {date
-                  ? new Intl.DateTimeFormat('es-ES', {
-                      weekday: 'long',
-                    }).format(date)
-                  : 'Fecha pendiente'}
-              </div>
-
-              {formatTime(match, date) && (
-                <div className="mt-1 text-sm font-medium text-zinc-300">
-                  {formatTime(match, date)} h
-                </div>
-              )}
-            </div>
-          </div>
-
-          <StatusBadge status={status} />
-        </div>
-
-        {/* Desktop matchup */}
-        <div className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center gap-8 py-10">
-          {/* Home */}
-          <div className="flex items-center justify-end gap-5 text-right">
-            <div>
-              <div className="text-[9px] uppercase tracking-[0.2em] text-zinc-600 mb-2">
-                Local
-              </div>
-
-              <h3 className="text-lg lg:text-xl font-display font-bold uppercase tracking-wide text-white">
-                {homeTeam}
-              </h3>
-            </div>
-
-            <TeamLogo
-              src={homeLogo}
-              name={homeTeam}
-              size="large"
-            />
-          </div>
-
-          {/* Score */}
-          <Score
-            match={match}
-            status={status}
-          />
-
-          {/* Away */}
-          <div className="flex items-center gap-5">
-            <TeamLogo
-              src={awayLogo}
-              name={awayTeam}
-              size="large"
-            />
-
-            <div>
-              <div className="text-[9px] uppercase tracking-[0.2em] text-zinc-600 mb-2">
-                Visitante
-              </div>
-
-              <h3 className="text-lg lg:text-xl font-display font-bold uppercase tracking-wide text-white">
-                {awayTeam}
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile matchup */}
-        <div className="md:hidden py-8">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-            <div className="text-center">
-              <TeamLogo
-                src={homeLogo}
-                name={homeTeam}
-                size="normal"
-              />
-
-              <h3 className="mt-4 text-xs font-display font-bold uppercase tracking-wide text-white">
-                {homeTeam}
-              </h3>
-
-              <div className="mt-1 text-[8px] uppercase tracking-[0.15em] text-zinc-600">
-                Local
-              </div>
-            </div>
-
-            <Score
-              match={match}
-              status={status}
-            />
-
-            <div className="text-center">
-              <TeamLogo
-                src={awayLogo}
-                name={awayTeam}
-                size="normal"
-              />
-
-              <h3 className="mt-4 text-xs font-display font-bold uppercase tracking-wide text-white">
-                {awayTeam}
-              </h3>
-
-              <div className="mt-1 text-[8px] uppercase tracking-[0.15em] text-zinc-600">
-                Visitante
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-5 border-t border-white/5">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] uppercase tracking-[0.15em] text-zinc-600">
-            {match?.pabellon && (
-              <span className="inline-flex items-center gap-2">
-                <Icon
-                  className="w-3.5 h-3.5"
-                  path="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-                />
-
-                {match.pabellon}
-              </span>
-            )}
-
-            {match?.ciudad && (
-              <span>{match.ciudad}</span>
-            )}
-          </div>
-
-          <YoutubeButton
-            link={match?.youtubeLink}
-            status={status}
-          />
-        </div>
-
-        {status === 'EN_DIRECTO' && (
-          <div className="mt-5 border-l-2 border-red-500 bg-red-500/5 px-4 py-3">
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">
-              El partido está en juego
-            </div>
-
-            <p className="mt-1 text-xs text-zinc-500">
-              Sigue la retransmisión en directo desde YouTube.
-            </p>
-          </div>
-        )}
-
-        {status === 'CANCELADO' && (
-          <div className="mt-5 border-l-2 border-red-500/50 bg-red-500/5 px-4 py-3">
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">
-              Partido cancelado
-            </div>
-          </div>
-        )}
-      </div>
-    </article>
-  );
-};
-
-/* =========================================================
-   JORNADA HEADER
-========================================================= */
-
-const JornadaHeader = ({
-  jornada,
-  index,
-}) => {
-  const number =
-    getJornadaNumber(jornada) ??
-    index + 1;
-
-  const dates = parseJornadaDates(
-    jornada?.fechas
-  );
-
-  return (
-    <div className="grid lg:grid-cols-[100px_1fr_auto] gap-6 lg:gap-10 items-end">
-      <div className="hidden lg:block">
-        <div className="text-5xl font-display font-bold text-zinc-800 leading-none">
-          {String(number).padStart(2, '0')}
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-red-500">
-            {jornada?.competicion || 'Competición'}
-          </span>
-
-          <span className="h-px w-8 bg-red-500/40" />
-        </div>
-
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold uppercase tracking-tight text-white">
-          {getJornadaTitle(jornada)}
-        </h2>
-
-        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] uppercase tracking-[0.15em] text-zinc-500">
-          {jornada?.ciudad && (
-            <span>{jornada.ciudad}</span>
-          )}
-
-          {jornada?.pabellon && (
-            <>
-              <span className="text-zinc-800">/</span>
-              <span>{jornada.pabellon}</span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {dates.start && (
-        <div className="lg:text-right">
-          <div className="text-[9px] uppercase tracking-[0.2em] text-zinc-600">
-            Fecha
-          </div>
-
-          <div className="mt-1 text-sm font-medium text-zinc-300 capitalize">
-            {formatDate(dates.start)}
-          </div>
-
-          {dates.end &&
-            dates.start.getTime() !==
-              dates.end.getTime() && (
-              <div className="mt-1 text-xs text-zinc-600">
-                hasta {formatDate(dates.end)}
-              </div>
-            )}
-        </div>
-      )}
-    </div>
-  );
-};
+const PlayIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8 5.14v13.72c0 .78.85 1.26 1.52.86l10.94-6.86a1 1 0 000-1.72L9.52 4.28C8.85 3.88 8 4.36 8 5.14Z" />
+  </svg>
+);
 
 /* =========================================================
    MAIN COMPONENT
 ========================================================= */
-
 export default function Competitions() {
   const [jornadas, setJornadas] = useState([]);
   const [temporadas, setTemporadas] = useState([]);
-  const [selectedTemporadaId, setSelectedTemporadaId] =
-    useState('');
+  const [selectedTemporadaId, setSelectedTemporadaId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [currentTime, setCurrentTime] = useState(
-    new Date()
-  );
+  const [error, setError] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  /* -------------------------------------------------------
-     Fetch data
-  ------------------------------------------------------- */
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const [
-        temporadasResponse,
-        jornadasResponse,
-      ] = await Promise.all([
-        fetch(`${API_URL}/api/temporadas`),
-        fetch(`${API_URL}/api/jornadas`),
-      ]);
-
-      if (!temporadasResponse.ok) {
-        throw new Error(
-          'No se pudieron cargar las temporadas.'
-        );
-      }
-
-      if (!jornadasResponse.ok) {
-        throw new Error(
-          'No se pudieron cargar las jornadas.'
-        );
-      }
-
-      const temporadasData =
-        await temporadasResponse.json();
-
-      const jornadasData =
-        await jornadasResponse.json();
-
-      const normalizedTemporadas = Array.isArray(
-        temporadasData
-      )
-        ? temporadasData
-        : temporadasData?.temporadas || [];
-
-      const normalizedJornadas = Array.isArray(
-        jornadasData
-      )
-        ? jornadasData
-        : jornadasData?.jornadas || [];
-
-      setTemporadas(normalizedTemporadas);
-      setJornadas(normalizedJornadas);
-
-      if (
-        normalizedTemporadas.length > 0 &&
-        !selectedTemporadaId
-      ) {
-        setSelectedTemporadaId(
-          String(normalizedTemporadas[0].id)
-        );
-      }
-    } catch (err) {
-      console.error(
-        'Error cargando competiciones:',
-        err
-      );
-
-      setError(
-        err?.message ||
-          'No se pudieron cargar las competiciones.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  /* =======================================================
+     LOAD DATA (Temporadas + Jornadas)
+  ======================================================= */
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(false);
+        
+        // 1. Obtener temporadas
+        const resTemp = await fetch(`${API_URL}/api/temporadas`);
+        if (resTemp.ok) {
+          const tempsData = await resTemp.json();
+          setTemporadas(tempsData);
+          // Seleccionar la primera (más reciente) por defecto
+          if (tempsData.length > 0) {
+            setSelectedTemporadaId(tempsData[0].id);
+          }
+        }
+
+        // 2. Obtener jornadas
+        const resJor = await fetch(`${API_URL}/api/jornadas`);
+        if (!resJor.ok) throw new Error(`Error HTTP: ${resJor.status}`);
+        const jorData = await resJor.json();
+        setJornadas(Array.isArray(jorData) ? jorData : []);
+
+      } catch (err) {
+        console.error("❌ Error al cargar datos:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchData();
   }, []);
 
-  /* -------------------------------------------------------
-     Update current time
-     Needed for live match detection.
-  ------------------------------------------------------- */
-
+  /* =======================================================
+     UPDATE CURRENT TIME
+  ======================================================= */
   useEffect(() => {
-    const interval = setInterval(() => {
+    const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 30000);
-
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, []);
 
-  /* -------------------------------------------------------
-     Selected season
-  ------------------------------------------------------- */
+  // Filtrar jornadas por temporada seleccionada y que estén activas
+  const jornadasFiltradas = jornadas.filter(j => 
+    j.isActive === true && j.temporadaId === selectedTemporadaId
+  );
 
-  const temporadaActual = useMemo(() => {
-    return temporadas.find(
-      (temporada) =>
-        String(temporada.id) ===
-        String(selectedTemporadaId)
-    );
-  }, [
-    temporadas,
-    selectedTemporadaId,
-  ]);
+  const temporadaActual = temporadas.find(t => t.id === selectedTemporadaId);
 
-  /* -------------------------------------------------------
-     Filter jornadas
-  ------------------------------------------------------- */
+  // ✅ Função para formatar o título da jornada corretamente
+  const getJornadaTitle = (jornada) => {
+    const num = String(jornada.numero || "").trim();
+    const isAutonomica = jornada.competicion?.toLowerCase().includes("autonómica");
+    const isCampeonato = jornada.competicion?.toLowerCase().includes("campeonato");
+    const isNumeric = /^\d+$/.test(num);
 
-  const jornadasFiltradas = useMemo(() => {
-    return jornadas
-      .filter((jornada) => {
-        if (jornada?.isActive !== true) {
-          return false;
-        }
-
-        return (
-          String(jornada?.temporadaId) ===
-          String(selectedTemporadaId)
-        );
-      })
-      .sort((a, b) => {
-        const numberA = getJornadaNumber(a);
-        const numberB = getJornadaNumber(b);
-
-        if (
-          numberA !== null &&
-          numberB !== null
-        ) {
-          return numberA - numberB;
-        }
-
-        return String(a?.numero || '').localeCompare(
-          String(b?.numero || ''),
-          'es',
-          { numeric: true }
-        );
-      });
-  }, [
-    jornadas,
-    selectedTemporadaId,
-  ]);
+    // Se for autonómica, campeonato, ou o "número" for na verdade um texto
+    if (isAutonomica || isCampeonato || !isNumeric) {
+      return num || "Competición";
+    }
+    // Caso contrário, é uma jornada numérica normal
+    return `Jornada ${num}`;
+  };
 
   /* =======================================================
-     LOADING
+     FUNCIONES DE FECHA Y ESTADO
   ======================================================= */
+  const meses = {
+    ENERO: 0, FEBRERO: 1, MARZO: 2, ABRIL: 3, MAYO: 4, JUNIO: 5,
+    JULIO: 6, AGOSTO: 7, SEPTIEMBRE: 8, OCTUBRE: 9, NOVIEMBRE: 10, DICIEMBRE: 11,
+  };
+
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+  const parseJornadaDates = (fechas) => {
+    if (!fechas || typeof fechas !== "string") return null;
+    const texto = fechas.trim().toUpperCase();
+    const slashMatch = texto.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (slashMatch) return { year: parseInt(slashMatch[3], 10), month: parseInt(slashMatch[2], 10) - 1, days: [parseInt(slashMatch[1], 10)] };
+    
+    const yearMatch = texto.match(/(\d{4})/);
+    const year = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
+    
+    const monthMatch = texto.match(/DE\s+(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)/);
+    const month = monthMatch ? meses[monthMatch[1]] : null;
+    
+    const rangeMatch = texto.match(/(\d{1,2})\s*(?:Y|-|A)\s*(\d{1,2})/);
+    if (rangeMatch) return { year, month, days: [parseInt(rangeMatch[1], 10), parseInt(rangeMatch[2], 10)] };
+    
+    const singleDayMatch = texto.match(/(?:^|\s)(\d{1,2})(?:\s+DE|\s*$)/);
+    if (singleDayMatch) return { year, month, days: [parseInt(singleDayMatch[1], 10)] };
+    
+    return null;
+  };
+
+  const getMatchDate = (jornada, partido) => {
+    const specificDate = partido?.fecha || partido?.date || partido?.fechaPartido;
+    if (specificDate) {
+      const isoMatch = String(specificDate).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (isoMatch) return { year: parseInt(isoMatch[1], 10), month: parseInt(isoMatch[2], 10) - 1, day: parseInt(isoMatch[3], 10) };
+      const slashMatch = String(specificDate).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (slashMatch) return { year: parseInt(slashMatch[3], 10), month: parseInt(slashMatch[2], 10) - 1, day: parseInt(slashMatch[1], 10) };
+    }
+    const parsed = parseJornadaDates(jornada?.fechas);
+    if (!parsed || parsed.days.length === 0) return null;
+    let dayIndex = (partido?.diaSemana || "").toLowerCase().includes("domingo") ? 1 : 0;
+    const day = parsed.days[dayIndex] || parsed.days[0];
+    if (parsed.month === null || !day) return null;
+    return { year: parsed.year, month: parsed.month, day };
+  };
+
+  const getMatchDateTime = (jornada, partido) => {
+    const date = getMatchDate(jornada, partido);
+    if (!date) return null;
+    if (!partido?.horario) return new Date(date.year, date.month, date.day, 0, 0, 0);
+    const timeParts = String(partido.horario).split(":").map(Number);
+    return new Date(date.year, date.month, date.day, Number.isFinite(timeParts[0]) ? timeParts[0] : 0, Number.isFinite(timeParts[1]) ? timeParts[1] : 0, 0);
+  };
+
+  const getMatchEndDateTime = (jornada, partido) => {
+    const start = getMatchDateTime(jornada, partido);
+    if (!start) return null;
+    const end = new Date(start);
+    end.setMinutes(end.getMinutes() + 120);
+    return end;
+  };
+
+  const getDynamicStatus = (jornada, partido) => {
+    const backendStatus = String(partido?.status || "").toUpperCase();
+    if (backendStatus === "CANCELADO") return "CANCELADO";
+    if (backendStatus === "FINALIZADO" || backendStatus === "FINAL") return "FINALIZADO";
+    
+    const start = getMatchDateTime(jornada, partido);
+    const end = getMatchEndDateTime(jornada, partido);
+    if (!start || !end) return "PROGRAMADO";
+    if (currentTime >= start && currentTime <= end) return "EN_DIRECTO";
+    if (currentTime < start) return "PROGRAMADO";
+    
+    const hasScore = partido?.lobosScore !== null && partido?.lobosScore !== undefined && partido?.rivalScore !== null && partido?.rivalScore !== undefined;
+    if (hasScore) return "FINALIZADO";
+    return "PENDIENTE";
+  };
+
+  const getHomeTeam = (partido) => ({
+    name: partido?.equipoLocal?.nombre || partido?.equipoLocalNombre || partido?.localNombre || "Lobos Quad Rugby",
+    logo: partido?.equipoLocal?.logo || partido?.equipoLocalLogo || partido?.localLogo || null,
+  });
+
+  const getAwayTeam = (partido) => ({
+    name: partido?.equipoVisitante?.nombre || partido?.equipoVisitanteNombre || partido?.visitanteNombre || partido?.rival || "Rival",
+    logo: partido?.equipoVisitante?.logo || partido?.equipoVisitanteLogo || partido?.visitanteLogo || partido?.rivalLogo || null,
+  });
+
+  const getFormattedDay = (jornada, partido) => {
+    if (partido?.diaSemana) return partido.diaSemana.charAt(0).toUpperCase() + partido.diaSemana.slice(1);
+    const date = getMatchDateTime(jornada, partido);
+    return date ? diasSemana[date.getDay()] : "";
+  };
+
+  const formatFullDate = (jornada) => jornada?.fechas || "";
+
+  const TeamLogo = ({ logo, name, size = "large" }) => {
+    const dimensions = size === "large" ? "w-20 h-20 md:w-24 md:h-24" : "w-14 h-14 md:w-16 md:h-16";
+    if (!logo) {
+      return (
+        <div className={`${dimensions} rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center`}>
+          <span className="text-zinc-600 text-[10px] font-bold uppercase text-center px-2">{name?.substring(0, 3)}</span>
+        </div>
+      );
+    }
+    return (
+      <div className={`${dimensions} rounded-full bg-white/95 border border-zinc-700 p-2 flex items-center justify-center overflow-hidden group-hover:border-red-500/40 transition-colors duration-300`}>
+        <img src={getImageUrl(logo)} alt={`Logo ${name}`} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" />
+      </div>
+    );
+  };
+
+  const StatusBadge = ({ status }) => {
+    if (status === "EN_DIRECTO") return <span className="inline-flex items-center gap-2 px-4 py-2 border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full animate-pulse"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>En directo</span>;
+    if (status === "FINALIZADO") return <span className="inline-flex items-center gap-2 px-4 py-2 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">Finalizado</span>;
+    if (status === "CANCELADO") return <span className="inline-flex items-center gap-2 px-4 py-2 border border-red-500/30 bg-red-500/10 text-red-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">Cancelado</span>;
+    if (status === "PENDIENTE") return <span className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-500/20 bg-yellow-500/5 text-yellow-500 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">Pendiente de resultado</span>;
+    return <span className="inline-flex items-center gap-2 px-4 py-2 border border-blue-500/20 bg-blue-500/5 text-blue-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.16em] rounded-full">Programado</span>;
+  };
+
+  const YoutubeButton = ({ link, status }) => {
+    if (!link) return null;
+    let label = "Ver en vivo";
+    if (status === "EN_DIRECTO") label = "Ver ahora";
+    if (status === "FINALIZADO" || status === "PENDIENTE") label = "Ver el partido";
+    return (
+      <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-red-600 hover:bg-red-500 text-white text-[10px] md:text-xs font-bold uppercase tracking-[0.12em] rounded-sm transition-all duration-300 hover:shadow-lg hover:shadow-red-600/20 active:scale-95">
+        <PlayIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />{label}
+      </a>
+    );
+  };
+
+  const Score = ({ homeScore, awayScore }) => {
+    const home = Number(homeScore), away = Number(awayScore);
+    const homeWinner = Number.isFinite(home) && Number.isFinite(away) && home > away;
+    const awayWinner = Number.isFinite(home) && Number.isFinite(away) && away > home;
+    
+    return (
+      <div className="flex items-center justify-center gap-4 md:gap-8">
+        <div className="text-center min-w-[70px] md:min-w-[90px]">
+          <p className={`font-display text-4xl md:text-5xl font-bold leading-none ${homeWinner ? "text-red-500" : "text-white"}`}>
+            {homeScore}
+          </p>
+        </div>
+        <span className="text-zinc-700 text-2xl md:text-3xl font-light">-</span>
+        <div className="text-center min-w-[70px] md:min-w-[90px]">
+          <p className={`font-display text-4xl md:text-5xl font-bold leading-none ${awayWinner ? "text-red-500" : "text-white"}`}>
+            {awayScore}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const MatchCard = ({ jornada, partido, index }) => {
+    const status = getDynamicStatus(jornada, partido);
+    const home = getHomeTeam(partido);
+    const away = getAwayTeam(partido);
+    const dia = getFormattedDay(jornada, partido);
+    const youtubeLink = partido?.youtubeLink || partido?.youtube || partido?.videoUrl || null;
+    const hasScore = partido?.lobosScore !== null && partido?.lobosScore !== undefined && partido?.rivalScore !== null && partido?.rivalScore !== undefined;
+
+    // Determinar ganador para mobile
+    const homeScoreNum = Number(partido.lobosScore) || 0;
+    const awayScoreNum = Number(partido.rivalScore) || 0;
+    const homeWinnerMobile = homeScoreNum > awayScoreNum;
+    const awayWinnerMobile = awayScoreNum > homeScoreNum;
+
+    return (
+      <article className="group relative bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-sm overflow-hidden transition-all duration-300">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-700 to-transparent group-hover:via-red-600/60 transition-colors duration-500"></div>
+        <div className="p-5 md:p-8">
+          <div className="text-center mb-6 md:mb-8">
+            <div className="flex items-center justify-center gap-2 text-zinc-500">
+              <Icon path="M12 8v4l3 3 M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-3.5 h-3.5" />
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">{dia}</span>
+              {partido?.horario && (
+                <>
+                  <span className="text-zinc-700">·</span>
+                  <span className="text-red-500 text-sm md:text-base font-display font-bold tracking-wider">{partido.horario}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="hidden sm:grid grid-cols-[1fr_auto_1fr] items-center gap-6 md:gap-10">
+            <div className="flex flex-col items-center text-center">
+              <TeamLogo logo={home.logo} name={home.name} />
+              <h3 className="mt-4 text-sm md:text-base font-bold uppercase tracking-wide text-white max-w-[180px]">{home.name}</h3>
+            </div>
+            <div className="flex flex-col items-center min-w-[130px]">
+              {status === "FINALIZADO" && hasScore ? (
+                <Score homeScore={partido.lobosScore} awayScore={partido.rivalScore} />
+              ) : (
+                <span className="font-display text-lg md:text-xl text-zinc-700">VS</span>
+              )}
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <TeamLogo logo={away.logo} name={away.name} />
+              <h3 className="mt-4 text-sm md:text-base font-bold uppercase tracking-wide text-white max-w-[180px]">{away.name}</h3>
+            </div>
+          </div>
+
+          {/* MOBILE - CORREGIDO: Placar com cor dinâmica */}
+          <div className="sm:hidden">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+              <div className="flex flex-col items-center text-center">
+                <TeamLogo logo={home.logo} name={home.name} size="small" />
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-white leading-tight max-w-[100px]">{home.name}</p>
+              </div>
+              <div className="flex flex-col items-center px-2">
+                {status === "FINALIZADO" && hasScore ? (
+                  <div className="flex items-center gap-2">
+                    <span className={`font-display text-2xl font-bold ${homeWinnerMobile ? "text-red-500" : "text-white"}`}>
+                      {partido.lobosScore}
+                    </span>
+                    <span className="text-zinc-700">-</span>
+                    <span className={`font-display text-2xl font-bold ${awayWinnerMobile ? "text-red-500" : "text-white"}`}>
+                      {partido.rivalScore}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-display text-sm text-zinc-700">VS</span>
+                )}
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <TeamLogo logo={away.logo} name={away.name} size="small" />
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-white leading-tight max-w-[100px]">{away.name}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="my-6 md:my-7 border-t border-zinc-900"></div>
+
+          <div className="flex flex-col items-center gap-4">
+            <StatusBadge status={status} />
+            <YoutubeButton link={youtubeLink} status={status} />
+            {status === "CANCELADO" && <p className="mt-4 text-center text-[10px] text-red-400 uppercase tracking-wider">Este partido ha sido cancelado.</p>}
+            {status === "PENDIENTE" && !hasScore && <p className="mt-4 text-center text-[10px] text-zinc-600 uppercase tracking-wider">Resultado pendiente de actualización.</p>}
+          </div>
+        </div>
+      </article>
+    );
+  };
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-black text-white">
-        <section className="min-h-[70vh] flex items-center justify-center px-6">
-          <div
-            className="text-center"
-            aria-live="polite"
-          >
-            <div className="w-10 h-10 border border-white/10 border-t-red-500 rounded-full animate-spin mx-auto" />
-
-            <p className="mt-6 text-[10px] uppercase tracking-[0.25em] text-zinc-600">
-              Cargando competiciones
-            </p>
-          </div>
-        </section>
-      </main>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-zinc-800 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-zinc-500 text-xs uppercase tracking-[0.2em]">Cargando competiciones...</p>
+        </div>
+      </div>
     );
   }
-
-  /* =======================================================
-     ERROR
-  ======================================================= */
 
   if (error) {
     return (
-      <main className="min-h-screen bg-black text-white">
-        <section className="min-h-[70vh] flex items-center justify-center px-6">
-          <div className="max-w-md text-center">
-            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-red-500">
-              Error
+      <div className="min-h-screen bg-zinc-950 text-white">
+        <section className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="text-center max-w-lg">
+            <div className="w-14 h-14 border border-red-500/20 bg-red-500/5 flex items-center justify-center mx-auto mb-6">
+              <Icon path="M12 9v3.75m0 3h.007M10.29 3.86l-7.82 13.5A1.5 1.5 0 003.77 19.6h16.46a1.5 1.5 0 001.3-2.24l-7.82-13.5a1.5 1.5 0 00-2.6 0z" className="w-6 h-6 text-red-500" />
             </div>
-
-            <h1 className="mt-4 text-3xl font-display font-bold uppercase">
-              No se pudieron cargar las competiciones
-            </h1>
-
-            <p className="mt-4 text-sm leading-relaxed text-zinc-500">
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={fetchData}
-              className="mt-8 inline-flex items-center gap-3 bg-red-600 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-red-500"
-            >
-              Reintentar
-
-              <Icon
-                className="w-4 h-4"
-                path="M20 11a8.1 8.1 0 0 0-15.5-3M4 4v4h4M4 13a8.1 8.1 0 0 0 15.5 3M20 20v-4h-4"
-              />
-            </button>
+            <h1 className="font-display text-3xl text-white mb-3">No se pudieron cargar las competiciones</h1>
+            <p className="text-zinc-500 text-sm leading-relaxed">Se ha producido un error al conectar con el calendario de competición. Inténtalo de nuevo más tarde.</p>
           </div>
         </section>
-      </main>
+      </div>
     );
   }
 
   /* =======================================================
-     MAIN
+     MAIN PAGE
   ======================================================= */
-
   return (
-    <main className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* ===================================================
           HERO - NOVO DESIGN
       =================================================== */}
-
       <section className="relative overflow-hidden">
         {/* Imagem de fundo */}
         <div className="absolute inset-0">
@@ -1219,27 +400,25 @@ export default function Competitions() {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-32 pb-24 lg:pt-40 lg:pb-32">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-32 lg:pb-28">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-4 mb-7">
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-red-500">
-                Calendario Oficial 2024-2025
-              </span>
+            {/* Label superior */}
+            <p className="text-red-500 font-bold tracking-[0.25em] text-[10px] uppercase mb-3">
+              CALENDARIO OFICIAL 2024-2025
+            </p>
 
-              <span className="h-px w-12 bg-red-500/50" />
-            </div>
-
-            <h1 className="text-6xl sm:text-7xl lg:text-9xl font-display font-bold uppercase tracking-tight leading-[0.85] mb-8">
-              TEMPORADA
-              <br />
-              <span className="text-red-600">2024-25</span>
+            {/* Título principal */}
+            <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl leading-none tracking-tight mb-6">
+              <span className="block text-white">TEMPORADA</span>
+              <span className="block text-red-600">2024-25</span>
             </h1>
 
-            <p className="text-xl sm:text-2xl text-zinc-400 max-w-2xl leading-relaxed mb-10">
+            {/* Subtítulo */}
+            <p className="text-xl text-zinc-400 max-w-2xl leading-relaxed mb-10">
               Sigue cada jornada, cada partido y cada victoria de la manada.
             </p>
 
-            {/* Season selector */}
+            {/* Selector de temporadas */}
             {temporadas.length > 0 && (
               <div className="max-w-md">
                 <label
@@ -1252,34 +431,38 @@ export default function Competitions() {
                 <div className="relative">
                   <select
                     id="temporada"
-                    value={selectedTemporadaId}
-                    onChange={(event) =>
-                      setSelectedTemporadaId(
-                        event.target.value
-                      )
-                    }
-                    className="w-full appearance-none border border-white/15 bg-zinc-950/80 backdrop-blur-sm px-5 py-4 pr-12 text-sm font-bold uppercase tracking-wider text-white outline-none transition-colors focus:border-red-500"
-                    aria-label="Seleccionar temporada"
+                    value={selectedTemporadaId || ""}
+                    onChange={(e) => setSelectedTemporadaId(e.target.value ? parseInt(e.target.value) : null)}
+                    className="
+                      w-full
+                      appearance-none
+                      bg-zinc-950/80 backdrop-blur-md
+                      border border-white/15 
+                      text-white 
+                      px-5 py-4 pr-12
+                      rounded-sm 
+                      text-sm font-bold uppercase tracking-[0.15em] 
+                      focus:border-red-600 focus:outline-none
+                      cursor-pointer 
+                      hover:border-white/30
+                      transition-all duration-300
+                    "
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                      backgroundPosition: `right 0.75rem center`,
+                      backgroundRepeat: `no-repeat`,
+                      backgroundSize: `1.25rem 1.25rem`
+                    }}
                   >
-                    {temporadas.map((temporada) => (
-                      <option
-                        key={temporada.id}
-                        value={temporada.id}
-                        className="bg-zinc-950"
-                      >
-                        {temporada.nombre ||
-                          temporada.temporada ||
-                          temporada.name ||
-                          temporada.id}
+                    {temporadas.map((temp) => (
+                      <option key={temp.id} value={temp.id} className="bg-zinc-950 text-white">
+                        {temp.nome}
                       </option>
                     ))}
                   </select>
 
                   <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500">
-                    <Icon
-                      className="w-4 h-4"
-                      path="m6 9 6 6 6-6"
-                    />
+                    <Icon path="m6 9 6 6 6-6" className="w-4 h-4" />
                   </div>
                 </div>
               </div>
@@ -1289,147 +472,109 @@ export default function Competitions() {
       </section>
 
       {/* ===================================================
-          SEASON INTRO
+          CONTENT (JORNADAS - INALTERADO)
       =================================================== */}
-
-      <section className="border-b border-white/5 bg-zinc-950/30">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-10">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-            <div>
-              <div className="text-[9px] uppercase tracking-[0.25em] text-zinc-600">
-                Temporada seleccionada
-              </div>
-
-              <h2 className="mt-2 text-2xl sm:text-3xl font-display font-bold uppercase">
-                {temporadaActual?.nombre ||
-                  temporadaActual?.temporada ||
-                  temporadaActual?.name ||
-                  'Temporada'}
-              </h2>
-            </div>
-
-            <div className="text-left sm:text-right">
-              <div className="text-2xl font-display font-bold text-white">
-                {jornadasFiltradas.length
-                  .toString()
-                  .padStart(2, '0')}
-              </div>
-
-              <div className="text-[9px] uppercase tracking-[0.2em] text-zinc-600">
-                Jornadas activas
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===================================================
-          JORNADAS
-      =================================================== */}
-
-      <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16 lg:py-24">
+      <main className="max-w-5xl mx-auto px-4 py-12 md:py-20">
         {jornadasFiltradas.length === 0 ? (
-          <div className="border border-white/10 py-20 px-6 text-center">
-            <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-600">
-              Sin jornadas
+          <div className="py-20 text-center">
+            <div className="w-16 h-16 border border-zinc-800 bg-zinc-900 flex items-center justify-center mx-auto mb-6">
+              <Icon path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" className="w-6 h-6 text-zinc-600" />
             </div>
-
-            <h2 className="mt-4 text-2xl font-display font-bold uppercase text-zinc-300">
-              No hay jornadas disponibles
-            </h2>
-
-            <p className="mt-3 max-w-md mx-auto text-sm leading-relaxed text-zinc-600">
-              Todavía no hay competiciones publicadas
-              para esta temporada.
+            <p className="text-zinc-600 italic text-sm">
+              No hay jornadas programadas para esta temporada.
             </p>
           </div>
         ) : (
-          <div className="space-y-24">
-            {jornadasFiltradas.map(
-              (jornada, jornadaIndex) => (
-                <section
-                  key={
-                    jornada.id ||
-                    `${jornada.temporadaId}-${jornada.numero}-${jornadaIndex}`
-                  }
-                >
-                  <JornadaHeader
-                    jornada={jornada}
-                    index={jornadaIndex}
-                  />
+          <div className="space-y-12 md:space-y-16">
+            {jornadasFiltradas.map((jornada) => (
+              <section key={jornada.id} className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+                
+                {/* ✅ BLOQUE CON BANNER: Título superpuesto correctamente */}
+                {jornada.bannerUrl && (
+                  <div className="relative w-full h-44 md:h-64 overflow-hidden bg-zinc-800">
+                    <img src={getImageUrl(jornada.bannerUrl)} alt={`Jornada ${jornada.numero}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-70" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
+                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-1">{jornada.competicion || "Competición"}</p>
+                      <h2 className="font-display text-3xl md:text-5xl text-white">
+                        {getJornadaTitle(jornada)}
+                      </h2>
+                    </div>
+                  </div>
+                )}
 
-                  {/* Banner */}
-                  {jornada?.bannerUrl && (
-                    <div className="relative mt-10 overflow-hidden border border-white/10 aspect-[21/7] bg-zinc-950">
-                      <img
-                        src={getImageUrl(
-                          jornada.bannerUrl
-                        )}
-                        alt={
-                          jornada?.competicion ||
-                          'Competición Lobos Quad Rugby'
-                        }
-                        className="w-full h-full object-cover grayscale opacity-70 transition-all duration-500 hover:grayscale-0 hover:opacity-90"
-                        onError={(event) => {
-                          event.currentTarget.style.display =
-                            'none';
-                        }}
-                      />
-
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-black/60 pointer-events-none" />
+                <div className={`p-5 md:p-8 ${jornada.bannerUrl ? "pt-5 md:pt-7" : ""}`}>
+                  
+                  {/* ✅ BLOQUE SIN BANNER: Título en la parte superior del contenido */}
+                  {!jornada.bannerUrl && (
+                    <div className="border-b border-zinc-800 pb-6 mb-6">
+                      <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-2">{jornada.competicion || "Competición"}</p>
+                      <h2 className="font-display text-3xl md:text-5xl text-white">
+                        {getJornadaTitle(jornada)}
+                      </h2>
                     </div>
                   )}
 
-                  {/* Matches */}
-                  <div className="mt-10 space-y-4">
-                    {Array.isArray(
-                      jornada?.partidos
-                    ) &&
-                    jornada.partidos.length > 0 ? (
-                      jornada.partidos.map(
-                        (match, matchIndex) => (
-                          <MatchCard
-                            key={
-                              match.id ||
-                              `${jornada.id}-match-${matchIndex}`
-                            }
-                            match={match}
-                            jornada={jornada}
-                            currentTime={currentTime}
-                          />
-                        )
-                      )
-                    ) : (
-                      <div className="border border-white/10 px-6 py-12 text-center">
-                        <div className="text-[9px] uppercase tracking-[0.25em] text-zinc-700">
-                          Partidos
-                        </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-7 md:mb-8">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 shrink-0 bg-zinc-950 border border-zinc-800 flex items-center justify-center">
+                        <Icon path="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" className="w-4 h-4 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-600 mb-1">Ciudad</p>
+                        <p className="text-sm text-zinc-200 font-medium">{jornada.ciudad || "Por confirmar"}</p>
+                      </div>
+                    </div>
 
-                        <p className="mt-3 text-sm text-zinc-600">
-                          No hay partidos publicados
-                          para esta jornada.
-                        </p>
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 shrink-0 bg-zinc-950 border border-zinc-800 flex items-center justify-center">
+                        <Icon path="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" className="w-4 h-4 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-600 mb-1">Local</p>
+                        <p className="text-sm text-zinc-200 font-medium">{jornada.pabellon || "Por confirmar"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 shrink-0 bg-zinc-950 border border-zinc-800 flex items-center justify-center">
+                        <Icon path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" className="w-4 h-4 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-zinc-600 mb-1">Fecha</p>
+                        <p className="text-sm text-zinc-200 font-medium">{formatFullDate(jornada)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {Array.isArray(jornada.partidos) && jornada.partidos.length > 0 ? (
+                      jornada.partidos.map((partido, index) => (
+                        <MatchCard key={partido.id || `${jornada.id}-${index}`} jornada={jornada} partido={partido} index={index} />
+                      ))
+                    ) : (
+                      <div className="py-10 text-center border border-zinc-800 bg-zinc-950">
+                        <p className="text-zinc-600 text-xs uppercase tracking-wider">No hay partidos disponibles para esta jornada.</p>
                       </div>
                     )}
                   </div>
-                </section>
-              )
-            )}
+                </div>
+              </section>
+            ))}
           </div>
         )}
-      </section>
+      </main>
 
       {/* ===================================================
           CTA - NOVO DESIGN
       =================================================== */}
-
       <section className="border-t border-white/10 bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-20 lg:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500 mb-4">
+              <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.25em] mb-4">
                 Únete a la manada
-              </div>
+              </p>
 
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold uppercase leading-[0.9] mb-6">
                 ¿LISTO PARA
@@ -1473,6 +618,6 @@ export default function Competitions() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
