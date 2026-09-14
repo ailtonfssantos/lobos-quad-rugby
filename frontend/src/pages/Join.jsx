@@ -215,9 +215,19 @@ export default function Join() {
       ========================================================= */}
       <section className="relative overflow-hidden border-b border-zinc-800">
 
+        {/* Imagen de fondo */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-zinc-950 to-zinc-950" />
+          <img
+            src="/assets/partido.jpg"
+            alt="Equipo Lobos Quad Rugby entrenando"
+            className="w-full h-full object-cover object-center opacity-40 grayscale"
+          />
 
+          {/* Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-br from-red-950/40 via-zinc-950/90 to-zinc-950/95" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
+
+          {/* Glow */}
           <div className="absolute right-0 top-0 w-[500px] h-[500px] bg-red-900/10 blur-3xl rounded-full" />
         </div>
 
