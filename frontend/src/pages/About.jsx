@@ -51,61 +51,32 @@ export default function About() {
     <main className="bg-black text-white overflow-hidden selection:bg-red-600/30">
 
       {/* =========================================================
-          HERO
+          HEADER EDITORIAL (substitui o Hero duplicado)
       ========================================================= */}
-      <section className="relative min-h-[70vh] md:min-h-[78vh] flex items-end overflow-hidden pt-32 pb-20">
-        <div className="absolute inset-0">
-          <img src="/assets/equipo1.JPG" alt="Lobos Quad Rugby Valencia" className="w-full h-full object-cover grayscale opacity-50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 pb-8">
-          <div className="max-w-4xl">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-8 h-px bg-red-600" />
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500">Quiénes somos</span>
-            </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight leading-[0.9]">
-              LOBOS <span className="block text-red-600">QUAD RUGBY</span>
-            </h1>
-            <p className="mt-6 text-base sm:text-lg text-gray-400 max-w-2xl leading-relaxed">
-              Un club de rugby en silla de ruedas nacido en Valencia para competir, crecer y abrir camino.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/equipo" className="group inline-flex items-center gap-3 bg-white text-black px-6 py-3 text-xs font-bold uppercase tracking-wider hover:bg-red-600 hover:text-white transition-all duration-300">
-                Conoce al equipo <ArrowUpRight className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-              </Link>
-              <Link to="/competiciones" className="inline-flex items-center gap-3 border border-white/20 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white hover:border-white hover:bg-white/5 transition-all duration-300">
-                Ver competiciones <ArrowRight />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
-          QUIÉNES SOMOS & MISIÓN
-      ========================================================= */}
-      <section className="py-20 lg:py-28 border-b border-white/10">
+      <section className="relative py-20 sm:py-24 lg:py-28 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <div className="flex items-center gap-3 mb-8">
+            <span className="w-8 h-px bg-red-600" />
+            <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">Quiénes somos</span>
+          </div>
+
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
-            <div className="lg:col-span-5">
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">Desde Valencia</span>
-              <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-[0.95]">
-                Somos una <span className="block text-gray-600">manada.</span>
-              </h2>
+            <div className="lg:col-span-7">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight">
+                Somos una <span className="text-gray-600">manada.</span>
+              </h1>
             </div>
-            <div className="lg:col-span-7 space-y-6">
+
+            <div className="lg:col-span-5 space-y-6">
               <p className="text-lg sm:text-xl text-gray-300 leading-relaxed">
                 Lobos Quad Rugby es un club creado en Valencia en 2017. Nuestro objetivo principal es promover la integración social de las personas con discapacidad a través del rugby en silla de ruedas, mejorando su calidad de vida y ofreciendo oportunidades recreativas y competitivas.
               </p>
-              <p className="text-gray-500 text-base sm:text-lg leading-relaxed max-w-3xl">
+              <p className="text-gray-500 text-base sm:text-lg leading-relaxed">
                 Para nosotros, el rugby no termina cuando acaba un partido. Es un espacio para competir, conocer nuestros límites, superarlos y construir una comunidad en la que cada persona tenga su lugar.
               </p>
-              <div className="mt-8 flex items-center gap-4 text-sm uppercase tracking-wider text-white">
-                <span className="text-red-500 italic text-2xl sm:text-3xl font-black leading-none">"</span>
-                <span>No necesito que sea fácil, solo que sea posible.</span>
+              <div className="pt-4 flex items-center gap-4 text-sm uppercase tracking-wider text-white">
+                <span className="text-red-500 italic text-2xl font-black leading-none">"</span>
+                <span className="text-gray-300">No necesito que sea fácil, solo que sea posible.</span>
               </div>
             </div>
           </div>
@@ -209,7 +180,7 @@ export default function About() {
             <div className="lg:col-span-4">
               <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">Nuestra historia</span>
               <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight">
-                Un camino <span className="block text-gray-600">que empezó</span> en 2017.
+                Un camino <span className="text-gray-600">que empezó</span> en 2017.
               </h2>
             </div>
 
@@ -354,7 +325,7 @@ export default function About() {
             <div className="lg:col-span-4">
               <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">Código Lobos</span>
               <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight">
-                Nuestros <span className="block text-gray-600">valores.</span>
+                Nuestros <span className="text-gray-600">valores.</span>
               </h2>
             </div>
             <div className="lg:col-span-8">
