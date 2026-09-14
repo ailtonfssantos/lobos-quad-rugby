@@ -3,8 +3,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import WhatsAppButton from './components/WhatsAppButton';
-// src/App.jsx
-import About from './pages/About'; // <-- Isso já está correto e vai resolver para o index.jsx
 
 import Home from './pages/Home';
 import Team from './pages/Team';
