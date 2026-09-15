@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const galleryImages = [
+  '/assets/IMG_8328.jpg',
+  '/assets/IMG_8325.jpg',
+  '/assets/IMG_8327.jpg',
+  '/assets/partido.jpg',
+  '/assets/equipo.jpg',
   '/assets/momento-1.PNG',
   '/assets/momento-2.PNG',
   '/assets/momento-3.PNG',

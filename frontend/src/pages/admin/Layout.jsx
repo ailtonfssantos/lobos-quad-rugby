@@ -92,7 +92,7 @@ export default function AdminLayout() {
 
         <div className="p-6 border-b border-zinc-800">
           <img src="/assets/logo1.png" alt="Lobos" className="h-10 mb-3 grayscale opacity-80" />
-          <h2 className="font-display text-lg text-white tracking-wide">PANEL DE CONTROL</h2>
+          <h2 className="font-display text-lg text-white tracking-wide">ADMINISTRACIÓN</h2>
           <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mt-1">Lobos Quad Rugby</p>
         </div>
 
