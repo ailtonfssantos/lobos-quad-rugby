@@ -56,7 +56,7 @@ export default function About() {
     <main className="bg-black text-white overflow-hidden selection:bg-red-600/30">
 
       {/* =========================================================
-          HEADER EDITORIAL (substitui o Hero duplicado)
+          HEADER EDITORIAL
       ========================================================= */}
       <section className="relative py-20 sm:py-24 lg:py-28 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
@@ -165,7 +165,7 @@ export default function About() {
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
               </div>
               <div className="mt-12 sm:mt-16">
-                <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y Salud</h3><br></br>
+                <h3 className="text-xl sm:text-2xl font-black uppercase">Ocio y Salud</h3>
                 <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">Promoción de actividades físico-deportivas no competitivas para personas con discapacidad que desean mantener y mejorar su calidad de vida y autonomía.</p>
               </div>
             </article>
@@ -208,6 +208,146 @@ export default function About() {
                   <h3 className="mt-3 text-xl sm:text-2xl font-black uppercase">Llegamos a la Liga Nacional</h3>
                   <p className="mt-4 text-gray-500 leading-relaxed text-sm sm:text-base">Lobos se convierte en el primer equipo de la Comunidad Valenciana en competir en la Liga Nacional. Desde entonces, el club ha seguido creciendo y dos de nuestros jugadores han sido convocados por la Selección Española.</p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+           NUESTRAS INICIOS — FOTOS DOS PRIMEIROS ANOS
+      ========================================================= */}
+      <section className="py-20 sm:py-24 lg:py-28 bg-[#080808] border-y border-white/10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
+
+            {/* Texto lateral */}
+            <div className="lg:col-span-5">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="w-8 h-px bg-red-600" />
+                <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
+                  Nuestros inicios
+                </span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-[0.95]">
+                De los primeros <span className="text-gray-600">entrenamientos</span> a la competición.
+              </h2>
+
+              <p className="mt-6 text-gray-500 leading-relaxed">
+                Antes de las sillas específicas, antes de la Liga Nacional, hubo entrenamientos en sillas multidisciplinares, mucho esfuerzo y un grupo de personas que creyeron en el proyecto desde el primer día.
+              </p>
+
+              <p className="mt-4 text-gray-500 leading-relaxed">
+                Estas imágenes documentan nuestros primeros pasos y nuestra primera jornada oficial, un momento que marcó el inicio de una nueva etapa para Lobos Quad Rugby.
+              </p>
+
+              <div className="mt-8 flex items-center gap-6">
+                <div>
+                  <span className="block text-3xl font-black text-white">2017</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-gray-600">Fundación</span>
+                </div>
+                <div className="h-10 w-px bg-white/10" />
+                <div>
+                  <span className="block text-3xl font-black text-red-600">2019</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-gray-600">Liga Nacional</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid de fotos */}
+            <div className="lg:col-span-7">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+
+                {/* Foto P&B 01 — Primeros entrenamientos */}
+                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
+                  <img
+                    src="/assets/inicio1.jpg"
+                    alt="Primeros entrenamientos Lobos Quad Rugby"
+                    className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 bg-black/70 px-2 py-1 inline-block">
+                      Primeros entrenamientos
+                    </span>
+                  </div>
+                </figure>
+
+                {/* Foto P&B 02 — Primeros entrenamientos */}
+                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
+                  <img
+                    src="/assets/inicio2.jpg"
+                    alt="Primeros entrenamientos Lobos Quad Rugby"
+                    className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 bg-black/70 px-2 py-1 inline-block">
+                      Primeros entrenamientos
+                    </span>
+                  </div>
+                </figure>
+
+                {/* Foto COLORIDA — Primera jornada (destaque) */}
+                <figure className="col-span-2 relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden bg-black border border-red-600/30 group">
+                  <img
+                    src="/assets/inicio.jpg"
+                    alt="Primera jornada oficial Lobos Quad Rugby"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+
+                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
+                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] text-red-500 bg-black/80 px-2.5 py-1.5 inline-flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      Primera jornada oficial
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 flex items-end justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-white/70 uppercase tracking-[0.15em]">
+                        El inicio de una nueva etapa
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-mono text-white/50">
+                      Lobos Quad Rugby · Valencia
+                    </span>
+                  </div>
+                </figure>
+
+                {/* Foto P&B 03 — Jornada */}
+                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
+                  <img
+                    src="/assets/jornada.jpg"
+                    alt="Primeros entrenamientos Lobos Quad Rugby"
+                    className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 bg-black/70 px-2 py-1 inline-block">
+                      En la pista
+                    </span>
+                  </div>
+                </figure>
+
+                {/* Bloco decorativo com ano */}
+                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <span className="block text-5xl sm:text-6xl font-black text-red-600 leading-none">
+                      2017
+                    </span>
+                    <span className="block mt-3 text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-gray-500 font-bold">
+                      Año de fundación
+                    </span>
+                    <div className="mt-4 w-8 h-px bg-white/20 mx-auto" />
+                    <p className="mt-3 text-[10px] text-gray-600 leading-relaxed max-w-[140px] mx-auto">
+                      Donde todo comenzó
+                    </p>
+                  </div>
+                </figure>
+
               </div>
             </div>
           </div>
