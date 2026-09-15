@@ -421,7 +421,7 @@ export default function Competitions() {
           <img
             src="/assets/equipo1.JPG"
             alt="Lobos Quad Rugby en competición"
-            className="w-full h-full object-cover object-center opacity-30 grayscale"
+            className="w-full h-full object-cover object-center opacity-80 grayscale"
           />
           
           {/* Overlays */}
@@ -602,7 +602,7 @@ export default function Competitions() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.25em] mb-4">
-                Únete a la manada
+                Únete al equipo
               </p>
 
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold uppercase leading-[0.9] mb-6">

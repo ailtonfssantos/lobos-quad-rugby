@@ -18,45 +18,24 @@ export default function Navbar() {
     if (path === '/') {
       return location.pathname === '/';
     }
-
     return (
       location.pathname === path ||
       location.pathname.startsWith(`${path}/`)
     );
   };
 
-  /* =====================================================
-     CLOSE MOBILE MENU
-  ===================================================== */
-
   const closeMenu = () => {
     setIsOpen(false);
   };
 
-  /* =====================================================
-     SCROLL TO TOP
-  ===================================================== */
-
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     closeMenu();
   };
-
-  /* =====================================================
-     CLOSE MENU WHEN ROUTE CHANGES
-  ===================================================== */
 
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
-
-  /* =====================================================
-     ESC + BODY SCROLL LOCK
-  ===================================================== */
 
   useEffect(() => {
     if (!isOpen) {
@@ -70,19 +49,11 @@ export default function Navbar() {
       }
     };
 
-    document.addEventListener(
-      'keydown',
-      handleKeyDown
-    );
-
+    document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
 
     return () => {
-      document.removeEventListener(
-        'keydown',
-        handleKeyDown
-      );
-
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
   }, [isOpen]);
@@ -96,10 +67,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           <div className="h-[76px] flex items-center justify-between">
             
-            {/* =================================================
-                LOGO
-            ================================================= */}
-
+            {/* LOGO */}
             <Link
               to="/"
               onClick={scrollToTop}
@@ -118,52 +86,35 @@ export default function Navbar() {
                 <div className="font-display text-lg leading-none tracking-[0.18em] text-white">
                   LOBOS
                 </div>
-
                 <div className="mt-1 text-[8px] font-bold uppercase tracking-[0.3em] text-zinc-500">
                   Quad Rugby
                 </div>
               </div>
             </Link>
 
-            {/* =================================================
-                DESKTOP NAVIGATION
-            ================================================= */}
-
+            {/* DESKTOP NAVIGATION */}
             <div className="hidden md:flex items-center gap-7 lg:gap-9">
               {links.map((link) => {
                 const active = isActive(link.path);
-
                 return (
                   <Link
                     key={link.path}
                     to={link.path}
                     onClick={scrollToTop}
-                    aria-current={
-                      active ? 'page' : undefined
-                    }
+                    aria-current={active ? 'page' : undefined}
                     className={`group relative py-2 text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.16em] transition-colors duration-300 ${
-                      active
-                        ? 'text-white'
-                        : 'text-zinc-500 hover:text-white'
+                      active ? 'text-white' : 'text-zinc-500 hover:text-white'
                     }`}
                   >
                     {link.label}
-
-                    {/* Active line */}
                     <span
                       className={`absolute bottom-0 left-0 h-px bg-red-600 transition-all duration-300 ${
-                        active
-                          ? 'w-full'
-                          : 'w-0 group-hover:w-full'
+                        active ? 'w-full' : 'w-0 group-hover:w-full'
                       }`}
                     />
                   </Link>
                 );
               })}
-
-              {/* =================================================
-                  SPONSORS CTA
-              ================================================= */}
 
               <Link
                 to="/patrocinadores"
@@ -173,163 +124,57 @@ export default function Navbar() {
                     ? 'border-red-600 bg-red-600 text-white'
                     : 'border-red-600 bg-red-600 text-white hover:border-red-500 hover:bg-red-500'
                 }`}
-                aria-current={
-                  isActive('/patrocinadores')
-                    ? 'page'
-                    : undefined
-                }
+                aria-current={isActive('/patrocinadores') ? 'page' : undefined}
               >
                 Patrocinadores
-
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 12h14M13 6l6 6-6 6"
-                  />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
               </Link>
             </div>
 
-            {/* =================================================
-                MOBILE BUTTON
-            ================================================= */}
-
+            {/* MOBILE BUTTON */}
             <button
               type="button"
               onClick={() => setIsOpen((value) => !value)}
               className="md:hidden relative w-11 h-11 border border-white/10 flex items-center justify-center text-zinc-300 transition-all duration-300 hover:border-red-600 hover:text-white"
-              aria-label={
-                isOpen
-                  ? 'Cerrar menú'
-                  : 'Abrir menú'
-              }
+              aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
               aria-expanded={isOpen}
               aria-controls="mobile-navigation"
             >
-              <span className="sr-only">
-                {isOpen
-                  ? 'Cerrar menú'
-                  : 'Abrir menú'}
-              </span>
-
+              <span className="sr-only">{isOpen ? 'Cerrar menú' : 'Abrir menú'}</span>
               <div className="relative w-5 h-5">
-                {/* Top */}
-                <span
-                  className={`absolute left-0 top-[4px] w-5 h-px bg-current transition-all duration-300 ${
-                    isOpen
-                      ? 'top-[9px] rotate-45'
-                      : ''
-                  }`}
-                />
-
-                {/* Middle */}
-                <span
-                  className={`absolute left-0 top-[9px] w-5 h-px bg-current transition-all duration-300 ${
-                    isOpen
-                      ? 'opacity-0'
-                      : 'opacity-100'
-                  }`}
-                />
-
-                {/* Bottom */}
-                <span
-                  className={`absolute left-0 top-[14px] w-5 h-px bg-current transition-all duration-300 ${
-                    isOpen
-                      ? 'top-[9px] -rotate-45'
-                      : ''
-                  }`}
-                />
+                <span className={`absolute left-0 top-[4px] w-5 h-px bg-current transition-all duration-300 ${isOpen ? 'top-[9px] rotate-45' : ''}`} />
+                <span className={`absolute left-0 top-[9px] w-5 h-px bg-current transition-all duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
+                <span className={`absolute left-0 top-[14px] w-5 h-px bg-current transition-all duration-300 ${isOpen ? 'top-[9px] -rotate-45' : ''}`} />
               </div>
             </button>
           </div>
 
-          {/* ===================================================
-              MOBILE NAVIGATION
-          =================================================== */}
-
+          {/* MOBILE NAVIGATION */}
           <div
             id="mobile-navigation"
             className={`md:hidden overflow-hidden transition-all duration-300 ${
-              isOpen
-                ? 'max-h-[600px] opacity-100'
-                : 'max-h-0 opacity-0'
+              isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
             <div className="border-t border-white/10 py-5">
-              
-              <div className="mb-5 px-1">
-                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-zinc-600">
-                  Navegación
-                </span>
-              </div>
-
               <div className="space-y-1">
-                {links.map((link, index) => {
-                  const active = isActive(
-                    link.path
-                  );
-
+                {links.map((link) => {
+                  const active = isActive(link.path);
                   return (
                     <Link
                       key={link.path}
                       to={link.path}
                       onClick={scrollToTop}
-                      aria-current={
-                        active
-                          ? 'page'
-                          : undefined
-                      }
-                      className={`group flex items-center justify-between border-l-2 px-4 py-3.5 transition-all duration-300 ${
+                      aria-current={active ? 'page' : undefined}
+                      className={`block border-l-2 px-4 py-3.5 text-xs font-bold uppercase tracking-[0.16em] transition-all duration-300 ${
                         active
                           ? 'border-red-600 bg-white/[0.04] text-white'
                           : 'border-transparent text-zinc-500 hover:border-white/20 hover:bg-white/[0.02] hover:text-white'
                       }`}
                     >
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={`text-[9px] font-bold tracking-widest ${
-                            active
-                              ? 'text-red-500'
-                              : 'text-zinc-700'
-                          }`}
-                        >
-                          {String(index + 1).padStart(
-                            2,
-                            '0'
-                          )}
-                        </span>
-
-                        <span className="text-xs font-bold uppercase tracking-[0.16em]">
-                          {link.label}
-                        </span>
-                      </div>
-
-                      <svg
-                        className={`w-3.5 h-3.5 transition-all duration-300 ${
-                          active
-                            ? 'translate-x-0 text-red-500 opacity-100'
-                            : '-translate-x-2 text-zinc-700 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 12h14M13 6l6 6-6 6"
-                        />
-                      </svg>
+                      {link.label}
                     </Link>
                   );
                 })}
@@ -342,23 +187,9 @@ export default function Navbar() {
                   onClick={scrollToTop}
                   className="flex items-center justify-between bg-red-600 px-5 py-4 text-[10px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-red-500"
                 >
-                  <span>
-                    Patrocinadores
-                  </span>
-
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 12h14M13 6l6 6-6 6"
-                    />
+                  <span>Patrocinadores</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
                 </Link>
               </div>
@@ -367,18 +198,13 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* =====================================================
-          MOBILE OVERLAY
-      ===================================================== */}
-
+      {/* MOBILE OVERLAY */}
       <button
         type="button"
         aria-label="Cerrar menú"
         onClick={closeMenu}
         className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden transition-opacity duration-300 ${
-          isOpen
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none'
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
     </>
