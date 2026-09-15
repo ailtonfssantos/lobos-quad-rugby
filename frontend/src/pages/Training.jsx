@@ -455,31 +455,7 @@ export default function Training() {
 
       <section className="relative py-24 md:py-32 bg-zinc-950 border-b border-zinc-800 overflow-hidden">
         
-        {/* Imagem no lado direito */}
-        <div className="absolute right-0 top-0 w-full md:w-1/2 h-full opacity-40 md:opacity-60">
-          <img
-            src="/assets/partido.jpg"
-            alt="Lobos Quad Rugby em ação durante treino"
-            className="w-full h-full object-cover"
-          />
-          {/* Gradiente da direita para esquerda */}
-          <div className="absolute inset-0 bg-gradient-to-l from-zinc-950 via-zinc-950/80 to-transparent" />
-        </div>
-
-        {/* Background glow */}
-        <div
-          className="
-            absolute
-            -top-40
-            right-0
-            w-[550px]
-            h-[550px]
-            rounded-full
-            bg-red-900/10
-            blur-3xl
-            pointer-events-none
-          "
-        />
+        
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
@@ -596,7 +572,7 @@ export default function Training() {
             {/* Foto 1 */}
             <div className="relative aspect-[4/3] overflow-hidden group">
               <img
-                src="/assets/equipo.jpg"
+                src="/assets/IMG_8325.jpg"
                 alt="Equipo Lobos Quad Rugby durante entrenamiento"
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
               />
@@ -614,7 +590,7 @@ export default function Training() {
             {/* Foto 2 */}
             <div className="relative aspect-[4/3] overflow-hidden group">
               <img
-                src="/assets/partido.jpg"
+                src="/assets/IMG_8356.jpg"
                 alt="Jugadores de Lobos Quad Rugby en competición"
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
               />
