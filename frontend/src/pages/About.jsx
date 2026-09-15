@@ -598,11 +598,11 @@ export default function About() {
                 </figure>
 
 
-                {/* Primera jornada */}
+                {/* Primera jornada - COLORIDA em destaque */}
                 <figure className="col-span-2 relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden bg-black border border-red-600/30 group">
 
                   <img
-                    src="/assets/inicio.jpg"
+                    src="/assets/jornada.jpg"
                     alt="Lobos Quad Rugby durante una de sus primeras jornadas oficiales"
                     loading="lazy"
                     decoding="async"
@@ -642,12 +642,12 @@ export default function About() {
                 </figure>
 
 
-                {/* Jornada */}
+                {/* Jornada - P&B */}
                 <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
 
                   <img
-                    src="/assets/jornada.jpg"
-                    alt="Lobos Quad Rugby durante una jornada de competición"
+                    src="/assets/inicio.jpg"
+                    alt="Primeros entrenamientos de Lobos Quad Rugby"
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
