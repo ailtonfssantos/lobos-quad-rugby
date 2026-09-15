@@ -701,8 +701,8 @@ export default function Home() {
               },
               {
                 number: '04',
-                title: 'MANADA',
-                desc: 'El equipo es la familia. Nadie se queda atrás.',
+                title: 'EQUIPO',
+                desc: 'Lobos es una familia. Nadie se queda atrás.',
               },
             ].map((item, index) => (
               <div
