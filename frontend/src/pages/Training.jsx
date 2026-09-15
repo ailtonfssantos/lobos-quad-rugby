@@ -642,7 +642,7 @@ export default function Training() {
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
-                   · Calendario
+                  Calendario
                 </p>
               </div>
 
@@ -963,7 +963,7 @@ export default function Training() {
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
-                   · Encuéntranos
+                  Encuéntranos
                 </p>
               </div>
 

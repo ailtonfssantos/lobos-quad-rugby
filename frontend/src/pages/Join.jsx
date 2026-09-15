@@ -239,14 +239,14 @@ export default function Join() {
               <span className="w-12 h-px bg-red-600" />
 
               <p className="text-red-500 font-bold text-xs uppercase tracking-[0.3em]">
-                Forma parte de la manada
+                Forma parte del equipo
               </p>
             </div>
 
             <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.85] tracking-tight mb-8">
               ÚNETE
               <br />
-              <span className="text-zinc-500">A LOS LOBOS.</span>
+              <span className="text-zinc-500">A LOS LOBOS</span>
             </h1>
 
             <div className="grid md:grid-cols-2 gap-8 items-end">

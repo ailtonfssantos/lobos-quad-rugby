@@ -514,7 +514,7 @@ export default function Sponsors() {
             <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.86] tracking-tight text-white">
               PATROCINA
               <br />
-              <span className="text-zinc-500">LA MANADA.</span>
+              <span className="text-zinc-500">EL EQUIPO</span>
             </h1>
 
             <p className="mt-8 max-w-2xl text-base sm:text-lg md:text-xl leading-8 text-zinc-400">
@@ -624,7 +624,6 @@ export default function Sponsors() {
             <div className="lg:col-span-7">
               <div className="mb-5 flex items-center gap-4">
                 <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                  01
                 </span>
                 <span className="h-px w-8 bg-red-600" />
                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
@@ -673,7 +672,6 @@ export default function Sponsors() {
           <div className="mb-14">
             <div className="mb-5 flex items-center gap-4">
               <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                02
               </span>
               <span className="h-px w-8 bg-red-600" />
               <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
@@ -792,7 +790,6 @@ export default function Sponsors() {
           <div className="mb-12">
             <div className="mb-5 flex items-center gap-4">
               <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                03
               </span>
               <span className="h-px w-8 bg-red-600" />
               <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
@@ -898,7 +895,6 @@ export default function Sponsors() {
             <div className="lg:col-span-7">
               <div className="mb-5 flex items-center gap-4">
                 <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                  04
                 </span>
                 <span className="h-px w-8 bg-red-600" />
                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
@@ -1132,7 +1128,6 @@ export default function Sponsors() {
               <div className="sticky top-28">
                 <div className="mb-5 flex items-center gap-4">
                   <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                    05
                   </span>
                   <span className="h-px w-8 bg-red-600" />
                   <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
