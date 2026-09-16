@@ -1,15 +1,14 @@
-```jsx
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const links = [
-  { path: '/', key: 'nav.home' },
-  { path: '/sobre-nosotros', key: 'nav.club' },
-  { path: '/equipo', key: 'nav.team' },
-  { path: '/entrenamientos', key: 'nav.training' },
-  { path: '/competiciones', key: 'nav.competitions' },
-  { path: '/unete', key: 'nav.join' },
+  { path: '/', key: 'home' },
+  { path: '/sobre-nosotros', key: 'about' },
+  { path: '/equipo', key: 'team' },
+  { path: '/entrenamientos', key: 'training' },
+  { path: '/competiciones', key: 'competitions' },
+  { path: '/unete', key: 'join' },
 ];
 
 export default function Navbar() {
@@ -17,13 +16,6 @@ export default function Navbar() {
   const location = useLocation();
 
   const { t, i18n } = useTranslation();
-
-  const currentLanguage = i18n.language || 'es';
-
-  const changeLanguage = (language) => {
-    i18n.changeLanguage(language);
-    localStorage.setItem('lobos-language', language);
-  };
 
   const isActive = (path) => {
     if (path === '/') {
@@ -41,8 +33,17 @@ export default function Navbar() {
   };
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+
     closeMenu();
+  };
+
+  const changeLanguage = (language) => {
+    i18n.changeLanguage(language);
+    localStorage.setItem('lobos-language', language);
   };
 
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function Navbar() {
               to="/"
               onClick={scrollToTop}
               className="group flex items-center gap-3 shrink-0"
-              aria-label={t('nav.logoLabel')}
+              aria-label="Lobos Quad Rugby - Inicio"
             >
               <div className="relative overflow-hidden">
                 <img
@@ -123,7 +124,7 @@ export default function Navbar() {
                         : 'text-zinc-500 hover:text-white'
                     }`}
                   >
-                    {t(link.key)}
+                    {t(`nav.${link.key}`)}
 
                     <span
                       className={`absolute bottom-0 left-0 h-px bg-red-600 transition-all duration-300 ${
@@ -137,23 +138,27 @@ export default function Navbar() {
               })}
 
               {/* LANGUAGE SELECTOR */}
-              <div className="flex items-center gap-1 ml-1 pl-5 border-l border-white/10">
-                {['es', 'en', 'pt'].map((language) => (
-                  <button
-                    key={language}
-                    type="button"
-                    onClick={() => changeLanguage(language)}
-                    aria-label={`${t('language.changeTo')} ${language.toUpperCase()}`}
-                    aria-pressed={currentLanguage === language}
-                    className={`px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] transition-all duration-300 ${
-                      currentLanguage === language
-                        ? 'text-white'
-                        : 'text-zinc-600 hover:text-zinc-300'
-                    }`}
-                  >
-                    {language.toUpperCase()}
-                  </button>
-                ))}
+              <div className="ml-2 flex items-center gap-1 border-l border-white/10 pl-5">
+                {['es', 'en', 'pt'].map((language) => {
+                  const active = i18n.language.startsWith(language);
+
+                  return (
+                    <button
+                      key={language}
+                      type="button"
+                      onClick={() => changeLanguage(language)}
+                      className={`px-2 py-2 text-[9px] font-bold uppercase tracking-[0.12em] transition-colors duration-300 ${
+                        active
+                          ? 'text-white'
+                          : 'text-zinc-600 hover:text-zinc-300'
+                      }`}
+                      aria-label={`${t('language.changeTo')} ${language.toUpperCase()}`}
+                      aria-pressed={active}
+                    >
+                      {language.toUpperCase()}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* SPONSORS */}
@@ -248,6 +253,7 @@ export default function Navbar() {
           >
             <div className="border-t border-white/10 py-5">
 
+              {/* LINKS */}
               <div className="space-y-1">
                 {links.map((link) => {
                   const active = isActive(link.path);
@@ -266,7 +272,7 @@ export default function Navbar() {
                           : 'border-transparent text-zinc-500 hover:border-white/20 hover:bg-white/[0.02] hover:text-white'
                       }`}
                     >
-                      {t(link.key)}
+                      {t(`nav.${link.key}`)}
                     </Link>
                   );
                 })}
@@ -274,28 +280,37 @@ export default function Navbar() {
 
               {/* MOBILE LANGUAGE SELECTOR */}
               <div className="mt-5 pt-5 border-t border-white/5">
-
-                <p className="px-4 mb-3 text-[9px] uppercase tracking-[0.2em] text-zinc-600">
+                <div className="mb-3 px-4 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">
                   {t('language.label')}
-                </p>
+                </div>
 
-                <div className="flex gap-2 px-4">
-                  {['es', 'en', 'pt'].map((language) => (
-                    <button
-                      key={language}
-                      type="button"
-                      onClick={() => changeLanguage(language)}
-                      className={`flex-1 border px-3 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 ${
-                        currentLanguage === language
-                          ? 'border-red-600 bg-red-600 text-white'
-                          : 'border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-white'
-                      }`}
-                    >
-                      {language === 'es' && 'Español'}
-                      {language === 'en' && 'English'}
-                      {language === 'pt' && 'Português'}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2 px-4">
+                  {[
+                    { code: 'es', label: 'Español' },
+                    { code: 'en', label: 'English' },
+                    { code: 'pt', label: 'Português' },
+                  ].map((language) => {
+                    const active =
+                      i18n.language.startsWith(language.code);
+
+                    return (
+                      <button
+                        key={language.code}
+                        type="button"
+                        onClick={() =>
+                          changeLanguage(language.code)
+                        }
+                        className={`border px-3 py-3 text-[9px] font-bold uppercase tracking-[0.12em] transition-all duration-300 ${
+                          active
+                            ? 'border-red-600 bg-red-600 text-white'
+                            : 'border-white/10 text-zinc-500 hover:border-white/20 hover:text-white'
+                        }`}
+                        aria-pressed={active}
+                      >
+                        {language.code.toUpperCase()}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -324,7 +339,6 @@ export default function Navbar() {
                   </svg>
                 </Link>
               </div>
-
             </div>
           </div>
         </div>
@@ -344,4 +358,3 @@ export default function Navbar() {
     </>
   );
 }
-```
