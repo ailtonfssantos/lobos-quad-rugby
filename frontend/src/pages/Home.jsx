@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-
-const { t, i18n } = useTranslation();
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
