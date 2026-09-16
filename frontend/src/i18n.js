@@ -23,6 +23,7 @@ i18n
     },
 
     lng: savedLanguage || 'es',
+
     fallbackLng: 'es',
 
     interpolation: {
