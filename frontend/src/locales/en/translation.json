@@ -1,0 +1,19 @@
+{
+  "nav": {
+    "home": "Home",
+    "club": "The Club",
+    "team": "Team",
+    "training": "Training",
+    "competitions": "Competitions",
+    "join": "Join Us",
+    "sponsors": "Sponsors",
+    "mainNavigation": "Main navigation",
+    "logoLabel": "Lobos Quad Rugby - Home",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "language": {
+    "label": "Language",
+    "changeTo": "Change to"
+  }
+}

@@ -1,5 +1,7 @@
+
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -16,33 +18,63 @@ const Icon = ({ path, className = 'w-6 h-6' }) => (
   </svg>
 );
 
-const formatDate = (dateValue) => {
+/* =========================================================
+   DATE
+========================================================= */
+
+const formatDate = (dateValue, language = 'es') => {
   if (!dateValue) return null;
 
   const date = new Date(dateValue);
 
   if (Number.isNaN(date.getTime())) return null;
 
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
+  const localeMap = {
+    es: 'es-ES',
+    en: 'en-US',
+    pt: 'pt-BR',
+  };
+
+  return new Intl.DateTimeFormat(
+    localeMap[language] || 'es-ES',
+    {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }
+  ).format(date);
 };
 
+/* =========================================================
+   MATCH HELPERS
+========================================================= */
+
 const getMatchDate = (partido) => {
-  return partido?.fecha || partido?.date || partido?.fechaPartido || null;
+  return (
+    partido?.fecha ||
+    partido?.date ||
+    partido?.fechaPartido ||
+    null
+  );
 };
 
 const getMatchTime = (partido) => {
-  return partido?.horario || partido?.hora || partido?.time || null;
+  return (
+    partido?.horario ||
+    partido?.hora ||
+    partido?.time ||
+    null
+  );
 };
 
 const getMatchStatus = (partido) => {
   return String(partido?.status || '').toLowerCase();
 };
 
-// ✅ FUNÇÃO CORRIGIDA: Verifica se é string vazia também
+/* =========================================================
+   MATCH STATUS
+========================================================= */
+
 const isFinishedMatch = (partido) => {
   const status = getMatchStatus(partido);
 
@@ -59,14 +91,15 @@ const isFinishedMatch = (partido) => {
     return true;
   }
 
-  // ✅ Verifica se os placares são válidos (não null, não undefined, não string vazia)
-  const lobosScoreValid = partido?.lobosScore !== null && 
-                          partido?.lobosScore !== undefined && 
-                          String(partido?.lobosScore).trim() !== '';
-  
-  const rivalScoreValid = partido?.rivalScore !== null && 
-                          partido?.rivalScore !== undefined && 
-                          String(partido?.rivalScore).trim() !== '';
+  const lobosScoreValid =
+    partido?.lobosScore !== null &&
+    partido?.lobosScore !== undefined &&
+    String(partido?.lobosScore).trim() !== '';
+
+  const rivalScoreValid =
+    partido?.rivalScore !== null &&
+    partido?.rivalScore !== undefined &&
+    String(partido?.rivalScore).trim() !== '';
 
   return lobosScoreValid && rivalScoreValid;
 };
@@ -84,6 +117,7 @@ const isUpcomingMatch = (partido) => {
       'terminado',
       'cancelado',
       'cancelada',
+      'cancelled',
     ].includes(status)
   ) {
     return false;
@@ -100,26 +134,61 @@ const isUpcomingMatch = (partido) => {
   return date.getTime() >= Date.now();
 };
 
+/* =========================================================
+   TEAMS
+========================================================= */
+
 const getHomeTeam = (partido) => ({
-  name: partido?.equipoLocal?.nombre || partido?.equipoLocalNombre || partido?.localNombre || "Lobos Quad Rugby",
-  logo: partido?.equipoLocal?.logo || partido?.equipoLocalLogo || partido?.localLogo || null,
+  name:
+    partido?.equipoLocal?.nombre ||
+    partido?.equipoLocalNombre ||
+    partido?.localNombre ||
+    'Lobos Quad Rugby',
+
+  logo:
+    partido?.equipoLocal?.logo ||
+    partido?.equipoLocalLogo ||
+    partido?.localLogo ||
+    null,
 });
 
 const getAwayTeam = (partido) => ({
-  name: partido?.equipoVisitante?.nombre || partido?.equipoVisitanteNombre || partido?.visitanteNombre || partido?.rival || "Rival",
-  logo: partido?.equipoVisitante?.logo || partido?.equipoVisitanteLogo || partido?.visitanteLogo || partido?.rivalLogo || null,
+  name:
+    partido?.equipoVisitante?.nombre ||
+    partido?.equipoVisitanteNombre ||
+    partido?.visitanteNombre ||
+    partido?.rival ||
+    'Rival',
+
+  logo:
+    partido?.equipoVisitante?.logo ||
+    partido?.equipoVisitanteLogo ||
+    partido?.visitanteLogo ||
+    partido?.rivalLogo ||
+    null,
 });
 
 const getLobosScore = (partido) => {
-  if (partido?.lobosScore !== undefined && partido?.lobosScore !== null) {
+  if (
+    partido?.lobosScore !== undefined &&
+    partido?.lobosScore !== null
+  ) {
     return partido.lobosScore;
   }
 
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoLocal?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoLocal?.score;
   }
 
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoVisitante?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoVisitante?.score;
   }
 
@@ -127,59 +196,95 @@ const getLobosScore = (partido) => {
 };
 
 const getOpponentScore = (partido) => {
-  if (partido?.rivalScore !== undefined && partido?.rivalScore !== null) {
+  if (
+    partido?.rivalScore !== undefined &&
+    partido?.rivalScore !== null
+  ) {
     return partido.rivalScore;
   }
 
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoLocal?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoVisitante?.score;
   }
 
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoVisitante?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoLocal?.score;
   }
 
   return null;
 };
 
-// ✅ FUNÇÃO: Retorna texto e cores corretas para o badge de status
-const getMatchBadge = (partido) => {
+/* =========================================================
+   MATCH BADGE
+========================================================= */
+
+const getMatchBadge = (partido, t) => {
   const status = getMatchStatus(partido);
 
   if (isFinishedMatch(partido)) {
     return {
-      text: 'Finalizado',
-      className: 'px-2.5 py-1 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[9px] font-bold uppercase tracking-widest'
+      text: t('matchStatus.finished'),
+      className:
+        'px-2.5 py-1 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[9px] font-bold uppercase tracking-widest',
     };
   }
 
-  if (['cancelado', 'cancelada', 'cancelled'].includes(status)) {
+  if (
+    [
+      'cancelado',
+      'cancelada',
+      'cancelled',
+    ].includes(status)
+  ) {
     return {
-      text: 'Cancelado',
-      className: 'px-2.5 py-1 border border-red-500/30 bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-widest'
+      text: t('matchStatus.cancelled'),
+      className:
+        'px-2.5 py-1 border border-red-500/30 bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-widest',
     };
   }
 
-  // Padrão: Programado (Azul)
   return {
-    text: 'Programado',
-    className: 'px-2.5 py-1 border border-blue-500/30 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-widest'
+    text: t('matchStatus.scheduled'),
+    className:
+      'px-2.5 py-1 border border-blue-500/30 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-widest',
   };
 };
 
+/* =========================================================
+   HOME
+========================================================= */
+
 export default function Home() {
+  const { t, i18n } = useTranslation();
+
   const [jornadas, setJornadas] = useState([]);
   const [loadingJornadas, setLoadingJornadas] = useState(true);
+
+  /* =========================================================
+     FETCH JORNADAS
+  ========================================================== */
 
   useEffect(() => {
     const fetchJornadas = async () => {
       try {
         setLoadingJornadas(true);
 
-        const response = await fetch(`${API_URL}/api/jornadas`);
+        const response = await fetch(
+          `${API_URL}/api/jornadas`
+        );
 
         if (!response.ok) {
-          throw new Error('No se pudieron cargar las jornadas');
+          throw new Error(
+            'No se pudieron cargar las jornadas'
+          );
         }
 
         const data = await response.json();
@@ -192,7 +297,11 @@ export default function Home() {
 
         setJornadas(jornadasData);
       } catch (error) {
-        console.error('Error cargando jornadas:', error);
+        console.error(
+          'Error cargando jornadas:',
+          error
+        );
+
         setJornadas([]);
       } finally {
         setLoadingJornadas(false);
@@ -202,24 +311,35 @@ export default function Home() {
     fetchJornadas();
   }, []);
 
+  /* =========================================================
+     PARTIDOS
+  ========================================================== */
+
   const partidos = useMemo(() => {
     return jornadas
       .flatMap((jornada) =>
-        (Array.isArray(jornada?.partidos) ? jornada.partidos : []).map(
-          (partido) => ({
-            ...partido,
-            jornadaId: jornada.id,
-            jornadaNumero: jornada.numero,
-            competicion: jornada.competicion,
-            temporada: jornada.temporada,
-            ciudad: jornada.ciudad,
-            pabellon: jornada.pabellon,
-            fechasJornada: jornada.fechas,
-          })
-        )
+        (
+          Array.isArray(jornada?.partidos)
+            ? jornada.partidos
+            : []
+        ).map((partido) => ({
+          ...partido,
+
+          jornadaId: jornada.id,
+          jornadaNumero: jornada.numero,
+          competicion: jornada.competicion,
+          temporada: jornada.temporada,
+          ciudad: jornada.ciudad,
+          pabellon: jornada.pabellon,
+          fechasJornada: jornada.fechas,
+        }))
       )
       .filter(Boolean);
   }, [jornadas]);
+
+  /* =========================================================
+     PRÓXIMO PARTIDO
+  ========================================================== */
 
   const proximoPartido = useMemo(() => {
     const upcoming = partidos
@@ -237,17 +357,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-red-600/30">
-      
+
       {/* =========================================================
           1. HERO
       ========================================================== */}
+
       <section className="relative min-h-[78vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
-        
+
         {/* Fotografía */}
         <div className="absolute inset-0 z-0">
+
           <img
             src="/assets/lobosquad1.webp"
-            alt="Equipo Lobos Quad Rugby"
+            alt={t('home.heroImageAlt')}
             className="
               w-full h-full object-cover
               object-center
@@ -267,15 +389,17 @@ export default function Home() {
 
         {/* Hero content */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-5 md:px-8 pt-20 md:pt-24">
-          
+
           <div className="max-w-4xl">
-            
+
             <div className="inline-flex items-center gap-3 mb-7">
+
               <span className="w-8 h-px bg-red-600" />
 
               <span className="text-red-500 font-semibold tracking-[0.3em] text-[10px] md:text-xs uppercase">
-                Valencia · España
+                {t('home.location')}
               </span>
+
             </div>
 
             <h1
@@ -293,14 +417,18 @@ export default function Home() {
             >
               LOBOS
               <br />
-              <span className="text-red-600">QUAD RUGBY</span>
+
+              <span className="text-red-600">
+                QUAD RUGBY
+              </span>
             </h1>
 
             <p className="mt-8 text-base md:text-xl text-zinc-300 font-light italic max-w-xl leading-relaxed">
-              "Más que un deporte. Somos una familia."
+              "{t('home.heroQuote')}"
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-9">
+
               <Link
                 to="/equipo"
                 className="
@@ -317,7 +445,7 @@ export default function Home() {
                   rounded-sm
                 "
               >
-                Conoce al equipo
+                {t('home.meetTeam')}
               </Link>
 
               <Link
@@ -339,37 +467,46 @@ export default function Home() {
                   rounded-sm
                 "
               >
-                Únete al equipo
+                {t('home.joinTeam')}
               </Link>
+
             </div>
           </div>
 
           {/* Indicador discreto */}
           <div className="absolute bottom-7 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-zinc-500">
+
             <span className="text-[9px] uppercase tracking-[0.3em]">
-              Descubre
+              {t('home.discover')}
             </span>
 
             <div className="w-px h-8 bg-zinc-700" />
+
           </div>
+
         </div>
       </section>
 
       {/* =========================================================
-          2. PRÓXIMA JORNADA (ÚNICA SEÇÃO)
+          2. PRÓXIMA JORNADA
       ========================================================== */}
+
       <section className="relative bg-zinc-900 border-y border-zinc-800">
+
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-14 md:py-16">
 
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-10">
+
             <div>
+
               <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-3">
-                Actualidad deportiva
+                {t('home.sportsNews')}
               </p>
 
               <h2 className="font-display text-3xl md:text-4xl tracking-tight">
-                EL CAMINO SIGUE
+                {t('home.theJourneyContinues')}
               </h2>
+
             </div>
 
             <Link
@@ -385,136 +522,218 @@ export default function Home() {
                 transition-colors
               "
             >
-              Ver competiciones
+              {t('home.viewCompetitions')}
+
               <Icon
                 path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                 className="w-4 h-4"
               />
             </Link>
+
           </div>
 
-          {/* PRÓXIMO PARTIDO - ÚNICO CARD */}
+          {/* PRÓXIMO PARTIDO */}
           <div className="relative overflow-hidden bg-zinc-950 border border-zinc-800 p-7 md:p-9 rounded-sm">
 
             <div className="flex items-center justify-between mb-8">
+
               <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-                Próximo desafío
+                {t('home.nextChallenge')}
               </span>
 
-              {/* ✅ BADGE DINÂMICO COM CORES CORRETAS */}
-              {/*{proximoPartido && (() => {
-                const badge = getMatchBadge(proximoPartido);
+              {/* Badge disponível caso queira ativá-lo */}
+              {/*
+              {proximoPartido && (() => {
+                const badge = getMatchBadge(proximoPartido, t);
+
                 return (
                   <span className={badge.className}>
                     {badge.text}
                   </span>
                 );
-              })()}*/}
+              })()}
+              */}
+
             </div>
 
+            {/* LOADING */}
             {loadingJornadas ? (
+
               <div className="py-8 text-center text-zinc-600 text-sm">
-                Cargando próxima jornada...
+                {t('home.loadingNextMatch')}
               </div>
+
             ) : proximoPartido ? (
+
               <>
                 <div className="text-center">
+
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
+
                     {proximoPartido.temporada?.nome
                       ? proximoPartido.temporada.nome
-                      : proximoPartido.competicion || 'Competición'}
+                      : proximoPartido.competicion ||
+                        t('home.competition')}
+
                   </p>
 
                   <div className="flex items-center justify-center gap-5 md:gap-8">
 
-                    {/* TIME DA ESQUERDA (MANDANTE) */}
+                    {/* TIME DA ESQUERDA */}
                     <div className="flex-1 text-center">
+
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
+
                         {getHomeTeam(proximoPartido).logo ? (
+
                           <img
-                            src={getHomeTeam(proximoPartido).logo}
-                            alt={getHomeTeam(proximoPartido).name}
+                            src={
+                              getHomeTeam(
+                                proximoPartido
+                              ).logo
+                            }
+                            alt={
+                              getHomeTeam(
+                                proximoPartido
+                              ).name
+                            }
                             className="max-w-full max-h-full object-contain"
                           />
+
                         ) : (
+
                           <div className="w-14 h-14 flex items-center justify-center">
+
                             <span className="text-red-600 text-xs font-bold text-center leading-tight">
-                              LOBOS<br />QUAD<br />RUGBY
+                              LOBOS
+                              <br />
+                              QUAD
+                              <br />
+                              RUGBY
                             </span>
+
                           </div>
+
                         )}
+
                       </div>
 
                       <p className="font-display text-base md:text-lg">
                         {getHomeTeam(proximoPartido).name}
                       </p>
+
                     </div>
 
+                    {/* VS */}
                     <div className="font-display text-2xl text-zinc-700">
                       VS
                     </div>
 
-                    {/* TIME DA DIREITA (VISITANTE) */}
+                    {/* TIME DA DIREITA */}
                     <div className="flex-1 text-center">
+
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
+
                         {getAwayTeam(proximoPartido).logo ? (
+
                           <img
-                            src={getAwayTeam(proximoPartido).logo}
-                            alt={getAwayTeam(proximoPartido).name}
+                            src={
+                              getAwayTeam(
+                                proximoPartido
+                              ).logo
+                            }
+                            alt={
+                              getAwayTeam(
+                                proximoPartido
+                              ).name
+                            }
                             className="max-w-full max-h-full object-contain"
                           />
+
                         ) : (
+
                           <div className="w-14 h-14 border border-zinc-800 flex items-center justify-center">
+
                             <span className="text-zinc-600 text-xl">
                               ⚔
                             </span>
+
                           </div>
+
                         )}
+
                       </div>
 
                       <p className="font-display text-base md:text-lg">
                         {getAwayTeam(proximoPartido).name}
                       </p>
+
                     </div>
+
                   </div>
 
+                  {/* INFO PARTIDO */}
                   <div className="mt-8 pt-6 border-t border-zinc-800 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
 
+                    {/* FECHA */}
                     <div>
+
                       <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
-                        Fecha
+                        {t('home.date')}
                       </p>
 
                       <p className="text-zinc-300 text-xs capitalize">
-                        {formatDate(getMatchDate(proximoPartido))}
+
+                        {formatDate(
+                          getMatchDate(
+                            proximoPartido
+                          ),
+                          i18n.language
+                        )}
+
                       </p>
+
                     </div>
 
+                    {/* HORA */}
                     <div>
+
                       <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
-                        Hora
+                        {t('home.time')}
                       </p>
 
                       <p className="text-zinc-300 text-xs">
-                        {getMatchTime(proximoPartido) || 'Por confirmar'}
+                        {getMatchTime(
+                          proximoPartido
+                        ) || t('home.toBeConfirmed')}
                       </p>
+
                     </div>
 
+                    {/* LUGAR */}
                     <div>
+
                       <p className="text-zinc-600 text-[9px] uppercase tracking-widest mb-1">
-                        Lugar
+                        {t('home.place')}
                       </p>
 
                       <p className="text-zinc-300 text-xs">
+
                         {proximoPartido.pabellon ||
                           proximoPartido.ciudad ||
-                          'Por confirmar'}
+                          t('home.toBeConfirmed')}
+
                       </p>
+
                     </div>
+
                   </div>
+
                 </div>
 
+                {/* DETALLES */}
                 <div className="mt-7 text-center">
+
                   <Link
                     to="/competiciones"
                     className="
@@ -528,69 +747,85 @@ export default function Home() {
                       transition-colors
                     "
                   >
-                    Ver detalles de la jornada
+                    {t('home.viewMatchDetails')}
+
                     <Icon
                       path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                       className="w-4 h-4"
                     />
                   </Link>
+
                 </div>
               </>
+
             ) : (
+
+              /* SEM PRÓXIMO PARTIDO */
               <div className="py-8 text-center">
+
                 <p className="font-display text-xl text-zinc-300 mb-2">
-                  Próxima jornada por confirmar
+                  {t('home.nextMatchToBeConfirmed')}
                 </p>
 
                 <p className="text-zinc-600 text-sm">
-                  Consulta el calendario completo de competiciones.
+                  {t('home.checkCompetitionCalendar')}
                 </p>
 
                 <Link
                   to="/competiciones"
                   className="inline-flex mt-6 text-red-500 text-xs uppercase tracking-widest font-bold"
                 >
-                  Ver competiciones →
+                  {t('home.viewCompetitions')} →
                 </Link>
-              </div>
-            )}
-          </div>
 
+              </div>
+
+            )}
+
+          </div>
         </div>
       </section>
 
       {/* =========================================================
           3. ENTRENAMIENTOS
       ========================================================== */}
+
       <section className="bg-zinc-950 border-b border-zinc-900 py-16 md:py-20">
+
         <div className="max-w-7xl mx-auto px-5 md:px-8">
 
           <div className="mb-10">
+
             <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-3">
-              Entrenamientos
+              {t('home.training')}
             </p>
 
             <h2 className="font-display text-3xl md:text-4xl text-white">
-              PREPARADOS PARA COMPETIR
+              {t('home.readyToCompete')}
             </h2>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-zinc-800">
 
-            {/* Ubicación */}
+            {/* UBICACIÓN */}
             <div className="p-7 md:p-8 border-b md:border-b-0 md:border-r border-zinc-800">
+
               <div className="flex items-start gap-4">
 
                 <div className="text-red-500 shrink-0">
+
                   <Icon
                     path="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
                     className="w-5 h-5"
                   />
+
                 </div>
 
                 <div>
+
                   <p className="text-zinc-600 text-[9px] uppercase tracking-[0.2em] mb-2">
-                    Ubicación
+                    {t('home.locationLabel')}
                   </p>
 
                   <h3 className="font-display text-lg text-white mb-1">
@@ -600,24 +835,31 @@ export default function Home() {
                   <p className="text-zinc-500 text-sm">
                     Valencia, España
                   </p>
+
                 </div>
+
               </div>
+
             </div>
 
-            {/* Lunes y miércoles */}
+            {/* LUNES Y MIÉRCOLES */}
             <div className="p-7 md:p-8 border-b md:border-b-0 md:border-r border-zinc-800">
+
               <div className="flex items-start gap-4">
 
                 <div className="text-red-500 shrink-0">
+
                   <Icon
                     path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
                     className="w-5 h-5"
                   />
+
                 </div>
 
                 <div>
+
                   <p className="text-zinc-600 text-[9px] uppercase tracking-[0.2em] mb-2">
-                    Lunes & Miércoles
+                    {t('home.mondayWednesday')}
                   </p>
 
                   <h3 className="font-display text-lg text-white mb-1">
@@ -625,26 +867,33 @@ export default function Home() {
                   </h3>
 
                   <p className="text-zinc-500 text-sm">
-                    Entrenamiento de alta intensidad
+                    {t('home.highIntensityTraining')}
                   </p>
+
                 </div>
+
               </div>
+
             </div>
 
-            {/* Viernes */}
+            {/* VIERNES */}
             <div className="p-7 md:p-8">
+
               <div className="flex items-start gap-4">
 
                 <div className="text-red-500 shrink-0">
+
                   <Icon
                     path="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
                     className="w-5 h-5"
                   />
+
                 </div>
 
                 <div>
+
                   <p className="text-zinc-600 text-[9px] uppercase tracking-[0.2em] mb-2">
-                    Viernes
+                    {t('home.friday')}
                   </p>
 
                   <h3 className="font-display text-lg text-white mb-1">
@@ -652,10 +901,13 @@ export default function Home() {
                   </h3>
 
                   <p className="text-zinc-500 text-sm">
-                    Sesión matinal de entrenamiento
+                    {t('home.morningTraining')}
                   </p>
+
                 </div>
+
               </div>
+
             </div>
 
           </div>
@@ -665,20 +917,23 @@ export default function Home() {
       {/* =========================================================
           4. CÓDIGO LOBOS
       ========================================================== */}
+
       <section className="py-20 md:py-24 bg-zinc-950">
+
         <div className="max-w-7xl mx-auto px-5 md:px-8">
 
           <div className="text-center mb-14 md:mb-16">
 
             <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-3">
-              Nuestra filosofía
+              {t('home.philosophy')}
             </p>
 
             <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight">
-              CÓDIGO LOBOS
+              {t('home.lobosCode')}
             </h2>
 
             <div className="w-12 h-px bg-red-600 mx-auto mt-5" />
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-zinc-800">
@@ -686,25 +941,26 @@ export default function Home() {
             {[
               {
                 number: '01',
-                title: 'INCLUSIÓN',
-                desc: 'El deporte no entiende de barreras. Aquí todos somos atletas.',
+                title: t('home.inclusion'),
+                desc: t('home.inclusionDescription'),
               },
               {
                 number: '02',
-                title: 'RESILIENCIA',
-                desc: 'Superación personal dentro y fuera de la cancha, cada día.',
+                title: t('home.resilience'),
+                desc: t('home.resilienceDescription'),
               },
               {
                 number: '03',
-                title: 'TÁCTICA',
-                desc: 'Velocidad, contacto y estrategia. Rugby de alto nivel.',
+                title: t('home.tactics'),
+                desc: t('home.tacticsDescription'),
               },
               {
                 number: '04',
-                title: 'EQUIPO',
-                desc: 'Lobos es una familia. Nadie se queda atrás.',
+                title: t('home.team'),
+                desc: t('home.teamDescription'),
               },
             ].map((item, index) => (
+
               <div
                 key={item.number}
                 className={`
@@ -717,12 +973,15 @@ export default function Home() {
                   ${index === 1 ? 'md:border-r border-zinc-800' : ''}
                 `}
               >
+
                 <div className="flex items-center justify-between mb-8">
+
                   <span className="text-zinc-700 text-xs font-mono">
                     {item.number}
                   </span>
 
                   <span className="w-7 h-px bg-zinc-800 group-hover:bg-red-600 transition-colors" />
+
                 </div>
 
                 <h3 className="font-display text-xl text-white mb-3 group-hover:text-red-500 transition-colors">
@@ -732,7 +991,9 @@ export default function Home() {
                 <p className="text-zinc-500 text-sm leading-relaxed">
                   {item.desc}
                 </p>
+
               </div>
+
             ))}
 
           </div>
@@ -742,48 +1003,52 @@ export default function Home() {
       {/* =========================================================
           5. SOBRE NOSOTROS
       ========================================================== */}
+
       <section className="py-20 md:py-24 bg-zinc-900 border-y border-zinc-800">
+
         <div className="max-w-5xl mx-auto px-5 md:px-8 text-center">
 
           <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-4">
-            Quiénes somos
+            {t('home.whoWeAre')}
           </p>
 
           <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight">
-            SOBRE NOSOTROS
+            {t('home.aboutUs')}
           </h2>
 
           <p className="text-xl md:text-2xl text-zinc-300 font-light italic mt-8 mb-8 leading-relaxed">
-            "No necesito que sea fácil, solo que sea posible."
+            "{t('home.aboutQuote')}"
           </p>
 
           <p className="text-zinc-400 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
-            Desde 2017 promovemos la integración social de las personas con
-            discapacidad a través del rugby en silla de ruedas. Primer equipo
-            de la Comunidad Valenciana en la Liga Nacional desde 2019.
+            {t('home.aboutDescription')}
           </p>
 
           {/* Línea temporal */}
           <div className="grid grid-cols-2 max-w-md mx-auto mt-12 border-y border-zinc-800">
 
             <div className="py-6 border-r border-zinc-800">
+
               <p className="font-display text-3xl md:text-4xl text-white">
                 2017
               </p>
 
               <p className="text-zinc-600 text-[9px] uppercase tracking-[0.2em] mt-2">
-                Fundación
+                {t('home.foundation')}
               </p>
+
             </div>
 
             <div className="py-6">
+
               <p className="font-display text-3xl md:text-4xl text-white">
                 2019
               </p>
 
               <p className="text-zinc-600 text-[9px] uppercase tracking-[0.2em] mt-2">
-                Liga Nacional
+                {t('home.nationalLeague')}
               </p>
+
             </div>
 
           </div>
@@ -802,39 +1067,41 @@ export default function Home() {
               transition-colors
             "
           >
-            Conoce nuestra historia
+            {t('home.ourHistory')}
 
             <Icon
               path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
               className="w-4 h-4"
             />
           </Link>
+
         </div>
       </section>
 
       {/* =========================================================
           6. CTA FINAL
       ========================================================== */}
+
       <section className="relative py-20 md:py-24 bg-red-600 overflow-hidden">
 
         <div className="absolute inset-0 bg-gradient-to-br from-red-500 via-red-600 to-red-800" />
 
         <div className="absolute -right-40 -top-40 w-96 h-96 rounded-full border border-white/10" />
+
         <div className="absolute -right-20 -top-20 w-56 h-56 rounded-full border border-white/10" />
 
         <div className="relative max-w-4xl mx-auto px-5 md:px-8 text-center">
 
           <p className="text-red-100/80 font-bold tracking-[0.2em] text-[10px] uppercase mb-4">
-            Forma parte del equipo
+            {t('home.joinTheTeam')}
           </p>
 
           <h2 className="font-display text-4xl md:text-6xl lg:text-7xl text-white tracking-tight leading-none">
-            ¿QUIERES FORMAR PARTE DE LOS LOBOS?
+            {t('home.wantToJoin')}
           </h2>
 
           <p className="text-red-100 text-base md:text-xl font-light max-w-2xl mx-auto mt-7 mb-9">
-            No necesitas experiencia. Solo ganas de aprender, competir y
-            formar parte de la manada.
+            {t('home.joinDescription')}
           </p>
 
           <Link
@@ -853,7 +1120,7 @@ export default function Home() {
               rounded-sm
             "
           >
-            Solicitar prueba
+            {t('home.requestTrial')}
           </Link>
 
         </div>
