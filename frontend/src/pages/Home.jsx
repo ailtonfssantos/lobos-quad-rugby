@@ -834,7 +834,7 @@ export default function Home() {
 
           <p className="text-red-100 text-base md:text-xl font-light max-w-2xl mx-auto mt-7 mb-9">
             No necesitas experiencia. Solo ganas de aprender, competir y
-            formar parte de la manada.
+            formar parte del equipo.
           </p>
 
           <Link

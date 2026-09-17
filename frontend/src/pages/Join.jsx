@@ -364,7 +364,7 @@ export default function Join() {
           <h2 className="font-display text-4xl md:text-6xl leading-none mb-5">
             CUÉNTANOS
             <br />
-            <span className="text-zinc-600">SOBRE TI.</span>
+            <span className="text-zinc-600">SOBRE TI</span>
           </h2>
 
           <p className="text-zinc-500 max-w-2xl leading-relaxed">
@@ -833,7 +833,7 @@ export default function Join() {
               <h2 className="font-display text-5xl md:text-7xl leading-[0.9]">
                 NO ES SOLO
                 <br />
-                <span className="text-zinc-600">RUGBY.</span>
+                <span className="text-zinc-600">RUGBY</span>
               </h2>
             </div>
 

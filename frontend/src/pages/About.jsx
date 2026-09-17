@@ -139,7 +139,7 @@ export default function About() {
             <div className="lg:col-span-7">
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight">
                 Somos más que{' '}
-                <span className="text-gray-600">un club.</span>
+                <span className="text-gray-600">un club</span>
               </h1>
             </div>
 
@@ -383,7 +383,7 @@ export default function About() {
 
               <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight">
                 Un camino{' '}
-                <span className="text-gray-600">que empezó</span> en 2017.
+                <span className="text-gray-600">que empezó</span> en 2017
               </h2>
 
             </div>
@@ -505,7 +505,7 @@ export default function About() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-[0.95]">
                 De los primeros{' '}
                 <span className="text-gray-600">entrenamientos</span> a la
-                competición.
+                competición
               </h2>
 
               <p className="mt-6 text-gray-500 leading-relaxed">
@@ -722,7 +722,7 @@ export default function About() {
               <h2 className="mt-5 text-3xl sm:text-4xl lg:text-6xl font-black uppercase leading-[0.9] text-black">
                 Talento que{' '}
                 <span className="block">
-                  representa a España.
+                  representa a España
                 </span>
               </h2>
 
@@ -949,7 +949,7 @@ export default function About() {
               <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight">
                 Nuestros{' '}
                 <span className="text-gray-600">
-                  valores.
+                  valores
                 </span>
               </h2>
 
@@ -1005,7 +1005,7 @@ export default function About() {
 
             <p className="mt-6 sm:mt-8 text-base sm:text-lg text-black/75 max-w-2xl leading-relaxed">
               Ya sea dentro de la pista, apoyando al equipo o colaborando con
-              el proyecto, hay muchas formas de formar parte de la manada.
+              el proyecto, hay muchas formas de formar parte del equipo.
             </p>
 
             <div className="mt-8 sm:mt-10 flex flex-wrap gap-4">

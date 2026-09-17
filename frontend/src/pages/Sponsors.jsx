@@ -562,7 +562,7 @@ export default function Sponsors() {
               <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-none text-white">
                 QUIENES CONFÍAN
                 <br />
-                <span className="text-zinc-600">EN LOBOS.</span>
+                <span className="text-zinc-600">EN LOBOS</span>
               </h2>
             </div>
 
@@ -632,10 +632,10 @@ export default function Sponsors() {
               </div>
 
               <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-white">
-                TU MARCA.
+                TU MARCA
                 <br />
                 <span className="text-zinc-600">
-                  NUESTRO IMPACTO.
+                  NUESTRO IMPACTO
                 </span>
               </h2>
             </div>
@@ -683,7 +683,7 @@ export default function Sponsors() {
               <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-none text-white">
                 ELIGE CÓMO
                 <br />
-                <span className="text-zinc-600">FORMAR PARTE.</span>
+                <span className="text-zinc-600">FORMAR PARTE</span>
               </h2>
 
               <p className="max-w-md text-sm leading-7 text-zinc-500 lg:text-right">
@@ -798,9 +798,9 @@ export default function Sponsors() {
             </div>
 
             <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-none text-white">
-              COMPARA.
+              COMPARA Y
               <br />
-              <span className="text-zinc-600">DECIDE.</span>
+              <span className="text-zinc-600">DECIDE</span>
             </h2>
           </div>
 
@@ -905,7 +905,7 @@ export default function Sponsors() {
               <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-white">
                 TRANSPARENCIA
                 <br />
-                <span className="text-zinc-600">Y COMPROMISO.</span>
+                <span className="text-zinc-600">Y COMPROMISO</span>
               </h2>
             </div>
 
@@ -1138,7 +1138,7 @@ export default function Sponsors() {
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-white">
                   HABLEMOS
                   <br />
-                  <span className="text-zinc-600">DE TU MARCA.</span>
+                  <span className="text-zinc-600">DE TU MARCA</span>
                 </h2>
 
                 <p className="mt-7 text-sm sm:text-base leading-7 text-zinc-500">
