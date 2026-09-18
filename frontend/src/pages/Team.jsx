@@ -100,37 +100,47 @@ const isStaffMember = (person) => {
  * aparecer en los filtros deportivos.
  */
 const getPersonCategory = (person) => {
-  if (!person) return null;
+  const role = normalizeText(person?.role);
 
-  const values = [
-    person?.role,
-    person?.position,
-    person?.posicion,
-    person?.posición,
-    person?.category,
-    person?.categoria,
-    person?.categoría,
-    person?.categoryName,
-    person?.tipo,
-    person?.sportCategory,
-    person?.categoriaDeportiva,
-    person?.categoríaDeportiva,
-  ];
+  const position = normalizeText(
+    person?.position ||
+      person?.posicion ||
+      person?.posición
+  );
 
-  const combined = values
-    .filter(Boolean)
-    .map(normalizeText)
-    .join(' ');
+  const combined = `${role} ${position}`;
 
-  if (combined.includes('ATAQUE')) {
-    return 'ATAQUE';
-  }
-
-  if (combined.includes('DEFENSA')) {
-    return 'DEFENSA';
-  }
+  if (combined.includes('ATAQUE')) return 'ATAQUE';
+  if (combined.includes('DEFENSA')) return 'DEFENSA';
 
   return null;
+};
+
+const getRoleColor = (role) => {
+  const r = normalizeText(role);
+
+  if (
+    r.includes('PRESIDENTE') ||
+    r.includes('VICEPRESIDENTE')
+  ) {
+    return 'bg-purple-500';
+  }
+
+  if (
+    r.includes('ENTRENADOR') ||
+    r.includes('CAPITAN')
+  ) {
+    return 'bg-yellow-500';
+  }
+
+  if (
+    r.includes('ASISTENTE') ||
+    r.includes('VOLUNTARIO')
+  ) {
+    return 'bg-zinc-500';
+  }
+
+  return 'bg-zinc-600';
 };
 
 /**
