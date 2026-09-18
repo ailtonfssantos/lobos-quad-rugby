@@ -148,7 +148,7 @@ export default function Sponsors() {
     {
       name: 'RK Inmocarrillo',
       description: 'Colaborador Oficial',
-      logo: '/assets/rk_inmob.jpg',
+      logo: '/assets/rk_inmobo.png',
       url: 'https://www.inmocarrillo.com/',
     },
   ];
