@@ -685,22 +685,18 @@ export default function Home() {
 
             {[
               {
-                number: '01',
                 title: 'INCLUSIÓN',
                 desc: 'El deporte no entiende de barreras. Aquí todos somos atletas.',
               },
               {
-                number: '02',
                 title: 'RESILIENCIA',
                 desc: 'Superación personal dentro y fuera de la cancha, cada día.',
               },
               {
-                number: '03',
                 title: 'TÁCTICA',
                 desc: 'Velocidad, contacto y estrategia. Rugby de alto nivel.',
               },
               {
-                number: '04',
                 title: 'EQUIPO',
                 desc: 'Lobos es una familia. Nadie se queda atrás.',
               },

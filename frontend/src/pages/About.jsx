@@ -279,7 +279,7 @@ export default function About() {
 
               <div className="flex justify-between items-start">
                 <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  01
+                  
                 </span>
 
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
@@ -314,7 +314,7 @@ export default function About() {
 
               <div className="flex justify-between items-start">
                 <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  02
+                  
                 </span>
 
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
@@ -341,7 +341,7 @@ export default function About() {
 
               <div className="flex justify-between items-start">
                 <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  03
+                  
                 </span>
 
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />

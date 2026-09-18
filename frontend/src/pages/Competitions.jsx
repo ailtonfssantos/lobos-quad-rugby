@@ -1071,7 +1071,7 @@ export default function Competitions() {
               max-w-xl
               mb-10
             ">
-              Sigue cada jornada, cada partido y cada desafío de la manada.
+              Sigue cada jornada, cada partido y cada desafío del equipo.
             </p>
 
             {/* SEASON SELECTOR */}
