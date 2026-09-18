@@ -42,7 +42,6 @@ const getMatchStatus = (partido) => {
   return String(partido?.status || '').toLowerCase();
 };
 
-// ✅ FUNÇÃO CORRIGIDA: Verifica se é string vazia também
 const isFinishedMatch = (partido) => {
   const status = getMatchStatus(partido);
 
@@ -59,14 +58,15 @@ const isFinishedMatch = (partido) => {
     return true;
   }
 
-  // ✅ Verifica se os placares são válidos (não null, não undefined, não string vazia)
-  const lobosScoreValid = partido?.lobosScore !== null && 
-                          partido?.lobosScore !== undefined && 
-                          String(partido?.lobosScore).trim() !== '';
-  
-  const rivalScoreValid = partido?.rivalScore !== null && 
-                          partido?.rivalScore !== undefined && 
-                          String(partido?.rivalScore).trim() !== '';
+  const lobosScoreValid =
+    partido?.lobosScore !== null &&
+    partido?.lobosScore !== undefined &&
+    String(partido?.lobosScore).trim() !== '';
+
+  const rivalScoreValid =
+    partido?.rivalScore !== null &&
+    partido?.rivalScore !== undefined &&
+    String(partido?.rivalScore).trim() !== '';
 
   return lobosScoreValid && rivalScoreValid;
 };
@@ -101,25 +101,54 @@ const isUpcomingMatch = (partido) => {
 };
 
 const getHomeTeam = (partido) => ({
-  name: partido?.equipoLocal?.nombre || partido?.equipoLocalNombre || partido?.localNombre || "Lobos Quad Rugby",
-  logo: partido?.equipoLocal?.logo || partido?.equipoLocalLogo || partido?.localLogo || null,
+  name:
+    partido?.equipoLocal?.nombre ||
+    partido?.equipoLocalNombre ||
+    partido?.localNombre ||
+    'Lobos Quad Rugby',
+  logo:
+    partido?.equipoLocal?.logo ||
+    partido?.equipoLocalLogo ||
+    partido?.localLogo ||
+    null,
 });
 
 const getAwayTeam = (partido) => ({
-  name: partido?.equipoVisitante?.nombre || partido?.equipoVisitanteNombre || partido?.visitanteNombre || partido?.rival || "Rival",
-  logo: partido?.equipoVisitante?.logo || partido?.equipoVisitanteLogo || partido?.visitanteLogo || partido?.rivalLogo || null,
+  name:
+    partido?.equipoVisitante?.nombre ||
+    partido?.equipoVisitanteNombre ||
+    partido?.visitanteNombre ||
+    partido?.rival ||
+    'Rival',
+  logo:
+    partido?.equipoVisitante?.logo ||
+    partido?.equipoVisitanteLogo ||
+    partido?.visitanteLogo ||
+    partido?.rivalLogo ||
+    null,
 });
 
 const getLobosScore = (partido) => {
-  if (partido?.lobosScore !== undefined && partido?.lobosScore !== null) {
+  if (
+    partido?.lobosScore !== undefined &&
+    partido?.lobosScore !== null
+  ) {
     return partido.lobosScore;
   }
 
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoLocal?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoLocal?.score;
   }
 
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoVisitante?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoVisitante?.score;
   }
 
@@ -127,43 +156,57 @@ const getLobosScore = (partido) => {
 };
 
 const getOpponentScore = (partido) => {
-  if (partido?.rivalScore !== undefined && partido?.rivalScore !== null) {
+  if (
+    partido?.rivalScore !== undefined &&
+    partido?.rivalScore !== null
+  ) {
     return partido.rivalScore;
   }
 
-  if (partido?.equipoLocal?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoLocal?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoVisitante?.score;
   }
 
-  if (partido?.equipoVisitante?.nombre?.toLowerCase().includes('lobos')) {
+  if (
+    partido?.equipoVisitante?.nombre
+      ?.toLowerCase()
+      .includes('lobos')
+  ) {
     return partido?.equipoLocal?.score;
   }
 
   return null;
 };
 
-// ✅ FUNÇÃO: Retorna texto e cores corretas para o badge de status
 const getMatchBadge = (partido) => {
   const status = getMatchStatus(partido);
 
   if (isFinishedMatch(partido)) {
     return {
       text: 'Finalizado',
-      className: 'px-2.5 py-1 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[9px] font-bold uppercase tracking-widest'
+      className:
+        'px-2.5 py-1 border border-zinc-700 bg-zinc-900 text-zinc-400 text-[9px] font-bold uppercase tracking-widest',
     };
   }
 
-  if (['cancelado', 'cancelada', 'cancelled'].includes(status)) {
+  if (
+    ['cancelado', 'cancelada', 'cancelled'].includes(status)
+  ) {
     return {
       text: 'Cancelado',
-      className: 'px-2.5 py-1 border border-red-500/30 bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-widest'
+      className:
+        'px-2.5 py-1 border border-red-500/30 bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-widest',
     };
   }
 
-  // Padrão: Programado (Azul)
   return {
     text: 'Programado',
-    className: 'px-2.5 py-1 border border-blue-500/30 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-widest'
+    className:
+      'px-2.5 py-1 border border-blue-500/30 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-widest',
   };
 };
 
@@ -205,18 +248,19 @@ export default function Home() {
   const partidos = useMemo(() => {
     return jornadas
       .flatMap((jornada) =>
-        (Array.isArray(jornada?.partidos) ? jornada.partidos : []).map(
-          (partido) => ({
-            ...partido,
-            jornadaId: jornada.id,
-            jornadaNumero: jornada.numero,
-            competicion: jornada.competicion,
-            temporada: jornada.temporada,
-            ciudad: jornada.ciudad,
-            pabellon: jornada.pabellon,
-            fechasJornada: jornada.fechas,
-          })
-        )
+        (Array.isArray(jornada?.partidos)
+          ? jornada.partidos
+          : []
+        ).map((partido) => ({
+          ...partido,
+          jornadaId: jornada.id,
+          jornadaNumero: jornada.numero,
+          competicion: jornada.competicion,
+          temporada: jornada.temporada,
+          ciudad: jornada.ciudad,
+          pabellon: jornada.pabellon,
+          fechasJornada: jornada.fechas,
+        }))
       )
       .filter(Boolean);
   }, [jornadas]);
@@ -237,13 +281,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-red-600/30">
-      
+
       {/* =========================================================
           1. HERO
       ========================================================== */}
       <section className="relative min-h-[78vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
-        
-        {/* Fotografía */}
+
         <div className="absolute inset-0 z-0">
           <img
             src="/assets/lobosquad1.webp"
@@ -257,7 +300,6 @@ export default function Home() {
             "
           />
 
-          {/* Overlay premium */}
           <div className="absolute inset-0 bg-black/45" />
 
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/20 to-zinc-950" />
@@ -265,11 +307,10 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/85 via-zinc-950/35 to-transparent" />
         </div>
 
-        {/* Hero content */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-5 md:px-8 pt-20 md:pt-24">
-          
+
           <div className="max-w-4xl">
-            
+
             <div className="inline-flex items-center gap-3 mb-7">
               <span className="w-8 h-px bg-red-600" />
 
@@ -344,7 +385,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Indicador discreto */}
           <div className="absolute bottom-7 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-zinc-500">
             <span className="text-[9px] uppercase tracking-[0.3em]">
               Descubre
@@ -356,12 +396,13 @@ export default function Home() {
       </section>
 
       {/* =========================================================
-          2. PRÓXIMA JORNADA (ÚNICA SEÇÃO)
+          2. PRÓXIMA JORNADA
       ========================================================== */}
       <section className="relative bg-zinc-900 border-y border-zinc-800">
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-14 md:py-16">
 
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-10">
+
             <div>
               <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-3">
                 Actualidad deportiva
@@ -386,6 +427,7 @@ export default function Home() {
               "
             >
               Ver competiciones
+
               <Icon
                 path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                 className="w-4 h-4"
@@ -393,23 +435,12 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* PRÓXIMO PARTIDO - ÚNICO CARD */}
           <div className="relative overflow-hidden bg-zinc-950 border border-zinc-800 p-7 md:p-9 rounded-sm">
 
             <div className="flex items-center justify-between mb-8">
               <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
                 Próximo desafío
               </span>
-
-              {/* ✅ BADGE DINÂMICO COM CORES CORRETAS */}
-              {/*{proximoPartido && (() => {
-                const badge = getMatchBadge(proximoPartido);
-                return (
-                  <span className={badge.className}>
-                    {badge.text}
-                  </span>
-                );
-              })()}*/}
             </div>
 
             {loadingJornadas ? (
@@ -419,17 +450,21 @@ export default function Home() {
             ) : proximoPartido ? (
               <>
                 <div className="text-center">
+
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-5">
                     {proximoPartido.temporada?.nome
                       ? proximoPartido.temporada.nome
-                      : proximoPartido.competicion || 'Competición'}
+                      : proximoPartido.competicion ||
+                        'Competición'}
                   </p>
 
                   <div className="flex items-center justify-center gap-5 md:gap-8">
 
-                    {/* TIME DA ESQUERDA (MANDANTE) */}
+                    {/* EQUIPO LOCAL */}
                     <div className="flex-1 text-center">
+
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
+
                         {getHomeTeam(proximoPartido).logo ? (
                           <img
                             src={getHomeTeam(proximoPartido).logo}
@@ -439,10 +474,15 @@ export default function Home() {
                         ) : (
                           <div className="w-14 h-14 flex items-center justify-center">
                             <span className="text-red-600 text-xs font-bold text-center leading-tight">
-                              LOBOS<br />QUAD<br />RUGBY
+                              LOBOS
+                              <br />
+                              QUAD
+                              <br />
+                              RUGBY
                             </span>
                           </div>
                         )}
+
                       </div>
 
                       <p className="font-display text-base md:text-lg">
@@ -454,9 +494,11 @@ export default function Home() {
                       VS
                     </div>
 
-                    {/* TIME DA DIREITA (VISITANTE) */}
+                    {/* EQUIPO VISITANTE */}
                     <div className="flex-1 text-center">
+
                       <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 flex items-center justify-center bg-white/95 rounded-full p-2 border border-zinc-700">
+
                         {getAwayTeam(proximoPartido).logo ? (
                           <img
                             src={getAwayTeam(proximoPartido).logo}
@@ -470,6 +512,7 @@ export default function Home() {
                             </span>
                           </div>
                         )}
+
                       </div>
 
                       <p className="font-display text-base md:text-lg">
@@ -496,7 +539,8 @@ export default function Home() {
                       </p>
 
                       <p className="text-zinc-300 text-xs">
-                        {getMatchTime(proximoPartido) || 'Por confirmar'}
+                        {getMatchTime(proximoPartido) ||
+                          'Por confirmar'}
                       </p>
                     </div>
 
@@ -529,6 +573,7 @@ export default function Home() {
                     "
                   >
                     Ver detalles de la jornada
+
                     <Icon
                       path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                       className="w-4 h-4"
@@ -538,6 +583,7 @@ export default function Home() {
               </>
             ) : (
               <div className="py-8 text-center">
+
                 <p className="font-display text-xl text-zinc-300 mb-2">
                   Próxima jornada por confirmar
                 </p>
@@ -555,7 +601,6 @@ export default function Home() {
               </div>
             )}
           </div>
-
         </div>
       </section>
 
@@ -577,7 +622,6 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-zinc-800">
 
-            {/* Ubicación */}
             <div className="p-7 md:p-8 border-b md:border-b-0 md:border-r border-zinc-800">
               <div className="flex items-start gap-4">
 
@@ -604,7 +648,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Lunes y miércoles */}
             <div className="p-7 md:p-8 border-b md:border-b-0 md:border-r border-zinc-800">
               <div className="flex items-start gap-4">
 
@@ -631,7 +674,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Viernes */}
             <div className="p-7 md:p-8">
               <div className="flex items-start gap-4">
 
@@ -685,18 +727,22 @@ export default function Home() {
 
             {[
               {
+                number: '01',
                 title: 'INCLUSIÓN',
                 desc: 'El deporte no entiende de barreras. Aquí todos somos atletas.',
               },
               {
+                number: '02',
                 title: 'RESILIENCIA',
                 desc: 'Superación personal dentro y fuera de la cancha, cada día.',
               },
               {
+                number: '03',
                 title: 'TÁCTICA',
                 desc: 'Velocidad, contacto y estrategia. Rugby de alto nivel.',
               },
               {
+                number: '04',
                 title: 'EQUIPO',
                 desc: 'Lobos es una familia. Nadie se queda atrás.',
               },
@@ -709,11 +755,20 @@ export default function Home() {
                   bg-zinc-950
                   hover:bg-zinc-900
                   transition-colors duration-300
-                  ${index < 3 ? 'border-b lg:border-b-0 lg:border-r border-zinc-800' : ''}
-                  ${index === 1 ? 'md:border-r border-zinc-800' : ''}
+                  ${
+                    index < 3
+                      ? 'border-b lg:border-b-0 lg:border-r border-zinc-800'
+                      : ''
+                  }
+                  ${
+                    index === 1
+                      ? 'md:border-r border-zinc-800'
+                      : ''
+                  }
                 `}
               >
                 <div className="flex items-center justify-between mb-8">
+
                   <span className="text-zinc-700 text-xs font-mono">
                     {item.number}
                   </span>
@@ -759,7 +814,6 @@ export default function Home() {
             de la Comunidad Valenciana en la Liga Nacional desde 2019.
           </p>
 
-          {/* Línea temporal */}
           <div className="grid grid-cols-2 max-w-md mx-auto mt-12 border-y border-zinc-800">
 
             <div className="py-6 border-r border-zinc-800">
@@ -809,13 +863,140 @@ export default function Home() {
       </section>
 
       {/* =========================================================
-          6. CTA FINAL
+          6. PATROCINADORES
+      ========================================================== */}
+      <section className="bg-zinc-950 border-b border-zinc-900 py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-5 md:px-8">
+
+          <div className="text-center mb-10 md:mb-12">
+
+            <p className="text-red-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-3">
+              Con el apoyo de
+            </p>
+
+            <h2 className="font-display text-3xl md:text-4xl text-white tracking-tight">
+              NUESTROS PATROCINADORES
+            </h2>
+
+            <div className="w-12 h-px bg-red-600 mx-auto mt-5" />
+          </div>
+
+          {/* LOGOS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
+
+            {/* RODEM */}
+            <a
+              href="AQUI_EL_MISMO_LINK_DE_RODEM"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                group
+                min-h-[150px]
+                bg-zinc-900
+                border border-zinc-800
+                flex items-center justify-center
+                p-8
+                transition-all duration-300
+                hover:border-zinc-600
+                hover:bg-zinc-900/80
+              "
+              aria-label="Visitar la web de Rodem"
+            >
+              <img
+                src="/assets/RODEM.png"
+                alt="Rodem"
+                className="
+                  max-w-[180px]
+                  max-h-[80px]
+                  w-auto
+                  h-auto
+                  object-contain
+                  opacity-70
+                  grayscale
+                  transition-all duration-500
+                  group-hover:opacity-100
+                  group-hover:grayscale-0
+                  group-hover:scale-105
+                "
+              />
+            </a>
+
+            {/* RK INMOBILIARIA */}
+            <a
+              href="AQUI_EL_MISMO_LINK_DE_RK_INMOBILIARIA"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                group
+                min-h-[150px]
+                bg-zinc-900
+                border border-zinc-800
+                flex items-center justify-center
+                p-8
+                transition-all duration-300
+                hover:border-zinc-600
+                hover:bg-zinc-900/80
+              "
+              aria-label="Visitar la web de RK Inmobiliaria"
+            >
+              <img
+                src="/assets/RK-INMOBILIARIA.png"
+                alt="RK Inmobiliaria"
+                className="
+                  max-w-[210px]
+                  max-h-[80px]
+                  w-auto
+                  h-auto
+                  object-contain
+                  opacity-70
+                  grayscale
+                  transition-all duration-500
+                  group-hover:opacity-100
+                  group-hover:grayscale-0
+                  group-hover:scale-105
+                "
+              />
+              </a>
+
+          </div>
+
+          <div className="text-center mt-8">
+
+            <Link
+              to="/patrocinadores"
+              className="
+                inline-flex items-center gap-2
+                text-zinc-400
+                hover:text-white
+                text-[10px]
+                uppercase
+                tracking-[0.2em]
+                font-bold
+                transition-colors
+              "
+            >
+              Conoce a nuestros patrocinadores
+
+              <Icon
+                path="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                className="w-4 h-4"
+              />
+            </Link>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================
+          7. CTA FINAL
       ========================================================== */}
       <section className="relative py-20 md:py-24 bg-red-600 overflow-hidden">
 
         <div className="absolute inset-0 bg-gradient-to-br from-red-500 via-red-600 to-red-800" />
 
         <div className="absolute -right-40 -top-40 w-96 h-96 rounded-full border border-white/10" />
+
         <div className="absolute -right-20 -top-20 w-56 h-56 rounded-full border border-white/10" />
 
         <div className="relative max-w-4xl mx-auto px-5 md:px-8 text-center">
