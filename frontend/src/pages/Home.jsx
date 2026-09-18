@@ -903,7 +903,7 @@ export default function Home() {
               aria-label="Visitar la web de Rodem"
             >
               <img
-                src="/assets/RODEM.png"
+                src="/assets/rodem.png"
                 alt="Rodem"
                 className="
                   max-w-[180px]
@@ -940,7 +940,7 @@ export default function Home() {
               aria-label="Visitar la web de RK Inmobiliaria"
             >
               <img
-                src="/assets/RK-INMOBILIARIA.png"
+                src="/assets/rk_inmobo.png"
                 alt="RK Inmobiliaria"
                 className="
                   max-w-[210px]
