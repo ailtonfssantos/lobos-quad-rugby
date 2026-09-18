@@ -886,7 +886,7 @@ export default function Home() {
 
             {/* RODEM */}
             <a
-              href="AQUI_EL_MISMO_LINK_DE_RODEM"
+              href="https://rodem.es/"
               target="_blank"
               rel="noopener noreferrer"
               className="
@@ -923,7 +923,7 @@ export default function Home() {
 
             {/* RK INMOBILIARIA */}
             <a
-              href="AQUI_EL_MISMO_LINK_DE_RK_INMOBILIARIA"
+              href="https://www.inmocarrillo.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="
