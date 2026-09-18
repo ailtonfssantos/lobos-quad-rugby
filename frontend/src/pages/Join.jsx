@@ -839,8 +839,8 @@ export default function Join() {
 
             <div className="md:text-right">
               <p className="text-zinc-500 max-w-md md:ml-auto leading-relaxed">
-                Es competición. Es equipo. Es encontrar tu lugar dentro de
-                una manada.
+                Es competición. Es equipo. Es encontrar tu lugar dentro del
+                equipo.
               </p>
 
               <Link

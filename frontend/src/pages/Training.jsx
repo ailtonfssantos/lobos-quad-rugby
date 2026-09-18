@@ -467,7 +467,7 @@ export default function Training() {
 
         <div className="absolute inset-0">
           <img
-            src="/assets/IMG_8325.jpg"
+            src="/assets/IMG_8358.jpg"
             alt=""
             aria-hidden="true"
             className="absolute inset-0 w-full h-full object-cover object-center grayscale opacity-60 md:opacity-70"

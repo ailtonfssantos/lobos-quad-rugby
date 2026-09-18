@@ -91,6 +91,14 @@ const isStaffMember = (person) => {
   return getRolePriority(person?.role) < 99;
 };
 
+/**
+ * Determina la categoría deportiva de una persona.
+ *
+ * IMPORTANTE:
+ * A partir de ahora también se utiliza para miembros del staff.
+ * Esto permite que un Presidente que también sea jugador pueda
+ * aparecer en los filtros deportivos.
+ */
 const getPersonCategory = (person) => {
   const role = normalizeText(person?.role);
 
@@ -136,60 +144,27 @@ const getRoleColor = (role) => {
 };
 
 /**
- * Ordenação determinística dos jogadores.
+ * Fisher-Yates Shuffle
  *
- * IMPORTANTE:
- * - Se o backend possui order/orden, usamos esse valor.
- * - Jogadores sem order ficam depois.
- * - Em caso de empate ou ausência de order,
- *   usamos o ID como segundo critério.
+ * Devuelve una nueva copia del array en orden aleatorio.
+ * No modifica el array original.
  *
- * Isso evita mudanças de posição causadas por uma ordenação
- * instável/inconsistente dos dados.
+ * Se ejecuta cuando se cargan los datos, por lo que la plantilla
+ * mantiene el mismo orden durante esa sesión y cambia al recargar.
  */
-const sortPlayers = (players) => {
-  return [...players].sort((a, b) => {
-    const rawOrderA = a?.order ?? a?.orden;
-    const rawOrderB = b?.order ?? b?.orden;
+const shufflePlayers = (players) => {
+  const shuffled = [...players];
 
-    const hasOrderA =
-      rawOrderA !== null &&
-      rawOrderA !== undefined &&
-      rawOrderA !== '' &&
-      Number.isFinite(Number(rawOrderA));
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
 
-    const hasOrderB =
-      rawOrderB !== null &&
-      rawOrderB !== undefined &&
-      rawOrderB !== '' &&
-      Number.isFinite(Number(rawOrderB));
+    [shuffled[i], shuffled[j]] = [
+      shuffled[j],
+      shuffled[i],
+    ];
+  }
 
-    // Jogadores com ordem definida vêm primeiro
-    if (hasOrderA && !hasOrderB) return -1;
-    if (!hasOrderA && hasOrderB) return 1;
-
-    // Ambos possuem ordem
-    if (hasOrderA && hasOrderB) {
-      const orderA = Number(rawOrderA);
-      const orderB = Number(rawOrderB);
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-    }
-
-    // Critério determinístico final
-    const idA = String(a?.id ?? '');
-    const idB = String(b?.id ?? '');
-
-    if (idA && idB && idA !== idB) {
-      return idA.localeCompare(idB, undefined, {
-        numeric: true,
-      });
-    }
-
-    return 0;
-  });
+  return shuffled;
 };
 
 /* =========================================================
@@ -367,10 +342,20 @@ export default function Team() {
         (person) => !isStaffMember(person)
       );
 
-      const playersSorted = sortPlayers(playersData);
+      /**
+       * ORDEN ALEATORIO
+       *
+       * Cada vez que fetchPlayers recibe los datos,
+       * los jugadores se mezclan.
+       *
+       * Al actualizar la página:
+       * nueva petición → nuevo shuffle → nuevo orden.
+       */
+      const playersShuffled =
+        shufflePlayers(playersData);
 
       setStaff(staffData);
-      setPlayers(playersSorted);
+      setPlayers(playersShuffled);
     } catch (err) {
       if (err?.name === 'AbortError') {
         return;
@@ -405,19 +390,59 @@ export default function Team() {
   }, [fetchPlayers]);
 
   /* =======================================================
+     JUGADORES FILTRABLES
+  ======================================================= */
+
+  /**
+   * Lista utilizada EXCLUSIVAMENTE para la sección
+   * "Plantilla de Jugadores".
+   *
+   * Incluye:
+   * - todos los jugadores normales
+   * - miembros del staff que también tienen categoría deportiva
+   *
+   * Esto permite que Carlos Sanchis:
+   * - siga apareciendo en "Cuerpo Técnico y Directiva"
+   * - aparezca también en "ATAQUE" si su posición/categoría
+   *   está configurada como ATAQUE.
+   */
+  const filterablePlayers = useMemo(() => {
+    const staffPlayers = staff.filter(
+      (person) => getPersonCategory(person) !== null
+    );
+
+    const combined = [
+      ...players,
+      ...staffPlayers,
+    ];
+
+    // Evitar duplicados por ID
+    const uniquePlayers = Array.from(
+      new Map(
+        combined.map((person) => [
+          String(person.id),
+          person,
+        ])
+      ).values()
+    );
+
+    return uniquePlayers;
+  }, [players, staff]);
+
+  /* =======================================================
      FILTROS
   ======================================================= */
 
   const filteredPlayers = useMemo(() => {
     if (filter === 'TODOS') {
-      return players;
+      return filterablePlayers;
     }
 
-    return players.filter(
+    return filterablePlayers.filter(
       (person) =>
         getPersonCategory(person) === filter
     );
-  }, [players, filter]);
+  }, [filterablePlayers, filter]);
 
   /* =======================================================
      CONTADORES
@@ -428,20 +453,20 @@ export default function Team() {
 
   const attackCount = useMemo(
     () =>
-      players.filter(
+      filterablePlayers.filter(
         (person) =>
           getPersonCategory(person) === 'ATAQUE'
       ).length,
-    [players]
+    [filterablePlayers]
   );
 
   const defenseCount = useMemo(
     () =>
-      players.filter(
+      filterablePlayers.filter(
         (person) =>
           getPersonCategory(person) === 'DEFENSA'
       ).length,
-    [players]
+    [filterablePlayers]
   );
 
   /* =======================================================
@@ -957,7 +982,7 @@ export default function Team() {
 
                     const count =
                       style === 'TODOS'
-                        ? players.length
+                        ? filterablePlayers.length
                         : style === 'ATAQUE'
                         ? attackCount
                         : defenseCount;

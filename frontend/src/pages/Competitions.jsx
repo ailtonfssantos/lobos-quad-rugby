@@ -910,8 +910,8 @@ export default function Competitions() {
         <div className="absolute inset-0">
 
           <img
-            src="/assets/equipo1.JPG"
-            alt="Lobos Quad Rugby en competición"
+            src="/assets/IMG_8356.jpg"
+            alt=""
             className="
               w-full
               h-full
