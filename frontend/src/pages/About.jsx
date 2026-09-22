@@ -1,247 +1,224 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const galleryImages = [
-  {
-    src: '/assets/IMG_8328.jpg',
-    alt: 'Jugadores de Lobos Quad Rugby durante una sesión deportiva',
-  },
-  {
-    src: '/assets/IMG_8325.jpg',
-    alt: 'Equipo de Lobos Quad Rugby en acción',
-  },
-  {
-    src: '/assets/IMG_8327.jpg',
-    alt: 'Jugadores de Lobos Quad Rugby durante un entrenamiento',
-  },
-  {
-    src: '/assets/partido.jpg',
-    alt: 'Lobos Quad Rugby durante un partido',
-  },
-  {
-    src: '/assets/equipo.jpg',
-    alt: 'Equipo de Lobos Quad Rugby',
-  },
-  {
-    src: '/assets/momento-1.PNG',
-    alt: 'Lobos Quad Rugby en competición',
-  },
-  {
-    src: '/assets/momento-2.PNG',
-    alt: 'Jugadores de Lobos Quad Rugby en la pista',
-  },
-  {
-    src: '/assets/momento-3.PNG',
-    alt: 'Momento de competición de Lobos Quad Rugby',
-  },
-  {
-    src: '/assets/momento-4.PNG',
-    alt: 'Lobos Quad Rugby durante un partido',
-  },
-  {
-    src: '/assets/momento-5.PNG',
-    alt: 'Jugadores de Lobos Quad Rugby en acción',
-  },
-  {
-    src: '/assets/momento-6.PNG',
-    alt: 'Equipo de Lobos Quad Rugby durante la competición',
-  },
-  {
-    src: '/assets/momento-7.PNG',
-    alt: 'Momento deportivo de Lobos Quad Rugby',
-  },
-];
+/* =========================================================
+   ICONS
+========================================================= */
 
-const values = [
-  'Inclusión y accesibilidad',
-  'Esfuerzo y superación',
-  'Trabajo en equipo',
-  'Respeto y fair play',
-  'Pasión por el deporte',
-];
-
-const Icon = ({ path, className = 'w-5 h-5' }) => (
+const ArrowUpRight = ({ className = 'w-5 h-5' }) => (
   <svg
     className={className}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
     strokeWidth={1.5}
-    aria-hidden="true"
   >
-    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M7 17L17 7M7 7h10v10"
+    />
   </svg>
 );
 
-const ArrowUpRight = ({ className = 'w-4 h-4' }) => (
-  <Icon
+const ArrowRight = ({ className = 'w-5 h-5' }) => (
+  <svg
     className={className}
-    path="M7 17L17 7M7 7h10v10"
-  />
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5 12h14M13 6l6 6-6 6"
+    />
+  </svg>
 );
 
-const ArrowRight = ({ className = 'w-4 h-4' }) => (
-  <Icon
-    className={className}
-    path="M5 12h14M13 6l6 6-6 6"
-  />
-);
-
-const CheckIcon = ({ className = 'w-5 h-5' }) => (
-  <Icon
-    className={className}
-    path="M5 12l4 4L19 6"
-  />
-);
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function About() {
-  const [currentImage, setCurrentImage] = useState(0);
-  const [isGalleryPaused, setIsGalleryPaused] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % galleryImages.length);
-  };
+  /* =======================================================
+     GALLERY
+  ======================================================= */
 
-  const previousImage = () => {
-    setCurrentImage(
-      (prev) => (prev - 1 + galleryImages.length) % galleryImages.length
-    );
-  };
+  const gallery = [
+    '/assets/momento-1.PNG',
+    '/assets/momento-2.PNG',
+    '/assets/momento-3.PNG',
+    '/assets/momento-4.PNG',
+    '/assets/momento-5.PNG',
+    '/assets/momento-6.PNG',
+    '/assets/momento-7.PNG',
+  ];
 
   useEffect(() => {
-    if (isGalleryPaused) return;
+    if (!selectedImage) return;
 
-    const interval = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % galleryImages.length);
-    }, 6000);
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedImage(null);
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [isGalleryPaused]);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedImage]);
+
+  /* =======================================================
+     NATIONAL TEAM PLAYERS
+  ======================================================= */
+
+  const nationalTeamPlayers = [
+    {
+      name: 'Jairo Beses',
+      nickname: '',
+      slug: 'jairo-beses',
+      available: true,
+    },
+    {
+      name: 'Jose García',
+      nickname: 'Pepe',
+      slug: 'jose-garcia',
+      available: true,
+    },
+    {
+      name: 'Cristhian Adrián Sanches',
+      nickname: 'Xamaco',
+      slug: 'cristhian-adrian-sanches',
+      available: true,
+    },
+    {
+      name: 'Javi Navarro',
+      nickname: 'Manitas',
+      slug: 'javi-navarro',
+      available: false,
+    },
+  ];
 
   return (
-    <main className="bg-black text-white overflow-hidden selection:bg-red-600/30">
+    <main className="bg-[#080808] text-white">
 
-      {/* =========================================================
-          HEADER EDITORIAL
-      ========================================================= */}
-      <section className="relative py-20 sm:py-24 lg:py-28 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+      {/* =====================================================
+          HERO
+      ===================================================== */}
 
-          <div className="flex items-center gap-3 mb-8">
-            <span className="w-8 h-px bg-red-600" />
-            <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-              Quiénes somos
-            </span>
-          </div>
+      <section className="relative overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.07),transparent_35%)]" />
 
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
+        <div className="relative mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+          <div className="max-w-4xl">
 
-            <div className="lg:col-span-7">
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.9] tracking-tight">
-                Somos más que{' '}
-                <span className="text-gray-600">un club</span>
-              </h1>
-            </div>
+            <p className="mb-6 text-xs font-medium uppercase tracking-[0.35em] text-white/45">
+              Sobre nosotros
+            </p>
 
-            <div className="lg:col-span-5 space-y-6">
+            <h1 className="text-5xl font-light leading-[0.95] tracking-[-0.04em] sm:text-6xl lg:text-8xl">
+              Más que un deporte.
+              <br />
+              <span className="text-white/45">Somos una familia.</span>
+            </h1>
 
-              <p className="text-lg sm:text-xl text-gray-300 leading-relaxed">
-                Lobos Quad Rugby es un club creado en Valencia en 2017.
-                Nuestro objetivo principal es promover la integración social
-                de las personas con discapacidad a través del rugby en silla
-                de ruedas, mejorando su calidad de vida y ofreciendo
-                oportunidades recreativas y competitivas.
-              </p>
+            <p className="mt-10 max-w-2xl text-lg leading-8 text-white/55">
+              Lobos Quad Rugby es un club deportivo de Valencia dedicado al
+              rugby en silla de ruedas, al deporte inclusivo y a la creación
+              de oportunidades para todos.
+            </p>
 
-              <p className="text-gray-500 text-base sm:text-lg leading-relaxed">
-                Para nosotros, el rugby no termina cuando acaba un partido.
-                Es un espacio para competir, conocer nuestros límites,
-                superarlos y construir una comunidad en la que cada persona
-                tenga su lugar.
-              </p>
-
-              <div className="pt-4 flex items-center gap-4 text-sm uppercase tracking-wider text-white">
-                <span
-                  className="text-red-500 italic text-2xl font-black leading-none"
-                  aria-hidden="true"
-                >
-                  "
-                </span>
-
-                <span className="text-gray-300">
-                  No necesito que sea fácil, solo que sea posible.
-                </span>
-              </div>
-
-            </div>
           </div>
         </div>
       </section>
 
+      {/* =====================================================
+          MISSION
+      ===================================================== */}
 
-      {/* =========================================================
-          LOBOS EN NÚMEROS
-      ========================================================= */}
-      <section className="py-16 sm:py-20 bg-[#080808] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+      <section className="border-b border-white/10">
+        <div className="mx-auto grid max-w-7xl gap-16 px-6 py-24 lg:grid-cols-2 lg:px-8">
 
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10 sm:mb-12">
-
-            <div>
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-                Nuestra trayectoria
-              </span>
-
-              <h2 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-black uppercase">
-                Lobos en números
-              </h2>
-            </div>
-
-            <p className="text-gray-500 max-w-md text-sm leading-relaxed">
-              Una historia construida paso a paso, dentro y fuera de la pista.
+          <div>
+            <p className="mb-5 text-xs uppercase tracking-[0.3em] text-white/35">
+              Nuestra misión
             </p>
 
+            <h2 className="max-w-xl text-4xl font-light leading-tight tracking-[-0.03em] sm:text-5xl">
+              El deporte como herramienta de inclusión.
+            </h2>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 border border-white/10">
+          <div className="space-y-6 text-base leading-8 text-white/55">
+            <p>
+              Creemos que el deporte puede transformar vidas. El rugby en
+              silla de ruedas nos permite competir, superarnos y, sobre todo,
+              construir una comunidad.
+            </p>
 
-            <div className="p-6 sm:p-8 lg:p-10 border-r border-b lg:border-b-0 border-white/10">
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-white">
-                2017
-              </span>
+            <p>
+              Lobos Quad Rugby nació con la intención de ofrecer un espacio
+              donde las personas con discapacidad puedan practicar deporte,
+              competir y sentirse parte de un equipo.
+            </p>
 
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gray-500">
+            <p>
+              Hoy seguimos trabajando para hacer crecer el rugby en silla de
+              ruedas en la Comunidad Valenciana y representar a nuestro club
+              al más alto nivel.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* =====================================================
+          NUMBERS
+      ===================================================== */}
+
+      <section className="border-b border-white/10">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+
+          <div className="mb-14">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/35">
+              Lobos en números
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-4">
+
+            <div className="bg-[#080808] p-8 sm:p-10">
+              <div className="text-5xl font-light tracking-tight">2017</div>
+              <p className="mt-3 text-sm text-white/40">
                 Año de fundación
               </p>
             </div>
 
-            <div className="p-6 sm:p-8 lg:p-10 lg:border-r border-b lg:border-b-0 border-white/10">
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-white">
-                2019
-              </span>
-
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gray-500">
-                Inicio en Liga Nacional
+            <div className="bg-[#080808] p-8 sm:p-10">
+              <div className="text-5xl font-light tracking-tight">2019</div>
+              <p className="mt-3 text-sm text-white/40">
+                Liga Nacional
               </p>
             </div>
 
-            <div className="p-6 sm:p-8 lg:p-10 border-r border-white/10">
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-red-600">
-                2
-              </span>
-
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gray-500">
+            <div className="bg-[#080808] p-8 sm:p-10">
+              <div className="text-5xl font-light tracking-tight">4</div>
+              <p className="mt-3 text-sm text-white/40">
                 Convocados con España
               </p>
             </div>
 
-            <div className="p-6 sm:p-8 lg:p-10">
-              <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-white">
-                VALENCIA
-              </span>
-
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gray-500">
-                Nuestra casa
+            <div className="bg-[#080808] p-8 sm:p-10">
+              <div className="text-5xl font-light tracking-tight">1</div>
+              <p className="mt-3 text-sm text-white/40">
+                Equipo de la Comunidad Valenciana
               </p>
             </div>
 
@@ -249,500 +226,126 @@ export default function About() {
         </div>
       </section>
 
+      {/* =====================================================
+          HISTORY
+      ===================================================== */}
 
-      {/* =========================================================
-          TRES PILARES
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28 bg-[#080808] border-y border-white/10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+      <section className="border-b border-white/10">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
 
-          <div className="max-w-2xl mb-12 sm:mb-14">
-
-            <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-              Nuestro enfoque
-            </span>
-
-            <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black uppercase">
-              Tres pilares
-            </h2>
-
-            <p className="mt-5 text-gray-500 text-base sm:text-lg leading-relaxed">
-              Áreas que definen la actividad de Lobos dentro y fuera de la pista.
+          <div className="mb-16 max-w-3xl">
+            <p className="mb-5 text-xs uppercase tracking-[0.3em] text-white/35">
+              Nuestra historia
             </p>
 
+            <h2 className="text-4xl font-light tracking-[-0.03em] sm:text-5xl">
+              Un camino construido juntos.
+            </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-px bg-white/10">
+          <div className="space-y-0">
 
-            {/* Pilar 01 */}
-            <article className="bg-[#080808] p-6 sm:p-8 lg:p-10 group hover:bg-[#0d0d0d] transition-colors duration-300">
+            {/* 2017 */}
+            <div className="grid gap-6 border-t border-white/10 py-10 md:grid-cols-[160px_1fr]">
 
-              <div className="flex justify-between items-start">
-                <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  
-                </span>
-
-                <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
+              <div className="text-3xl font-light text-white/30">
+                2017
               </div>
 
-              <div className="mt-12 sm:mt-16">
-
-                <h3 className="text-xl sm:text-2xl font-black uppercase">
-                  Deporte de competición
+              <div>
+                <h3 className="text-xl font-medium">
+                  El nacimiento de Lobos
                 </h3>
 
-                <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">
-                  Primer equipo de la Comunidad Valenciana en la Liga Nacional
-                  desde 2019, participando en torneos de élite y formando
-                  jugadores de alto rendimiento.
+                <p className="mt-4 max-w-3xl leading-8 text-white/50">
+                  Carlos Sanchis funda Lobos Quad Rugby en Valencia con el
+                  objetivo de crear un espacio deportivo inclusivo para
+                  personas con discapacidad.
                 </p>
-
-                <Link
-                  to="/competiciones"
-                  className="inline-flex items-center gap-2 mt-6 sm:mt-7 text-xs uppercase tracking-widest text-white hover:text-red-500 transition-colors"
-                >
-                  Ver competiciones
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                </Link>
-
               </div>
-            </article>
-
-
-            {/* Pilar 02 */}
-            <article className="bg-[#080808] p-6 sm:p-8 lg:p-10 group hover:bg-[#0d0d0d] transition-colors duration-300">
-
-              <div className="flex justify-between items-start">
-                <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  
-                </span>
-
-                <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
-              </div>
-
-              <div className="mt-12 sm:mt-16">
-
-                <h3 className="text-xl sm:text-2xl font-black uppercase">
-                  Canal de sensibilización
-                </h3>
-
-                <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">
-                  Utilizamos el deporte para visibilizar la discapacidad,
-                  romper barreras y acercar el rugby en silla de ruedas a
-                  todas las personas mediante exhibiciones y charlas.
-                </p>
-
-              </div>
-            </article>
-
-
-            {/* Pilar 03 */}
-            <article className="bg-[#080808] p-6 sm:p-8 lg:p-10 group hover:bg-[#0d0d0d] transition-colors duration-300">
-
-              <div className="flex justify-between items-start">
-                <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  
-                </span>
-
-                <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
-              </div>
-
-              <div className="mt-12 sm:mt-16">
-
-                <h3 className="text-xl sm:text-2xl font-black uppercase">
-                  Ocio y salud
-                </h3>
-
-                <p className="mt-4 sm:mt-5 text-gray-500 leading-relaxed text-sm sm:text-base">
-                  Promoción de actividades físico-deportivas no competitivas
-                  para personas con discapacidad que desean mantener y
-                  mejorar su calidad de vida y autonomía.
-                </p>
-
-              </div>
-            </article>
-
-          </div>
-        </div>
-      </section>
-
-
-      {/* =========================================================
-          HISTORIA
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-14">
-
-            <div className="lg:col-span-4">
-
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-                Nuestra historia
-              </span>
-
-              <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight">
-                Un camino{' '}
-                <span className="text-gray-600">que empezó</span> en 2017
-              </h2>
 
             </div>
 
+            {/* 2019 */}
+            <div className="grid gap-6 border-t border-white/10 py-10 md:grid-cols-[160px_1fr]">
 
-            <div className="lg:col-span-8">
-
-              <div className="relative border-l border-white/10">
-
-                {/* Origen */}
-                <div className="relative pl-6 sm:pl-8 pb-12 sm:pb-16">
-
-                  <span
-                    className="absolute -left-[5px] top-1 w-2 h-2 bg-red-600 rounded-full"
-                    aria-hidden="true"
-                  />
-
-                  <span className="text-xs sm:text-sm font-mono text-gray-500">
-                    ORIGEN
-                  </span>
-
-                  <h3 className="mt-3 text-xl sm:text-2xl font-black uppercase">
-                    Rugby en silla de ruedas
-                  </h3>
-
-                  <p className="mt-4 text-gray-500 leading-relaxed text-sm sm:text-base">
-                    Nació en Canadá a finales de los años 70. Es un deporte
-                    de contacto e intensidad diseñado para personas con
-                    discapacidad que afecta a las extremidades, ofreciendo
-                    una oportunidad única de deporte de alta exigencia.
-                  </p>
-
-                </div>
-
-
-                {/* 2017 */}
-                <div className="relative pl-6 sm:pl-8 pb-12 sm:pb-16">
-
-                  <span
-                    className="absolute -left-[5px] top-1 w-2 h-2 bg-red-600 rounded-full"
-                    aria-hidden="true"
-                  />
-
-                  <span className="text-xs sm:text-sm font-mono text-red-500">
-                    2017
-                  </span>
-
-                  <h3 className="mt-3 text-xl sm:text-2xl font-black uppercase">
-                    El comienzo
-                  </h3>
-
-                  <p className="mt-4 text-gray-500 leading-relaxed text-sm sm:text-base">
-                    Carlos Sanchis y un grupo de potenciales jugadores
-                    comienzan a dar forma al proyecto en Valencia. Los
-                    primeros pasos estuvieron marcados por la dificultad
-                    de acceder a material específico, ya que las sillas
-                    deportivas suponían una inversión cercana a los
-                    5.000 euros, por lo que se entrenó con sillas
-                    multidisciplinares.
-                  </p>
-
-                </div>
-
-
-                {/* 2019 */}
-                <div className="relative pl-6 sm:pl-8">
-
-                  <span
-                    className="absolute -left-[5px] top-1 w-2 h-2 bg-red-600 rounded-full"
-                    aria-hidden="true"
-                  />
-
-                  <span className="text-xs sm:text-sm font-mono text-red-500">
-                    2019
-                  </span>
-
-                  <h3 className="mt-3 text-xl sm:text-2xl font-black uppercase">
-                    Llegamos a la Liga Nacional
-                  </h3>
-
-                  <p className="mt-4 text-gray-500 leading-relaxed text-sm sm:text-base">
-                    Lobos se convierte en el primer equipo de la Comunidad
-                    Valenciana en competir en la Liga Nacional. Desde
-                    entonces, el club ha seguido creciendo y dos de nuestros
-                    jugadores han sido convocados por la Selección Española.
-                  </p>
-
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* =========================================================
-          NUESTROS INICIOS
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28 bg-[#080808] border-y border-white/10">
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
-
-            {/* Texto */}
-            <div className="lg:col-span-5">
-
-              <div className="flex items-center gap-3 mb-6">
-
-                <span className="w-8 h-px bg-red-600" />
-
-                <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-                  Nuestros inicios
-                </span>
-
+              <div className="text-3xl font-light text-white/30">
+                2019
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-[0.95]">
-                De los primeros{' '}
-                <span className="text-gray-600">entrenamientos</span> a la
-                competición
-              </h2>
+              <div>
+                <h3 className="text-xl font-medium">
+                  Llegada a la Liga Nacional
+                </h3>
 
-              <p className="mt-6 text-gray-500 leading-relaxed">
-                Antes de las sillas específicas, antes de la Liga Nacional,
-                hubo entrenamientos en sillas multidisciplinares, mucho
-                esfuerzo y un grupo de personas que creyeron en el proyecto
-                desde el primer día.
-              </p>
-
-              <p className="mt-4 text-gray-500 leading-relaxed">
-                Estas imágenes documentan nuestros primeros pasos y una de
-                nuestras primeras jornadas oficiales, un momento que marcó
-                el inicio de una nueva etapa para Lobos Quad Rugby.
-              </p>
-
-              <div className="mt-8 flex items-center gap-6">
-
-                <div>
-                  <span className="block text-3xl font-black text-white">
-                    2017
+                <p className="mt-4 max-w-3xl leading-8 text-white/50">
+                  Lobos se convierte en el primer equipo de la Comunidad
+                  Valenciana en competir en la Liga Nacional. Desde entonces,
+                  el club ha seguido creciendo y{' '}
+                  <span className="text-white/80">
+                    cuatro de nuestros jugadores han sido convocados por la
+                    Selección Española.
                   </span>
-
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-gray-600">
-                    Fundación
-                  </span>
-                </div>
-
-                <div className="h-10 w-px bg-white/10" />
-
-                <div>
-                  <span className="block text-3xl font-black text-red-600">
-                    2019
-                  </span>
-
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-gray-600">
-                    Liga Nacional
-                  </span>
-                </div>
-
+                </p>
               </div>
+
             </div>
 
+            {/* ACTUALIDAD */}
+            <div className="grid gap-6 border-t border-white/10 py-10 md:grid-cols-[160px_1fr]">
 
-            {/* Fotos */}
-            <div className="lg:col-span-7">
-
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-
-                {/* Foto 01 */}
-                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
-
-                  <img
-                    src="/assets/inicio1.jpg"
-                    alt="Primeros entrenamientos de Lobos Quad Rugby"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-
-                  <figcaption className="absolute bottom-3 left-3 right-3">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 bg-black/70 px-2 py-1 inline-block">
-                      Primeros entrenamientos
-                    </span>
-                  </figcaption>
-
-                </figure>
-
-
-                {/* Foto 02 */}
-                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
-
-                  <img
-                    src="/assets/inicio2.jpg"
-                    alt="Jugadores de Lobos Quad Rugby durante los primeros entrenamientos"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-
-                  <figcaption className="absolute bottom-3 left-3 right-3">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 bg-black/70 px-2 py-1 inline-block">
-                      Primeros entrenamientos
-                    </span>
-                  </figcaption>
-
-                </figure>
-
-
-                {/* Primera jornada - COLORIDA em destaque */}
-                <figure className="col-span-2 relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden bg-black border border-red-600/30 group">
-
-                  <img
-                    src="/assets/jornada.jpg"
-                    alt="Lobos Quad Rugby durante una de sus primeras jornadas oficiales"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
-
-                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
-
-                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] text-red-500 bg-black/80 px-2.5 py-1.5 inline-flex items-center gap-2">
-
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-red-500"
-                        aria-hidden="true"
-                      />
-
-                      Primera jornada oficial
-                    </span>
-
-                  </div>
-
-                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 flex items-end justify-between gap-4">
-
-                    <div>
-                      <p className="text-[10px] sm:text-xs text-white/70 uppercase tracking-[0.15em]">
-                        El inicio de una nueva etapa
-                      </p>
-                    </div>
-
-                    <span className="text-[9px] font-mono text-white/50 text-right">
-                      Lobos Quad Rugby · Valencia
-                    </span>
-
-                  </div>
-
-                </figure>
-
-
-                {/* Jornada - P&B */}
-                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
-
-                  <img
-                    src="/assets/inicio.jpg"
-                    alt="Primeros entrenamientos de Lobos Quad Rugby"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover grayscale opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-
-                  <figcaption className="absolute bottom-3 left-3 right-3">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 bg-black/70 px-2 py-1 inline-block">
-                      En la pista
-                    </span>
-                  </figcaption>
-
-                </figure>
-
-
-                {/* Bloque año */}
-                <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 flex items-center justify-center">
-
-                  <div className="text-center p-4">
-
-                    <span className="block text-5xl sm:text-6xl font-black text-red-600 leading-none">
-                      2017
-                    </span>
-
-                    <span className="block mt-3 text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-gray-500 font-bold">
-                      Año de fundación
-                    </span>
-
-                    <div className="mt-4 w-8 h-px bg-white/20 mx-auto" />
-
-                    <p className="mt-3 text-[10px] text-gray-600 leading-relaxed max-w-[140px] mx-auto">
-                      Donde todo comenzó
-                    </p>
-
-                  </div>
-
-                </figure>
-
+              <div className="text-3xl font-light text-white/30">
+                Hoy
               </div>
+
+              <div>
+                <h3 className="text-xl font-medium">
+                  Seguimos creciendo
+                </h3>
+
+                <p className="mt-4 max-w-3xl leading-8 text-white/50">
+                  Continuamos compitiendo, formando nuevos jugadores y
+                  trabajando para que el rugby en silla de ruedas siga
+                  creciendo en Valencia y en toda España.
+                </p>
+              </div>
+
             </div>
 
           </div>
         </div>
       </section>
 
+      {/* =====================================================
+          SELECCIÓN ESPAÑOLA
+      ===================================================== */}
 
-      {/* =========================================================
-          LOGRO — SELECCIÓN ESPAÑOLA
-      ========================================================= */}
-      <section className="relative py-20 sm:py-24 lg:py-28 bg-red-600 overflow-hidden">
+      <section className="border-b border-white/10">
 
-        <div
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          aria-hidden="true"
-        >
-          <div className="absolute -right-20 -top-20 w-64 sm:w-96 h-64 sm:h-96 border-8 sm:border-[40px] border-black rounded-full" />
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
 
-          <div className="absolute -right-40 -bottom-40 w-80 sm:w-[500px] h-80 sm:h-[500px] border-[12px] sm:border-[60px] border-black rounded-full" />
-        </div>
+          <div className="grid gap-16 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
+            {/* LEFT */}
+            <div>
 
-          <div className="grid lg:grid-cols-12 gap-12 items-center">
-
-            <div className="lg:col-span-8">
-
-              <span className="text-xs tracking-[0.3em] uppercase text-black/60 font-bold">
-                Orgullo Lobos
-              </span>
-
-              <h2 className="mt-5 text-3xl sm:text-4xl lg:text-6xl font-black uppercase leading-[0.9] text-black">
-                Talento que{' '}
-                <span className="block">
-                  representa a España
-                </span>
-              </h2>
-
-              <p className="mt-6 sm:mt-8 text-base sm:text-lg text-black/80 max-w-2xl leading-relaxed">
-                Dos jugadores de Lobos han sido convocados con la Selección
-                Española. Un reconocimiento al trabajo, compromiso y nivel
-                deportivo alcanzado por nuestros atletas.
+              <p className="mb-5 text-xs uppercase tracking-[0.3em] text-white/35">
+                Logro
               </p>
 
-            </div>
+              <h2 className="text-4xl font-light tracking-[-0.03em] sm:text-5xl">
+                Selección
+                <br />
+                Española.
+              </h2>
 
-            <div className="lg:col-span-4 lg:text-right">
+              <div className="mt-10">
 
-              <div className="inline-block">
-
-                <span className="block text-6xl sm:text-7xl lg:text-9xl leading-none font-black text-black">
-                  02
+                <span className="block text-8xl font-light leading-none tracking-[-0.06em]">
+                  04
                 </span>
 
-                <span className="block mt-2 text-xs sm:text-sm uppercase tracking-[0.25em] font-bold text-black/70">
+                <span className="mt-4 block text-sm uppercase tracking-[0.2em] text-white/40">
                   Convocados con España
                 </span>
 
@@ -750,291 +353,239 @@ export default function About() {
 
             </div>
 
-          </div>
-        </div>
-      </section>
-
-
-      {/* =========================================================
-          VIDEO
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28">
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 sm:gap-8 mb-10 sm:mb-12">
-
+            {/* RIGHT */}
             <div>
 
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-                En primera persona
-              </span>
+              <p className="max-w-2xl text-lg leading-8 text-white/55">
+                Cuatro jugadores de Lobos han sido convocados con la
+                Selección Española. Un reconocimiento al trabajo,
+                compromiso y nivel deportivo alcanzado por nuestros atletas.
+              </p>
 
-              <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black uppercase">
-                Vive la experiencia
-              </h2>
+              {/* PLAYERS */}
+              <div className="mt-12 grid gap-3 sm:grid-cols-2">
 
-            </div>
+                {nationalTeamPlayers.map((player, index) => {
 
-            <p className="text-gray-500 max-w-md leading-relaxed text-sm sm:text-base">
-              El rugby en silla de ruedas se entiende mejor cuando se vive.
-              Descubre nuestra realidad dentro y fuera de la pista.
-            </p>
+                  const content = (
+                    <>
+                      <div className="flex items-start justify-between gap-4">
 
-          </div>
+                        <span className="text-xs text-white/25">
+                          0{index + 1}
+                        </span>
 
-          <div className="relative aspect-video bg-[#080808] border border-white/10 overflow-hidden">
+                        {player.available && (
+                          <ArrowUpRight className="h-4 w-4 text-white/30 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white" />
+                        )}
 
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src="https://www.youtube.com/embed/1WIZn1O7bQ0?si=ke7thQTQvqPBQU9x"
-              title="Lobos Quad Rugby Valencia - En Acción"
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
+                      </div>
 
-          </div>
-        </div>
-      </section>
+                      <div className="mt-8">
 
+                        <h3 className="text-xl font-medium tracking-tight">
+                          {player.name}
+                        </h3>
 
-      {/* =========================================================
-          GALERÍA
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28 bg-[#080808] border-y border-white/10">
+                        {player.nickname && (
+                          <p className="mt-1 text-sm text-white/40">
+                            “{player.nickname}”
+                          </p>
+                        )}
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+                        {player.available ? (
+                          <p className="mt-5 text-xs uppercase tracking-[0.18em] text-white/35 transition-colors group-hover:text-white/60">
+                            Ver perfil
+                          </p>
+                        ) : (
+                          <p className="mt-5 text-xs uppercase tracking-[0.18em] text-white/25">
+                            Perfil próximamente
+                          </p>
+                        )}
 
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 sm:gap-8 mb-10 sm:mb-12">
+                      </div>
+                    </>
+                  );
 
-            <div>
+                  if (player.available) {
+                    return (
+                      <Link
+                        key={player.slug}
+                        to={`/equipo?jugador=${player.slug}`}
+                        className="group border border-white/10 bg-white/[0.02] p-6 transition-all duration-300 hover:border-white/25 hover:bg-white/[0.05]"
+                      >
+                        {content}
+                      </Link>
+                    );
+                  }
 
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-                Dentro de la pista
-              </span>
-
-              <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black uppercase">
-                El equipo en acción
-              </h2>
-
-            </div>
-
-            <div className="flex items-center gap-3">
-
-              <button
-                type="button"
-                onClick={previousImage}
-                aria-label="Imagen anterior"
-                className="w-10 h-10 sm:w-12 sm:h-12 border border-white/20 flex items-center justify-center hover:border-white hover:bg-white/10 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-              >
-                <span className="text-lg sm:text-xl" aria-hidden="true">
-                  ←
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={nextImage}
-                aria-label="Siguiente imagen"
-                className="w-10 h-10 sm:w-12 sm:h-12 border border-white/20 flex items-center justify-center hover:border-white hover:bg-white/10 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-              >
-                <span className="text-lg sm:text-xl" aria-hidden="true">
-                  →
-                </span>
-              </button>
-
-            </div>
-
-          </div>
-
-
-          {/* Galería principal */}
-          <div
-            className="relative aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-black"
-            onMouseEnter={() => setIsGalleryPaused(true)}
-            onMouseLeave={() => setIsGalleryPaused(false)}
-            onFocus={() => setIsGalleryPaused(true)}
-            onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget)) {
-                setIsGalleryPaused(false);
-              }
-            }}
-          >
-
-            {galleryImages.map((image, index) => (
-              <img
-                key={image.src}
-                src={image.src}
-                alt={image.alt}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-                  index === currentImage
-                    ? 'opacity-100'
-                    : 'opacity-0'
-                }`}
-                aria-hidden={index !== currentImage}
-              />
-            ))}
-
-            <div
-              className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"
-              aria-hidden="true"
-            />
-
-            <div className="absolute bottom-4 sm:bottom-5 left-4 sm:left-5 right-4 sm:right-5 flex items-center justify-between gap-4">
-
-              <span className="text-xs uppercase tracking-[0.2em] text-white/70">
-                Lobos Quad Rugby · Valencia
-              </span>
-
-              <span
-                className="text-xs font-mono text-white/70"
-                aria-live="polite"
-              >
-                {String(currentImage + 1).padStart(2, '0')} /{' '}
-                {String(galleryImages.length).padStart(2, '0')}
-              </span>
-
-            </div>
-
-          </div>
-
-
-          {/* Indicadores */}
-          <div
-            className="flex gap-2 mt-5"
-            role="tablist"
-            aria-label="Seleccionar imagen de la galería"
-          >
-
-            {galleryImages.map((image, index) => (
-              <button
-                key={image.src}
-                type="button"
-                role="tab"
-                aria-selected={index === currentImage}
-                aria-label={`Ver imagen ${index + 1}`}
-                onClick={() => setCurrentImage(index)}
-                className={`h-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 ${
-                  index === currentImage
-                    ? 'w-8 sm:w-10 bg-red-600'
-                    : 'w-2 sm:w-5 bg-white/20 hover:bg-white/40'
-                }`}
-              />
-            ))}
-
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* =========================================================
-          VALORES
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28">
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-
-          <div className="grid lg:grid-cols-12 gap-10 sm:gap-12">
-
-            <div className="lg:col-span-4">
-
-              <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
-                Código Lobos
-              </span>
-
-              <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight">
-                Nuestros{' '}
-                <span className="text-gray-600">
-                  valores
-                </span>
-              </h2>
-
-            </div>
-
-
-            <div className="lg:col-span-8">
-
-              <div className="space-y-0">
-
-                {values.map((valor, index) => (
-                  <div
-                    key={valor}
-                    className="py-5 sm:py-6 flex items-center gap-4 sm:gap-5 border-b border-white/10 last:border-0"
-                  >
-
-                    <CheckIcon className="text-red-600 shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
-
-                    <span className="text-base sm:text-lg lg:text-xl font-bold uppercase">
-                      {valor}
-                    </span>
-
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={player.slug}
+                      className="border border-white/10 bg-white/[0.01] p-6 opacity-80"
+                    >
+                      {content}
+                    </div>
+                  );
+                })}
 
               </div>
+
             </div>
 
           </div>
+
         </div>
+
       </section>
 
+      {/* =====================================================
+          GALLERY
+      ===================================================== */}
 
-      {/* =========================================================
-          CTA FINAL
-      ========================================================= */}
-      <section className="py-20 sm:py-24 lg:py-28 bg-red-600">
+      <section className="border-b border-white/10">
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
 
-          <div className="max-w-4xl">
+          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
 
-            <span className="text-xs tracking-[0.3em] uppercase text-black/60 font-bold">
-              Forma parte del proyecto
-            </span>
+            <div>
 
-            <h2 className="mt-5 text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.88] text-black">
-              ¿Quieres formar{' '}
-              <span className="block">
-                parte de los Lobos?
-              </span>
-            </h2>
+              <p className="mb-5 text-xs uppercase tracking-[0.3em] text-white/35">
+                Momentos
+              </p>
 
-            <p className="mt-6 sm:mt-8 text-base sm:text-lg text-black/75 max-w-2xl leading-relaxed">
-              Ya sea dentro de la pista, apoyando al equipo o colaborando con
-              el proyecto, hay muchas formas de formar parte del equipo.
-            </p>
+              <h2 className="text-4xl font-light tracking-[-0.03em] sm:text-5xl">
+                Lobos en acción.
+              </h2>
 
-            <div className="mt-8 sm:mt-10 flex flex-wrap gap-4">
+            </div>
 
-              <Link
-                to="/unete"
-                className="group inline-flex items-center gap-3 bg-black text-white px-6 sm:px-7 py-3 text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+            <button
+              type="button"
+              onClick={() => setGalleryOpen(true)}
+              className="group flex items-center gap-3 text-sm text-white/50 transition-colors hover:text-white"
+            >
+              Ver galería
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </button>
+
+          </div>
+
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            {gallery.slice(0, 4).map((image, index) => (
+              <button
+                key={image}
+                type="button"
+                onClick={() => setSelectedImage(image)}
+                className={`group relative overflow-hidden ${
+                  index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''
+                }`}
               >
-                Quiero unirme
 
-                <ArrowUpRight
-                  className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 w-3 h-3 sm:w-4 sm:h-4"
+                <img
+                  src={image}
+                  alt={`Lobos Quad Rugby - momento ${index + 1}`}
+                  className={`w-full object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0 ${
+                    index === 0
+                      ? 'aspect-square sm:aspect-auto sm:h-full'
+                      : 'aspect-[4/3]'
+                  }`}
                 />
-              </Link>
 
-              <Link
-                to="/equipo"
-                className="inline-flex items-center gap-3 border border-black/30 text-black px-6 sm:px-7 py-3 text-xs font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-transparent" />
+
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          GALLERY MODAL
+      ===================================================== */}
+
+      {galleryOpen && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/95 p-6"
+          onClick={() => setGalleryOpen(false)}
+        >
+
+          <div className="mx-auto max-w-7xl py-10">
+
+            <div className="mb-8 flex items-center justify-between">
+
+              <h2 className="text-2xl font-light">
+                Galería
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setGalleryOpen(false)}
+                className="text-sm text-white/50 transition-colors hover:text-white"
               >
-                Conocer al equipo
+                Cerrar
+              </button>
 
-                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Link>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+              {gallery.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedImage(image);
+                  }}
+                  className="overflow-hidden"
+                >
+                  <img
+                    src={image}
+                    alt={`Lobos Quad Rugby - momento ${index + 1}`}
+                    className="w-full object-cover transition duration-500 hover:scale-105"
+                  />
+                </button>
+              ))}
 
             </div>
 
           </div>
+
         </div>
-      </section>
+      )}
+
+      {/* =====================================================
+          IMAGE MODAL
+      ===================================================== */}
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-6"
+          onClick={() => setSelectedImage(null)}
+        >
+
+          <button
+            type="button"
+            onClick={() => setSelectedImage(null)}
+            className="absolute right-6 top-6 z-10 text-sm text-white/50 hover:text-white"
+          >
+            Cerrar
+          </button>
+
+          <img
+            src={selectedImage}
+            alt="Lobos Quad Rugby"
+            className="max-h-[90vh] max-w-full object-contain"
+          />
+
+        </div>
+      )}
 
     </main>
   );
