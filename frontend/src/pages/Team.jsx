@@ -412,6 +412,10 @@ export default function Team() {
      ABRIR PERFIL DESDE ABOUT
   ======================================================= */
 
+  /* =======================================================
+   ABRIR PERFIL DESDE ABOUT
+======================================================= */
+
   useEffect(() => {
     const jugadorSlug = searchParams.get('jugador');
 
@@ -421,11 +425,15 @@ export default function Team() {
 
     const allPeople = [...players, ...staff];
 
-    /**
-     * Alias para garantir que os nomes continuem funcionando
-     * mesmo que no banco exista alguma diferença de escrita,
-     * acentos ou apelido.
-     */
+    const normalizeSlug = (value) => {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    };
+
     const aliases = {
       'jairo-beses': [
         'jairo-beses',
@@ -446,13 +454,9 @@ export default function Team() {
       aliases[jugadorSlug] || [jugadorSlug];
 
     const person = allPeople.find((item) => {
-      const personSlug = normalizeSlug(
-        item?.name
-      );
+      const personSlug = normalizeSlug(item?.name);
 
-      return acceptedSlugs.includes(
-        personSlug
-      );
+      return acceptedSlugs.includes(personSlug);
     });
 
     if (person) {
@@ -464,7 +468,6 @@ export default function Team() {
     loading,
     searchParams,
   ]);
-
   /* =======================================================
      JUGADORES FILTRABLES
   ======================================================= */
