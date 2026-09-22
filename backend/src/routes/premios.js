@@ -40,7 +40,7 @@ router.post('/', authMiddleware, async (req, res) => {
       logo
     } = req.body;
 
-    if (!ano || !valor || !entidad || !premio) {
+    if (!ano || !entidad || !premio) {
       return res.status(400).json({
         error: 'Los campos año, importe, entidad y premio son obligatorios'
       });
@@ -86,7 +86,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       logo
     } = req.body;
 
-    if (!ano || !valor || !entidad || !premio) {
+    if (!ano || !entidad || !premio) {
       return res.status(400).json({
         error: 'Los campos año, importe, entidad y premio son obligatorios'
       });

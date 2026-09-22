@@ -189,7 +189,7 @@ export default function Sponsors() {
     {
       name: 'Fundación "La Caixa"',
       url: 'https://fundacionlacaixa.org/es/home',
-      logo: '/assets/caixa.png',
+      logo: '/assets/caixa.PNG',
     },
   ];
 

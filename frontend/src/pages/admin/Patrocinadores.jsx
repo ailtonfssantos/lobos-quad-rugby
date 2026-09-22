@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
-const Icon = ({ path, className = "w-5 h-5" }) => (
+/* =========================================================
+   ICON
+========================================================= */
+
+const Icon = ({ path, className = 'w-6 h-6' }) => (
   <svg
     className={className}
     fill="none"
@@ -12,9 +16,9 @@ const Icon = ({ path, className = "w-5 h-5" }) => (
   </svg>
 );
 
-// =========================================================
-// FORMATO DE MONEDA
-// =========================================================
+/* =========================================================
+   CURRENCY
+========================================================= */
 
 const formatCurrency = (value) => {
   const numericValue = Number(value) || 0;
@@ -25,9 +29,9 @@ const formatCurrency = (value) => {
   }).format(numericValue);
 };
 
-// =========================================================
-// CONVERSIÓN DE VALORES EUROPEOS
-// =========================================================
+/* =========================================================
+   EUROPEAN NUMBER PARSER
+========================================================= */
 
 const parseEuropeanNumber = (value) => {
   const valStr = String(value ?? '').trim();
@@ -49,9 +53,9 @@ const parseEuropeanNumber = (value) => {
   return Number.isNaN(numericValue) ? 0 : numericValue;
 };
 
-// =========================================================
-// RESUMEN ANUAL DE SUBVENCIONES + PREMIOS
-// =========================================================
+/* =========================================================
+   TRANSPARENCY SUMMARIES
+========================================================= */
 
 const calculateTransparencySummaries = (subvenciones, premios) => {
   const years = new Set([
@@ -60,7 +64,12 @@ const calculateTransparencySummaries = (subvenciones, premios) => {
   ]);
 
   return [...years]
-    .filter((year) => year && year !== 'undefined' && year !== 'null')
+    .filter(
+      (year) =>
+        year &&
+        year !== 'undefined' &&
+        year !== 'null'
+    )
     .sort((a, b) => Number(b) - Number(a))
     .map((year) => {
       const subvencionesYear = subvenciones.filter(
@@ -92,9 +101,9 @@ const calculateTransparencySummaries = (subvenciones, premios) => {
     });
 };
 
-// =========================================================
-// ESTADO INICIAL SUBVENCIÓN
-// =========================================================
+/* =========================================================
+   INITIAL FORMS
+========================================================= */
 
 const initialSubvencionForm = {
   ano: '',
@@ -108,10 +117,6 @@ const initialSubvencionForm = {
   basesLink: '',
 };
 
-// =========================================================
-// ESTADO INICIAL PREMIO
-// =========================================================
-
 const initialPremioForm = {
   ano: '',
   valor: '',
@@ -121,92 +126,131 @@ const initialPremioForm = {
   logo: '',
 };
 
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function Patrocinadores() {
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  /* =======================================================
+     AUTH
+  ======================================================= */
+
+  const getToken = () => localStorage.getItem('token');
+
+  const getAuthHeaders = () => {
+    const token = getToken();
+
+    return token
+      ? {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      : {
+          'Content-Type': 'application/json',
+        };
+  };
+
+  /* =======================================================
+     GENERAL
+  ======================================================= */
+
   const [activeTab, setActiveTab] = useState('solicitudes');
 
-  // =========================================================
-  // SOLICITUDES
-  // =========================================================
+  /* =======================================================
+     SOLICITUDES
+  ======================================================= */
 
   const [solicitudes, setSolicitudes] = useState([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState(null);
 
-  // =========================================================
-  // SUBVENCIONES
-  // =========================================================
+  /* =======================================================
+     SUBVENCIONES
+  ======================================================= */
 
   const [subvenciones, setSubvenciones] = useState([]);
-  const [modalSubvencionOpen, setModalSubvencionOpen] = useState(false);
+  const [modalSubvencionOpen, setModalSubvencionOpen] =
+    useState(false);
   const [editingSubId, setEditingSubId] = useState(null);
-
   const [formDataSub, setFormDataSub] = useState(
     initialSubvencionForm
   );
 
-  // =========================================================
-  // PREMIOS Y RECONOCIMIENTOS
-  // =========================================================
+  /* =======================================================
+     PREMIOS
+  ======================================================= */
 
   const [premios, setPremios] = useState([]);
-  const [modalPremioOpen, setModalPremioOpen] = useState(false);
-  const [editingPremioId, setEditingPremioId] = useState(null);
+  const [modalPremioOpen, setModalPremioOpen] =
+    useState(false);
+  const [editingPremioId, setEditingPremioId] =
+    useState(null);
+  const [formDataPremio, setFormDataPremio] =
+    useState(initialPremioForm);
 
-  const [formDataPremio, setFormDataPremio] = useState(
-    initialPremioForm
-  );
+  /* =======================================================
+     LOGO UPLOAD
+  ======================================================= */
 
-  // =========================================================
-  // ELIMINACIÓN UNIFICADA
-  // =========================================================
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoUploadError, setLogoUploadError] =
+    useState('');
+
+  /* =======================================================
+     DELETE
+  ======================================================= */
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  // =========================================================
-  // CARGAR DATOS
-  // =========================================================
+  /* =======================================================
+     LOAD DATA
+  ======================================================= */
 
   const cargarDatos = async () => {
-    const token = localStorage.getItem('token');
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
     try {
+      const token = getToken();
+
+      const headers = token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {};
+
       const [
         solicitudesResponse,
         subvencionesResponse,
         premiosResponse,
       ] = await Promise.all([
-        fetch(`${API_URL}/api/patrocinadores`, { headers }),
-        fetch(`${API_URL}/api/subvenciones`, { headers }),
-        fetch(`${API_URL}/api/premios`, { headers }),
+        fetch(`${API_URL}/api/patrocinadores`, {
+          headers,
+        }),
+
+        fetch(`${API_URL}/api/subvenciones`, {
+          headers,
+        }),
+
+        fetch(`${API_URL}/api/premios`, {
+          headers,
+        }),
       ]);
 
       if (solicitudesResponse.ok) {
-        const solicitudesData = await solicitudesResponse.json();
-        setSolicitudes(
-          Array.isArray(solicitudesData) ? solicitudesData : []
-        );
+        const data = await solicitudesResponse.json();
+        setSolicitudes(Array.isArray(data) ? data : []);
       }
 
       if (subvencionesResponse.ok) {
-        const subvencionesData = await subvencionesResponse.json();
-        setSubvenciones(
-          Array.isArray(subvencionesData) ? subvencionesData : []
-        );
+        const data = await subvencionesResponse.json();
+        setSubvenciones(Array.isArray(data) ? data : []);
       }
 
       if (premiosResponse.ok) {
-        const premiosData = await premiosResponse.json();
-        setPremios(
-          Array.isArray(premiosData) ? premiosData : []
-        );
+        const data = await premiosResponse.json();
+        setPremios(Array.isArray(data) ? data : []);
       }
     } catch (error) {
-      console.error('Error cargando datos:', error);
+      console.error('Error al cargar datos:', error);
     }
   };
 
@@ -214,238 +258,317 @@ export default function Patrocinadores() {
     cargarDatos();
   }, []);
 
-  // =========================================================
-  // SOLICITUDES
-  // =========================================================
-
-  const verSolicitud = async (sol) => {
-    setSelectedSolicitud(sol);
-
-    if (sol.status === 'PENDIENTE') {
-      const token = localStorage.getItem('token');
-
-      await fetch(`${API_URL}/api/patrocinadores/${sol.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          status: 'VISTO',
-        }),
-      });
-
-      setSolicitudes((prev) =>
-        prev.map((s) =>
-          s.id === sol.id
-            ? {
-                ...s,
-                status: 'VISTO',
-              }
-            : s
-        )
-      );
-    }
-  };
-
-  const archivarSolicitud = async (id) => {
-    const token = localStorage.getItem('token');
-
-    try {
-      await fetch(`${API_URL}/api/patrocinadores/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          status: 'ARCHIVADO',
-        }),
-      });
-
-      setSolicitudes((prev) =>
-        prev.filter((s) => s.id !== id)
-      );
-    } catch (error) {
-      console.error('Error al archivar:', error);
-    }
-  };
-
-  // =========================================================
-  // SUBVENCIONES
-  // =========================================================
+  /* =======================================================
+     SUBVENCIONES - NEW
+  ======================================================= */
 
   const abrirNuevaSubvencion = () => {
     setEditingSubId(null);
-    setFormDataSub({
-      ...initialSubvencionForm,
-    });
+    setFormDataSub(initialSubvencionForm);
     setModalSubvencionOpen(true);
   };
 
-  const editarSubvencion = (sub) => {
-    setEditingSubId(sub.id);
+  /* =======================================================
+     SUBVENCIONES - EDIT
+  ======================================================= */
+
+  const editarSubvencion = (subvencion) => {
+    setEditingSubId(subvencion.id);
 
     setFormDataSub({
-      ...initialSubvencionForm,
-      ...sub,
+      ano: subvencion.ano || '',
+      valor: subvencion.valor || '',
+      entidad: subvencion.entidad || '',
+      fechaConcesion:
+        subvencion.fechaConcesion || '',
+      tipo: subvencion.tipo || 'Administración',
+      ambito: subvencion.ambito || 'Local',
+      departamento: subvencion.departamento || '',
+      convocatoria: subvencion.convocatoria || '',
+      basesLink: subvencion.basesLink || '',
     });
 
     setModalSubvencionOpen(true);
   };
 
-  const guardarSubvencion = async (e) => {
-    e.preventDefault();
+  /* =======================================================
+     SUBVENCIONES - SAVE
+  ======================================================= */
 
-    const token = localStorage.getItem('token');
-
-    const url = editingSubId
-      ? `${API_URL}/api/subvenciones/${editingSubId}`
-      : `${API_URL}/api/subvenciones`;
+  const guardarSubvencion = async (event) => {
+    event.preventDefault();
 
     try {
+      const token = getToken();
+
+      const url = editingSubId
+        ? `${API_URL}/api/subvenciones/${editingSubId}`
+        : `${API_URL}/api/subvenciones`;
+
+      const method = editingSubId ? 'PUT' : 'POST';
+
       const response = await fetch(url, {
-        method: editingSubId ? 'PUT' : 'POST',
+        method,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(),
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}),
         },
         body: JSON.stringify(formDataSub),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Error al guardar la subvención');
+        throw new Error(
+          data.error || 'No se pudo guardar la subvención.'
+        );
       }
 
       setModalSubvencionOpen(false);
       setEditingSubId(null);
-      setFormDataSub({
-        ...initialSubvencionForm,
-      });
+      setFormDataSub(initialSubvencionForm);
 
-      const res = await fetch(
-        `${API_URL}/api/subvenciones`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await cargarDatos();
+    } catch (error) {
+      console.error(
+        'Error al guardar subvención:',
+        error
       );
 
-      if (res.ok) {
-        const data = await res.json();
-
-        setSubvenciones(
-          Array.isArray(data) ? data : []
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Error al guardar la subvención.');
+      alert(
+        error.message ||
+          'No se pudo guardar la subvención.'
+      );
     }
   };
 
-  // =========================================================
-  // PREMIOS
-  // =========================================================
+  /* =======================================================
+     PREMIOS - NEW
+  ======================================================= */
 
   const abrirNuevoPremio = () => {
     setEditingPremioId(null);
-
-    setFormDataPremio({
-      ...initialPremioForm,
-    });
-
+    setFormDataPremio(initialPremioForm);
+    setLogoUploadError('');
     setModalPremioOpen(true);
   };
+
+  /* =======================================================
+     PREMIOS - EDIT
+  ======================================================= */
 
   const editarPremio = (premio) => {
     setEditingPremioId(premio.id);
 
     setFormDataPremio({
-      ...initialPremioForm,
-      ...premio,
+      ano: premio.ano || '',
+      valor: premio.valor || '',
+      entidad: premio.entidad || '',
+      premio: premio.premio || '',
+      descripcion: premio.descripcion || '',
+      logo: premio.logo || '',
     });
 
+    setLogoUploadError('');
     setModalPremioOpen(true);
   };
 
-  const guardarPremio = async (e) => {
-    e.preventDefault();
+  /* =======================================================
+     LOGO - UPLOAD TO CLOUDINARY
+  ======================================================= */
 
-    const token = localStorage.getItem('token');
+  const subirLogoPremio = async (file) => {
+    if (!file) return;
 
-    const url = editingPremioId
-      ? `${API_URL}/api/premios/${editingPremioId}`
-      : `${API_URL}/api/premios`;
+    setLogoUploadError('');
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setLogoUploadError(
+        'Formato no válido. Utilice JPG, JPEG, PNG o WEBP.'
+      );
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoUploadError(
+        'El archivo es demasiado grande. El tamaño máximo es de 5 MB.'
+      );
+      return;
+    }
+
+    const token = getToken();
+
+    if (!token) {
+      setLogoUploadError(
+        'No se encontró la sesión de administrador.'
+      );
+      return;
+    }
 
     try {
+      setUploadingLogo(true);
+
+      const formData = new FormData();
+
+      /*
+       * IMPORTANTE:
+       * upload.js utiliza upload.single('image')
+       */
+      formData.append('image', file);
+
+      const response = await fetch(
+        `${API_URL}/api/upload`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            'No se pudo subir el logo.'
+        );
+      }
+
+      if (!data.url) {
+        throw new Error(
+          'El servidor no devolvió la URL de la imagen.'
+        );
+      }
+
+      setFormDataPremio((prev) => ({
+        ...prev,
+        logo: data.url,
+      }));
+    } catch (error) {
+      console.error(
+        'Error al subir logo:',
+        error
+      );
+
+      setLogoUploadError(
+        error.message ||
+          'No se pudo subir el logo.'
+      );
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  /* =======================================================
+     LOGO - REMOVE
+  ======================================================= */
+
+  const quitarLogoPremio = () => {
+    setFormDataPremio((prev) => ({
+      ...prev,
+      logo: '',
+    }));
+
+    setLogoUploadError('');
+  };
+
+  /* =======================================================
+     PREMIOS - SAVE
+  ======================================================= */
+
+  const guardarPremio = async (event) => {
+    event.preventDefault();
+
+    try {
+      const token = getToken();
+
+      const url = editingPremioId
+        ? `${API_URL}/api/premios/${editingPremioId}`
+        : `${API_URL}/api/premios`;
+
+      const method = editingPremioId
+        ? 'PUT'
+        : 'POST';
+
       const response = await fetch(url, {
-        method: editingPremioId ? 'PUT' : 'POST',
+        method,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(),
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}),
         },
         body: JSON.stringify(formDataPremio),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Error al guardar el premio');
+        throw new Error(
+          data.error ||
+            'No se pudo guardar el premio.'
+        );
       }
 
       setModalPremioOpen(false);
       setEditingPremioId(null);
+      setFormDataPremio(initialPremioForm);
+      setLogoUploadError('');
 
-      setFormDataPremio({
-        ...initialPremioForm,
-      });
-
-      const res = await fetch(
-        `${API_URL}/api/premios`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await cargarDatos();
+    } catch (error) {
+      console.error(
+        'Error al guardar premio:',
+        error
       );
 
-      if (res.ok) {
-        const data = await res.json();
-
-        setPremios(
-          Array.isArray(data) ? data : []
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Error al guardar el premio.');
+      alert(
+        error.message ||
+          'No se pudo guardar el premio o reconocimiento.'
+      );
     }
   };
 
-  // =========================================================
-  // ELIMINACIÓN
-  // =========================================================
+  /* =======================================================
+     DELETE
+  ======================================================= */
 
-  const confirmarDelete = async () => {
+  const confirmarEliminacion = async () => {
     if (!deleteTarget) return;
 
-    const token = localStorage.getItem('token');
-
-    let endpoint = '';
-
-    if (deleteTarget.type === 'solicitud') {
-      endpoint = 'patrocinadores';
-    }
-
-    if (deleteTarget.type === 'subvencion') {
-      endpoint = 'subvenciones';
-    }
-
-    if (deleteTarget.type === 'premio') {
-      endpoint = 'premios';
-    }
-
     try {
+      const token = getToken();
+
+      const endpointMap = {
+        solicitud: 'patrocinadores',
+        subvencion: 'subvenciones',
+        premio: 'premios',
+      };
+
+      const endpoint =
+        endpointMap[deleteTarget.type];
+
+      if (!endpoint) {
+        throw new Error(
+          'Tipo de elemento no válido.'
+        );
+      }
+
       const response = await fetch(
         `${API_URL}/api/${endpoint}/${deleteTarget.id}`,
         {
@@ -456,14 +579,20 @@ export default function Patrocinadores() {
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Error al eliminar');
+        throw new Error(
+          data.error ||
+            'No se pudo eliminar el elemento.'
+        );
       }
 
       if (deleteTarget.type === 'solicitud') {
         setSolicitudes((prev) =>
           prev.filter(
-            (s) => s.id !== deleteTarget.id
+            (item) =>
+              item.id !== deleteTarget.id
           )
         );
       }
@@ -471,7 +600,8 @@ export default function Patrocinadores() {
       if (deleteTarget.type === 'subvencion') {
         setSubvenciones((prev) =>
           prev.filter(
-            (s) => s.id !== deleteTarget.id
+            (item) =>
+              item.id !== deleteTarget.id
           )
         );
       }
@@ -479,1015 +609,689 @@ export default function Patrocinadores() {
       if (deleteTarget.type === 'premio') {
         setPremios((prev) =>
           prev.filter(
-            (p) => p.id !== deleteTarget.id
+            (item) =>
+              item.id !== deleteTarget.id
           )
         );
       }
 
       setDeleteTarget(null);
     } catch (error) {
-      console.error('Error al eliminar:', error);
-      alert('No ha sido posible eliminar el registro.');
+      console.error(
+        'Error al eliminar:',
+        error
+      );
+
+      alert(
+        error.message ||
+          'No se pudo eliminar el elemento.'
+      );
     }
   };
 
-  // =========================================================
-  // COLORES DE ESTADO
-  // =========================================================
+  /* =======================================================
+     SUMMARY
+  ======================================================= */
 
-  const getStatusColor = (status) => {
-    if (status === 'PENDIENTE') {
-      return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-    }
+  const summaries =
+    calculateTransparencySummaries(
+      subvenciones,
+      premios
+    );
 
-    if (status === 'VISTO') {
-      return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-    }
-
-    if (status === 'ARCHIVADO') {
-      return 'bg-zinc-800 text-zinc-500 border-zinc-700';
-    }
-
-    if (status === 'APROBADO') {
-      return 'bg-green-500/10 text-green-500 border-green-500/20';
-    }
-
-    return 'bg-red-500/10 text-red-500 border-red-500/20';
-  };
-
-  // =========================================================
-  // RESÚMENES
-  // =========================================================
-
-  const yearlySummaries = calculateTransparencySummaries(
-    subvenciones,
-    premios
-  );
-
-  const solicitudesVisibles = solicitudes.filter(
-    (s) => s.status !== 'ARCHIVADO'
-  );
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
-    <div className="space-y-6">
-
-      {/* =====================================================
+    <div className="min-h-screen bg-[#050505] text-white">
+      {/* ===================================================
           HEADER
-      ===================================================== */}
+      =================================================== */}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-3xl text-white mb-1">
-            Patrocinios y Transparencia
-          </h1>
+      <section className="border-b border-white/10 bg-[#080808]">
+        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-white/40">
+                Administración
+              </p>
 
-          <p className="text-zinc-500 text-sm">
-            Gestione solicitudes de empresas, subvenciones,
-            premios y reconocimientos.
-          </p>
+              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+                Patrocinadores y transparencia
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">
+                Gestión de solicitudes, subvenciones,
+                premios y reconocimientos concedidos al
+                club.
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* =====================================================
+      {/* ===================================================
           TABS
-      ===================================================== */}
+      =================================================== */}
 
-      <div className="flex border-b border-zinc-800 overflow-x-auto">
+      <div className="border-b border-white/10 bg-[#080808]">
+        <div className="mx-auto flex max-w-7xl gap-8 overflow-x-auto px-6 lg:px-8">
+          <button
+            type="button"
+            onClick={() =>
+              setActiveTab('solicitudes')
+            }
+            className={`border-b-2 py-4 text-sm font-medium transition ${
+              activeTab === 'solicitudes'
+                ? 'border-white text-white'
+                : 'border-transparent text-white/40 hover:text-white'
+            }`}
+          >
+            Solicitudes
+          </button>
 
-        <button
-          onClick={() => setActiveTab('solicitudes')}
-          className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap ${
-            activeTab === 'solicitudes'
-              ? 'border-red-600 text-red-500'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          Solicitudes (
-          {
-            solicitudesVisibles.filter(
-              (s) => s.status === 'PENDIENTE'
-            ).length
-          }{' '}
-          pendientes)
-        </button>
-
-        <button
-          onClick={() => setActiveTab('transparencia')}
-          className={`px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap ${
-            activeTab === 'transparencia'
-              ? 'border-red-600 text-red-500'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          Transparencia
-        </button>
-
+          <button
+            type="button"
+            onClick={() =>
+              setActiveTab('transparencia')
+            }
+            className={`border-b-2 py-4 text-sm font-medium transition ${
+              activeTab === 'transparencia'
+                ? 'border-white text-white'
+                : 'border-transparent text-white/40 hover:text-white'
+            }`}
+          >
+            Transparencia
+          </button>
+        </div>
       </div>
 
-      {/* =====================================================
-          TAB 1 — SOLICITUDES
-      ===================================================== */}
+      {/* ===================================================
+          CONTENT
+      =================================================== */}
 
-      {activeTab === 'solicitudes' && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
+      <main className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+        {/* =================================================
+            SOLICITUDES
+        ================================================= */}
 
-          <table className="w-full text-left min-w-[800px]">
-
-            <thead className="bg-zinc-950 border-b border-zinc-800">
-              <tr>
-
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                  Empresa
-                </th>
-
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                  Contacto
-                </th>
-
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                  Modalidad
-                </th>
-
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                  Estado
-                </th>
-
-                <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">
-                  Acciones
-                </th>
-
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-zinc-800">
-
-              {solicitudesVisibles.map((sol) => (
-
-                <tr
-                  key={sol.id}
-                  className="hover:bg-zinc-800/30 transition-colors"
-                >
-
-                  <td className="px-6 py-4">
-                    <p className="text-white font-medium">
-                      {sol.companyName}
-                    </p>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <p className="text-zinc-300 text-sm">
-                      {sol.contactName}
-                    </p>
-
-                    <p className="text-zinc-500 text-xs">
-                      {sol.email}
-                    </p>
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-sm bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">
-                      {sol.sponsorshipType}
-                    </span>
-
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(
-                        sol.status
-                      )}`}
-                    >
-                      {sol.status}
-                    </span>
-
-                  </td>
-
-                  <td className="px-6 py-4 text-right">
-
-                    <div className="flex items-center justify-end gap-2">
-
-                      <button
-                        onClick={() => verSolicitud(sol)}
-                        className="px-3 py-1.5 bg-zinc-800 text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-zinc-700 transition-colors"
-                      >
-                        Ver
-                      </button>
-
-                      {sol.status !== 'ARCHIVADO' && (
-                        <button
-                          onClick={() =>
-                            archivarSolicitud(sol.id)
-                          }
-                          className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-sm transition-colors"
-                          title="Archivar"
-                        >
-                          <Icon path="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </button>
-                      )}
-
-                      <button
-                        onClick={() =>
-                          setDeleteTarget({
-                            type: 'solicitud',
-                            id: sol.id,
-                          })
-                        }
-                        className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
-                        title="Eliminar permanentemente"
-                      >
-                        <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </button>
-
-                    </div>
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
-      )}
-
-      {/* =====================================================
-          TAB 2 — TRANSPARENCIA
-      ===================================================== */}
-
-      {activeTab === 'transparencia' && (
-        <>
-
-          {/* =================================================
-              RESUMEN ANUAL
-          ================================================= */}
-
-          {yearlySummaries.length > 0 && (
-            <div className="space-y-4 mb-8">
-
-              <h2 className="font-display text-xl text-white">
-                Resumen anual
+        {activeTab === 'solicitudes' && (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold">
+                Solicitudes de patrocinio
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-
-                {yearlySummaries.map((summary) => (
-
-                  <div
-                    key={summary.year}
-                    className="bg-zinc-900 border border-zinc-800 p-5 rounded-sm"
-                  >
-
-                    <p className="text-zinc-500 text-xs uppercase tracking-widest mb-2">
-                      Resumen {summary.year}
-                    </p>
-
-                    <div className="space-y-3">
-
-                      <div>
-                        <p className="text-zinc-500 text-xs uppercase tracking-wider">
-                          Subvenciones
-                        </p>
-
-                        <p className="text-green-500 font-bold text-xl">
-                          {formatCurrency(
-                            summary.subvencionesTotal
-                          )}€
-                        </p>
-
-                        <p className="text-zinc-600 text-xs">
-                          {summary.subvencionesCount}{' '}
-                          {summary.subvencionesCount === 1
-                            ? 'registro'
-                            : 'registros'}
-                        </p>
-                      </div>
-
-                      <div className="border-t border-zinc-800 pt-3">
-
-                        <p className="text-zinc-500 text-xs uppercase tracking-wider">
-                          Premios y reconocimientos
-                        </p>
-
-                        <p className="text-yellow-500 font-bold text-xl">
-                          {formatCurrency(
-                            summary.premiosTotal
-                          )}€
-                        </p>
-
-                        <p className="text-zinc-600 text-xs">
-                          {summary.premiosCount}{' '}
-                          {summary.premiosCount === 1
-                            ? 'registro'
-                            : 'registros'}
-                        </p>
-
-                      </div>
-
-                      <div className="border-t border-zinc-800 pt-3">
-
-                        <p className="text-zinc-500 text-xs uppercase tracking-wider">
-                          Total ayudas y premios
-                        </p>
-
-                        <p className="font-display text-2xl text-white">
-                          {formatCurrency(summary.total)}€
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            </div>
-          )}
-
-          {/* =================================================
-              SUBVENCIONES
-          ================================================= */}
-
-          <div className="space-y-4 mb-10">
-
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-
-              <div>
-                <h2 className="font-display text-2xl text-white">
-                  SUBVENCIONES RECIBIDAS
-                </h2>
-
-                <p className="text-zinc-500 text-sm mt-1">
-                  Gestión de las ayudas económicas recibidas
-                  por el club.
-                </p>
-              </div>
-
-              <button
-                onClick={abrirNuevaSubvencion}
-                className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors rounded-sm"
-              >
-                <Icon
-                  path="M12 4.5v15m7.5-7.5h-15"
-                  className="w-4 h-4"
-                />
-
-                Nueva Subvención
-              </button>
-
+              <p className="mt-1 text-sm text-white/40">
+                Solicitudes recibidas a través del
+                formulario de patrocinadores.
+              </p>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
-
-              <table className="w-full text-left min-w-[900px]">
-
-                <thead className="bg-zinc-950 border-b border-zinc-800">
-
-                  <tr>
-
-                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                      Año
-                    </th>
-
-                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                      Entidad
-                    </th>
-
-                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                      Valor
-                    </th>
-
-                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                      Tipo / Ámbito
-                    </th>
-
-                    <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">
-                      Acciones
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody className="divide-y divide-zinc-800">
-
-                  {subvenciones.map((sub) => (
-
-                    <tr
-                      key={sub.id}
-                      className="hover:bg-zinc-800/30 transition-colors"
-                    >
-
-                      <td className="px-6 py-4">
-                        <p className="text-white font-bold text-lg">
-                          {sub.ano}
-                        </p>
-                      </td>
-
-                      <td className="px-6 py-4">
-
-                        <p className="text-white font-medium">
-                          {sub.entidad}
-                        </p>
-
-                        <p className="text-zinc-500 text-xs">
-                          {sub.departamento}
-                        </p>
-
-                      </td>
-
-                      <td className="px-6 py-4">
-
-                        <p className="text-green-500 font-bold text-lg">
-                          {sub.valor}€
-                        </p>
-
-                      </td>
-
-                      <td className="px-6 py-4">
-
-                        <p className="text-zinc-300 text-sm">
-                          {sub.tipo}
-                        </p>
-
-                        <p className="text-zinc-500 text-xs">
-                          {sub.ambito}
-                        </p>
-
-                      </td>
-
-                      <td className="px-6 py-4 text-right">
-
-                        <div className="flex items-center justify-end gap-2">
-
-                          <button
-                            onClick={() =>
-                              editarSubvencion(sub)
-                            }
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
-                            title="Editar"
-                          >
-                            <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              setDeleteTarget({
-                                type: 'subvencion',
-                                id: sub.id,
-                              })
-                            }
-                            className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
-                            title="Eliminar"
-                          >
-                            <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                          </button>
-
-                        </div>
-
-                      </td>
-
-                    </tr>
-
-                  ))}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </div>
-
-          {/* =================================================
-              PREMIOS
-          ================================================= */}
-
-          <div className="space-y-4">
-
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-
-              <div>
-
-                <h2 className="font-display text-2xl text-white">
-                  PREMIOS Y RECONOCIMIENTOS
-                </h2>
-
-                <p className="text-zinc-500 text-sm mt-1">
-                  Gestión de premios y reconocimientos concedidos al club.
-                </p>
-
-              </div>
-
-              <button
-                onClick={abrirNuevoPremio}
-                className="flex items-center gap-2 px-5 py-2.5 bg-yellow-600 text-white text-sm font-bold uppercase tracking-wider hover:bg-yellow-700 transition-colors rounded-sm"
-              >
-                <Icon
-                  path="M12 4.5v15m7.5-7.5h-15"
-                  className="w-4 h-4"
-                />
-
-                Nuevo Premio
-              </button>
-
-            </div>
-
-            {premios.length === 0 ? (
-
-              <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-10 text-center">
-
-                <div className="mx-auto w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
-
+            {solicitudes.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-12 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
                   <Icon
-                    path="M12 6v12m-6-6h12"
-                    className="w-6 h-6 text-zinc-500"
+                    className="h-5 w-5 text-white/40"
+                    path="M12 6v12m6-6H6"
                   />
-
                 </div>
 
-                <h3 className="text-white font-medium mb-1">
-                  No hay premios registrados
-                </h3>
-
-                <p className="text-zinc-500 text-sm">
-                  Añada el primer premio o reconocimiento
-                  utilizando el botón anterior.
+                <p className="text-sm text-white/40">
+                  No hay solicitudes recibidas.
                 </p>
-
               </div>
-
             ) : (
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[800px] text-left">
+                    <thead className="border-b border-white/10 bg-white/[0.02]">
+                      <tr>
+                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          Empresa
+                        </th>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
+                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          Contacto
+                        </th>
 
-                <table className="w-full text-left min-w-[1000px]">
+                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          Fecha
+                        </th>
 
-                  <thead className="bg-zinc-950 border-b border-zinc-800">
-
-                    <tr>
-
-                      <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                        Año
-                      </th>
-
-                      <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                        Entidad
-                      </th>
-
-                      <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                        Premio / Reconocimiento
-                      </th>
-
-                      <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium">
-                        Importe
-                      </th>
-
-                      <th className="px-6 py-4 text-zinc-500 text-xs uppercase tracking-wider font-medium text-right">
-                        Acciones
-                      </th>
-
-                    </tr>
-
-                  </thead>
-
-                  <tbody className="divide-y divide-zinc-800">
-
-                    {premios.map((premio) => (
-
-                      <tr
-                        key={premio.id}
-                        className="hover:bg-zinc-800/30 transition-colors"
-                      >
-
-                        <td className="px-6 py-4">
-
-                          <p className="text-white font-bold text-lg">
-                            {premio.ano}
-                          </p>
-
-                        </td>
-
-                        <td className="px-6 py-4">
-
-                          <div className="flex items-center gap-3">
-
-                            {premio.logo ? (
-                              <img
-                                src={premio.logo}
-                                alt={premio.entidad || 'Entidad'}
-                                className="w-10 h-10 object-contain bg-white rounded-sm p-1"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-zinc-800 border border-zinc-700 rounded-sm flex items-center justify-center">
-                                <Icon
-                                  path="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                                  className="w-5 h-5 text-zinc-500"
-                                />
-                              </div>
-                            )}
-
-                            <div>
-                              <p className="text-white font-medium">
-                                {premio.entidad}
-                              </p>
-                            </div>
-
-                          </div>
-
-                        </td>
-
-                        <td className="px-6 py-4">
-
-                          <p className="text-white font-medium">
-                            {premio.premio}
-                          </p>
-
-                          {premio.descripcion && (
-                            <p className="text-zinc-500 text-xs mt-1 max-w-md">
-                              {premio.descripcion}
-                            </p>
-                          )}
-
-                        </td>
-
-                        <td className="px-6 py-4">
-
-                          <p className="text-yellow-500 font-bold text-lg">
-                            {formatCurrency(
-                              parseEuropeanNumber(
-                                premio.valor
-                              )
-                            )}€
-                          </p>
-
-                        </td>
-
-                        <td className="px-6 py-4 text-right">
-
-                          <div className="flex items-center justify-end gap-2">
-
-                            <button
-                              onClick={() =>
-                                editarPremio(premio)
-                              }
-                              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
-                              title="Editar"
-                            >
-                              <Icon path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                            </button>
-
-                            <button
-                              onClick={() =>
-                                setDeleteTarget({
-                                  type: 'premio',
-                                  id: premio.id,
-                                })
-                              }
-                              className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
-                              title="Eliminar"
-                            >
-                              <Icon path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </button>
-
-                          </div>
-
-                        </td>
-
+                        <th className="px-5 py-4 text-right text-xs font-medium uppercase tracking-wider text-white/40">
+                          Acciones
+                        </th>
                       </tr>
+                    </thead>
 
-                    ))}
+                    <tbody className="divide-y divide-white/5">
+                      {solicitudes.map(
+                        (solicitud) => (
+                          <tr
+                            key={solicitud.id}
+                            className="transition hover:bg-white/[0.02]"
+                          >
+                            <td className="px-5 py-4">
+                              <div className="font-medium">
+                                {solicitud.empresa ||
+                                  solicitud.nombre ||
+                                  '—'}
+                              </div>
+                            </td>
 
-                  </tbody>
+                            <td className="px-5 py-4 text-sm text-white/60">
+                              {solicitud.email ||
+                                solicitud.correo ||
+                                '—'}
+                            </td>
 
-                </table>
+                            <td className="px-5 py-4 text-sm text-white/50">
+                              {solicitud.createdAt
+                                ? new Date(
+                                    solicitud.createdAt
+                                  ).toLocaleDateString(
+                                    'es-ES'
+                                  )
+                                : '—'}
+                            </td>
 
+                            <td className="px-5 py-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedSolicitud(
+                                      solicitud
+                                    )
+                                  }
+                                  className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
+                                >
+                                  Ver
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      type: 'solicitud',
+                                      id: solicitud.id,
+                                    })
+                                  }
+                                  className="rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-
             )}
+          </section>
+        )}
 
-          </div>
+        {/* =================================================
+            TRANSPARENCIA
+        ================================================= */}
 
-        </>
-      )}
+        {activeTab === 'transparencia' && (
+          <section>
+            {/* =============================================
+                HEADER
+            ============================================= */}
 
-      {/* =====================================================
-          MODAL — VER SOLICITUD
-      ===================================================== */}
+            <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">
+                  Transparencia
+                </h2>
 
-      {selectedSolicitud && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedSolicitud(null)}
-        >
-
-          <div
-            className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-lg w-full p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-
-            <h3 className="font-display text-xl text-white mb-4">
-              Mensaje de {selectedSolicitud.companyName}
-            </h3>
-
-            <div className="space-y-3 text-sm text-zinc-300 mb-6">
-
-              <p>
-                <span className="text-zinc-500">
-                  Contacto:
-                </span>{' '}
-                {selectedSolicitud.contactName}{' '}
-                ({selectedSolicitud.email})
-              </p>
-
-              <p>
-                <span className="text-zinc-500">
-                  Teléfono:
-                </span>{' '}
-                {selectedSolicitud.phone ||
-                  'No proporcionado'}
-              </p>
-
-              <p>
-                <span className="text-zinc-500">
-                  Modalidad:
-                </span>{' '}
-                {selectedSolicitud.sponsorshipType}
-              </p>
-
-              <div className="bg-zinc-950 p-4 rounded-sm border border-zinc-800 mt-4">
-
-                <p className="text-zinc-400 italic">
-                  "
-                  {selectedSolicitud.message ||
-                    'Sin mensaje adicional'}
-                  "
+                <p className="mt-1 text-sm text-white/40">
+                  Subvenciones, premios y
+                  reconocimientos recibidos por el club.
                 </p>
-
               </div>
 
-            </div>
-
-            <button
-              onClick={() => setSelectedSolicitud(null)}
-              className="w-full py-3 bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-sm hover:bg-zinc-700"
-            >
-              Cerrar
-            </button>
-
-          </div>
-
-        </div>
-      )}
-
-      {/* =====================================================
-          MODAL — CREAR/EDITAR SUBVENCIÓN
-      ===================================================== */}
-
-      {modalSubvencionOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-3xl w-full my-8 shadow-2xl">
-
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
-
-              <h2 className="font-display text-2xl text-white">
-                {editingSubId
-                  ? 'Editar Subvención'
-                  : 'Nueva Subvención'}
-              </h2>
-
-              <button
-                onClick={() =>
-                  setModalSubvencionOpen(false)
-                }
-                className="text-zinc-500 hover:text-white"
-              >
-                <Icon path="M6 18L18 6M6 6l12 12" />
-              </button>
-
-            </div>
-
-            <form
-              onSubmit={guardarSubvencion}
-              className="p-6 space-y-5 max-h-[70vh] overflow-y-auto"
-            >
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                <input
-                  type="number"
-                  placeholder="Año *"
-                  value={formDataSub.ano}
-                  onChange={(e) =>
-                    setFormDataSub({
-                      ...formDataSub,
-                      ano: e.target.value,
-                    })
-                  }
-                  required
-                  className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                />
-
-                <input
-                  type="text"
-                  placeholder="Valor (Ej: 6.500,00) *"
-                  value={formDataSub.valor}
-                  onChange={(e) =>
-                    setFormDataSub({
-                      ...formDataSub,
-                      valor: e.target.value,
-                    })
-                  }
-                  required
-                  className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                />
-
-                <input
-                  type="text"
-                  placeholder="Fecha Concesión *"
-                  value={formDataSub.fechaConcesion}
-                  onChange={(e) =>
-                    setFormDataSub({
-                      ...formDataSub,
-                      fechaConcesion: e.target.value,
-                    })
-                  }
-                  required
-                  className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                />
-
-              </div>
-
-              <input
-                type="text"
-                placeholder="Entidad Concedente *"
-                value={formDataSub.entidad}
-                onChange={(e) =>
-                  setFormDataSub({
-                    ...formDataSub,
-                    entidad: e.target.value,
-                  })
-                }
-                required
-                className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                <select
-                  value={formDataSub.tipo}
-                  onChange={(e) =>
-                    setFormDataSub({
-                      ...formDataSub,
-                      tipo: e.target.value,
-                    })
-                  }
-                  className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                >
-                  <option>Administración</option>
-                  <option>Fundación</option>
-                  <option>Privada</option>
-                </select>
-
-                <select
-                  value={formDataSub.ambito}
-                  onChange={(e) =>
-                    setFormDataSub({
-                      ...formDataSub,
-                      ambito: e.target.value,
-                    })
-                  }
-                  className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                >
-                  <option>Local</option>
-                  <option>Regional</option>
-                  <option>Nacional</option>
-                  <option>Europeo</option>
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Departamento"
-                  value={formDataSub.departamento}
-                  onChange={(e) =>
-                    setFormDataSub({
-                      ...formDataSub,
-                      departamento: e.target.value,
-                    })
-                  }
-                  className="bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-                />
-
-              </div>
-
-              <textarea
-                placeholder="Descripción de la Convocatoria..."
-                value={formDataSub.convocatoria}
-                onChange={(e) =>
-                  setFormDataSub({
-                    ...formDataSub,
-                    convocatoria: e.target.value,
-                  })
-                }
-                rows={3}
-                className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none resize-none"
-              />
-
-              <input
-                type="url"
-                placeholder="Enlace Bases Reguladoras (https://...)"
-                value={formDataSub.basesLink}
-                onChange={(e) =>
-                  setFormDataSub({
-                    ...formDataSub,
-                    basesLink: e.target.value,
-                  })
-                }
-                className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
-              />
-
-              <div className="flex gap-3 pt-4 border-t border-zinc-800">
-
+              <div className="flex flex-wrap gap-3">
                 <button
-                  type="submit"
-                  className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-700 transition-colors rounded-sm"
+                  type="button"
+                  onClick={abrirNuevaSubvencion}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/[0.06]"
                 >
-                  Guardar
+                  <Icon
+                    className="h-4 w-4"
+                    path="M12 5v14m-7-7h14"
+                  />
+                  Añadir subvención
                 </button>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setModalSubvencionOpen(false)
-                  }
-                  className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm"
+                  onClick={abrirNuevoPremio}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90"
                 >
-                  Cancelar
+                  <Icon
+                    className="h-4 w-4"
+                    path="M12 5v14m-7-7h14"
+                  />
+                  Añadir premio
                 </button>
+              </div>
+            </div>
 
+            {/* =============================================
+                SUMMARY
+            ============================================= */}
+
+            {summaries.length > 0 && (
+              <div className="mb-12 space-y-4">
+                {summaries.map((summary) => (
+                  <div
+                    key={summary.year}
+                    className="rounded-2xl border border-white/10 bg-white/[0.02] p-5"
+                  >
+                    <div className="mb-5 flex items-center justify-between">
+                      <div>
+                        <span className="text-lg font-semibold">
+                          {summary.year}
+                        </span>
+
+                        <span className="ml-3 text-xs text-white/30">
+                          {summary.subvencionesCount +
+                            summary.premiosCount}{' '}
+                          registros
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-widest text-white/30">
+                          Total ayudas y premios
+                        </p>
+
+                        <p className="mt-1 text-xl font-semibold">
+                          {formatCurrency(
+                            summary.total
+                          )}{' '}
+                          €
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                        <p className="text-xs uppercase tracking-wider text-white/30">
+                          Subvenciones
+                        </p>
+
+                        <p className="mt-2 text-lg font-medium">
+                          {formatCurrency(
+                            summary.subvencionesTotal
+                          )}{' '}
+                          €
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                        <p className="text-xs uppercase tracking-wider text-white/30">
+                          Premios y reconocimientos
+                        </p>
+
+                        <p className="mt-2 text-lg font-medium">
+                          {formatCurrency(
+                            summary.premiosTotal
+                          )}{' '}
+                          €
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* =============================================
+                SUBVENCIONES
+            ============================================= */}
+
+            <div className="mb-12">
+              <div className="mb-5 flex items-end justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/30">
+                    Transparencia económica
+                  </p>
+
+                  <h3 className="mt-2 text-lg font-semibold">
+                    SUBVENCIONES RECIBIDAS
+                  </h3>
+                </div>
               </div>
 
-            </form>
+              {subvenciones.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-10 text-center">
+                  <p className="text-sm text-white/40">
+                    No hay subvenciones registradas.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[900px] text-left">
+                      <thead className="border-b border-white/10 bg-white/[0.02]">
+                        <tr>
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Año
+                          </th>
 
-          </div>
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Entidad
+                          </th>
 
-        </div>
-      )}
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Tipo
+                          </th>
 
-      {/* =====================================================
-          MODAL — CREAR/EDITAR PREMIO
-      ===================================================== */}
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Ámbito
+                          </th>
 
-      {modalPremioOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Importe
+                          </th>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-3xl w-full my-8 shadow-2xl">
+                          <th className="px-5 py-4 text-right text-xs font-medium uppercase tracking-wider text-white/40">
+                            Acciones
+                          </th>
+                        </tr>
+                      </thead>
 
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                      <tbody className="divide-y divide-white/5">
+                        {subvenciones.map(
+                          (subvencion) => (
+                            <tr
+                              key={subvencion.id}
+                              className="transition hover:bg-white/[0.02]"
+                            >
+                              <td className="px-5 py-4 text-sm">
+                                {subvencion.ano}
+                              </td>
 
-              <div>
+                              <td className="px-5 py-4">
+                                <p className="font-medium">
+                                  {
+                                    subvencion.entidad
+                                  }
+                                </p>
 
-                <p className="text-yellow-500 text-xs uppercase tracking-widest mb-1">
-                  Transparencia
+                                {subvencion.convocatoria && (
+                                  <p className="mt-1 max-w-xs truncate text-xs text-white/30">
+                                    {
+                                      subvencion.convocatoria
+                                    }
+                                  </p>
+                                )}
+                              </td>
+
+                              <td className="px-5 py-4 text-sm text-white/60">
+                                {subvencion.tipo ||
+                                  '—'}
+                              </td>
+
+                              <td className="px-5 py-4 text-sm text-white/60">
+                                {subvencion.ambito ||
+                                  '—'}
+                              </td>
+
+                              <td className="px-5 py-4 text-sm font-medium">
+                                {formatCurrency(
+                                  parseEuropeanNumber(
+                                    subvencion.valor
+                                  )
+                                )}{' '}
+                                €
+                              </td>
+
+                              <td className="px-5 py-4">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      editarSubvencion(
+                                        subvencion
+                                      )
+                                    }
+                                    className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 transition hover:bg-white/5 hover:text-white"
+                                  >
+                                    Editar
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setDeleteTarget({
+                                        type: 'subvencion',
+                                        id: subvencion.id,
+                                      })
+                                    }
+                                    className="rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
+                                  >
+                                    Eliminar
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* =============================================
+                PREMIOS
+            ============================================= */}
+
+            <div>
+              <div className="mb-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/30">
+                  Reconocimientos
                 </p>
 
-                <h2 className="font-display text-2xl text-white">
-                  {editingPremioId
-                    ? 'Editar Premio'
-                    : 'Nuevo Premio'}
-                </h2>
+                <h3 className="mt-2 text-lg font-semibold">
+                  PREMIOS Y RECONOCIMIENTOS
+                </h3>
+              </div>
 
+              {premios.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-10 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
+                    <Icon
+                      className="h-5 w-5 text-white/40"
+                      path="M12 6v12m6-6H6"
+                    />
+                  </div>
+
+                  <p className="text-sm text-white/40">
+                    No hay premios o reconocimientos
+                    registrados.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[900px] text-left">
+                      <thead className="border-b border-white/10 bg-white/[0.02]">
+                        <tr>
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Año
+                          </th>
+
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Entidad
+                          </th>
+
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Premio / Reconocimiento
+                          </th>
+
+                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                            Importe
+                          </th>
+
+                          <th className="px-5 py-4 text-right text-xs font-medium uppercase tracking-wider text-white/40">
+                            Acciones
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody className="divide-y divide-white/5">
+                        {premios.map((premio) => (
+                          <tr
+                            key={premio.id}
+                            className="transition hover:bg-white/[0.02]"
+                          >
+                            <td className="px-5 py-4 text-sm">
+                              {premio.ano}
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-3">
+                                {premio.logo ? (
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white p-1.5">
+                                    <img
+                                      src={premio.logo}
+                                      alt={
+                                        premio.entidad
+                                      }
+                                      className="max-h-full max-w-full object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03]">
+                                    <Icon
+                                      className="h-4 w-4 text-white/30"
+                                      path="M12 4v16m8-8H4"
+                                    />
+                                  </div>
+                                )}
+
+                                <span className="font-medium">
+                                  {premio.entidad}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <p className="font-medium">
+                                {premio.premio}
+                              </p>
+
+                              {premio.descripcion && (
+                                <p className="mt-1 max-w-md text-xs leading-5 text-white/35">
+                                  {
+                                    premio.descripcion
+                                  }
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="px-5 py-4 text-sm font-medium">
+                              {formatCurrency(
+                                parseEuropeanNumber(
+                                  premio.valor
+                                )
+                              )}{' '}
+                              €
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    editarPremio(
+                                      premio
+                                    )
+                                  }
+                                  className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 transition hover:bg-white/5 hover:text-white"
+                                >
+                                  Editar
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      type: 'premio',
+                                      id: premio.id,
+                                    })
+                                  }
+                                  className="rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* =====================================================
+          MODAL SUBVENCIÓN
+      ===================================================== */}
+
+      {modalSubvencionOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0b0b0b] px-6 py-5">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {editingSubId
+                    ? 'Editar subvención'
+                    : 'Nueva subvención'}
+                </h3>
+
+                <p className="mt-1 text-xs text-white/35">
+                  Información económica de transparencia.
+                </p>
               </div>
 
               <button
+                type="button"
                 onClick={() =>
-                  setModalPremioOpen(false)
+                  setModalSubvencionOpen(false)
                 }
-                className="text-zinc-500 hover:text-white"
+                className="rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
               >
-                <Icon path="M6 18L18 6M6 6l12 12" />
+                <Icon
+                  className="h-5 w-5"
+                  path="M6 6l12 12M18 6L6 18"
+                />
               </button>
-
             </div>
 
             <form
-              onSubmit={guardarPremio}
-              className="p-6 space-y-5 max-h-[70vh] overflow-y-auto"
+              onSubmit={guardarSubvencion}
+              className="space-y-5 p-6"
             >
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-
-                  <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-2">
+                  <label className="mb-2 block text-xs font-medium text-white/60">
                     Año *
                   </label>
 
@@ -1495,7 +1299,264 @@ export default function Patrocinadores() {
                     type="number"
                     min="2000"
                     max="2100"
+                    required
+                    value={formDataSub.ano}
+                    onChange={(e) =>
+                      setFormDataSub({
+                        ...formDataSub,
+                        ano: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
                     placeholder="2026"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-white/60">
+                    Importe asignado *
+                  </label>
+
+                  <input
+                    type="text"
+                    required
+                    value={formDataSub.valor}
+                    onChange={(e) =>
+                      setFormDataSub({
+                        ...formDataSub,
+                        valor: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    placeholder="Ej: 2.500,00"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
+                  Entidad concedente *
+                </label>
+
+                <input
+                  type="text"
+                  required
+                  value={formDataSub.entidad}
+                  onChange={(e) =>
+                    setFormDataSub({
+                      ...formDataSub,
+                      entidad: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="Nombre de la entidad"
+                />
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-white/60">
+                    Tipo
+                  </label>
+
+                  <select
+                    value={formDataSub.tipo}
+                    onChange={(e) =>
+                      setFormDataSub({
+                        ...formDataSub,
+                        tipo: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm outline-none focus:border-white/30"
+                  >
+                    <option>
+                      Administración
+                    </option>
+                    <option>Entidad privada</option>
+                    <option>Fundación</option>
+                    <option>Federación</option>
+                    <option>Otro</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-white/60">
+                    Ámbito
+                  </label>
+
+                  <select
+                    value={formDataSub.ambito}
+                    onChange={(e) =>
+                      setFormDataSub({
+                        ...formDataSub,
+                        ambito: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm outline-none focus:border-white/30"
+                  >
+                    <option>Local</option>
+                    <option>Provincial</option>
+                    <option>Autonómico</option>
+                    <option>Nacional</option>
+                    <option>Europeo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
+                  Departamento
+                </label>
+
+                <input
+                  type="text"
+                  value={formDataSub.departamento}
+                  onChange={(e) =>
+                    setFormDataSub({
+                      ...formDataSub,
+                      departamento: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="Departamento / concejalía / organismo"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
+                  Convocatoria
+                </label>
+
+                <input
+                  type="text"
+                  value={formDataSub.convocatoria}
+                  onChange={(e) =>
+                    setFormDataSub({
+                      ...formDataSub,
+                      convocatoria: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="Nombre de la convocatoria"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
+                  Fecha de concesión
+                </label>
+
+                <input
+                  type="date"
+                  value={formDataSub.fechaConcesion}
+                  onChange={(e) =>
+                    setFormDataSub({
+                      ...formDataSub,
+                      fechaConcesion: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
+                  Enlace a las bases
+                </label>
+
+                <input
+                  type="url"
+                  value={formDataSub.basesLink}
+                  onChange={(e) =>
+                    setFormDataSub({
+                      ...formDataSub,
+                      basesLink: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalSubvencionOpen(false)
+                  }
+                  className="rounded-xl border border-white/10 px-5 py-3 text-sm text-white/60 transition hover:bg-white/5 hover:text-white"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-white/90"
+                >
+                  {editingSubId
+                    ? 'Guardar cambios'
+                    : 'Guardar subvención'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          MODAL PREMIO
+      ===================================================== */}
+
+      {modalPremioOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0b0b0b] px-6 py-5">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {editingPremioId
+                    ? 'Editar premio o reconocimiento'
+                    : 'Nuevo premio o reconocimiento'}
+                </h3>
+
+                <p className="mt-1 text-xs text-white/35">
+                  Añade el reconocimiento recibido por
+                  el club.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setModalPremioOpen(false)
+                }
+                className="rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
+              >
+                <Icon
+                  className="h-5 w-5"
+                  path="M6 6l12 12M18 6L6 18"
+                />
+              </button>
+            </div>
+
+            <form
+              onSubmit={guardarPremio}
+              className="space-y-5 p-6"
+            >
+              {/* ===========================================
+                  YEAR + VALUE
+              =========================================== */}
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-white/60">
+                    Año *
+                  </label>
+
+                  <input
+                    type="number"
+                    min="2000"
+                    max="2100"
+                    required
                     value={formDataPremio.ano}
                     onChange={(e) =>
                       setFormDataPremio({
@@ -1503,21 +1564,19 @@ export default function Patrocinadores() {
                         ano: e.target.value,
                       })
                     }
-                    required
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-yellow-600 outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    placeholder="2026"
                   />
-
                 </div>
 
                 <div>
-
-                  <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-2">
+                  <label className="mb-2 block text-xs font-medium text-white/60">
                     Importe asignado *
                   </label>
 
                   <input
                     type="text"
-                    placeholder="Ej: 2.500,00"
+                    required
                     value={formDataPremio.valor}
                     onChange={(e) =>
                       setFormDataPremio({
@@ -1525,44 +1584,123 @@ export default function Patrocinadores() {
                         valor: e.target.value,
                       })
                     }
-                    required
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-yellow-600 outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    placeholder="Ej: 2.500,00"
                   />
 
+                  <p className="mt-2 text-[11px] leading-5 text-white/25">
+                    Introduzca el importe en euros.
+                  </p>
                 </div>
-
-                <div>
-
-                  <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-2">
-                    Logo
-                  </label>
-
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={formDataPremio.logo}
-                    onChange={(e) =>
-                      setFormDataPremio({
-                        ...formDataPremio,
-                        logo: e.target.value,
-                      })
-                    }
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-yellow-600 outline-none"
-                  />
-
-                </div>
-
               </div>
 
-              <div>
+              {/* ===========================================
+                  LOGO UPLOAD
+              =========================================== */}
 
-                <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-2">
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
+                  Logo de la entidad
+                </label>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    {/* PREVIEW */}
+
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white">
+                      {formDataPremio.logo ? (
+                        <img
+                          src={formDataPremio.logo}
+                          alt="Vista previa del logo"
+                          className="max-h-full max-w-full object-contain p-2"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <Icon
+                            className="mx-auto h-6 w-6 text-black/30"
+                            path="M4 16l4.5-4.5a2.121 2.121 0 013 0L16 16m-2-2l1.5-1.5a2.121 2.121 0 013 0L20 14M14 8h.01M5 20h14a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v14a1 1 0 001 1z"
+                          />
+
+                          <span className="mt-1 block text-[9px] text-black/30">
+                            Sin logo
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* FILE INPUT */}
+
+                    <div className="min-w-0 flex-1">
+                      <input
+                        id="premio-logo"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        disabled={uploadingLogo}
+                        onChange={(e) => {
+                          const file =
+                            e.target.files?.[0];
+
+                          if (file) {
+                            subirLogoPremio(file);
+                          }
+
+                          /*
+                           * Permite seleccionar nuevamente
+                           * el mismo archivo si fuera necesario.
+                           */
+                          e.target.value = '';
+                        }}
+                        className="block w-full cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] text-sm text-white/60 file:mr-4 file:cursor-pointer file:border-0 file:border-r file:border-white/10 file:bg-white/[0.05] file:px-4 file:py-3 file:text-xs file:font-medium file:text-white transition hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+
+                      <p className="mt-2 text-[11px] leading-5 text-white/25">
+                        JPG, JPEG, PNG o WEBP · máximo
+                        5 MB. El logo se subirá
+                        automáticamente a Cloudinary.
+                      </p>
+
+                      {uploadingLogo && (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-white/60">
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                          Subiendo logo...
+                        </div>
+                      )}
+
+                      {logoUploadError && (
+                        <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-400">
+                          {logoUploadError}
+                        </p>
+                      )}
+
+                      {formDataPremio.logo &&
+                        !uploadingLogo && (
+                          <button
+                            type="button"
+                            onClick={
+                              quitarLogoPremio
+                            }
+                            className="mt-3 text-xs text-white/40 underline underline-offset-4 transition hover:text-white"
+                          >
+                            Quitar logo
+                          </button>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ===========================================
+                  ENTITY
+              =========================================== */}
+
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
                   Entidad concedente *
                 </label>
 
                 <input
                   type="text"
-                  placeholder="Nombre de la entidad"
+                  required
                   value={formDataPremio.entidad}
                   onChange={(e) =>
                     setFormDataPremio({
@@ -1570,21 +1708,23 @@ export default function Patrocinadores() {
                       entidad: e.target.value,
                     })
                   }
-                  required
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-yellow-600 outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="Ej: Ayuntamiento de Valencia"
                 />
-
               </div>
 
-              <div>
+              {/* ===========================================
+                  AWARD
+              =========================================== */}
 
-                <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-2">
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
                   Premio / reconocimiento *
                 </label>
 
                 <input
                   type="text"
-                  placeholder="Ej: Premio al Deporte Inclusivo"
+                  required
                   value={formDataPremio.premio}
                   onChange={(e) =>
                     setFormDataPremio({
@@ -1592,137 +1732,175 @@ export default function Patrocinadores() {
                       premio: e.target.value,
                     })
                   }
-                  required
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-yellow-600 outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="Ej: Premio al deporte inclusivo"
                 />
-
               </div>
 
-              <div>
+              {/* ===========================================
+                  DESCRIPTION
+              =========================================== */}
 
-                <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-2">
+              <div>
+                <label className="mb-2 block text-xs font-medium text-white/60">
                   Descripción
                 </label>
 
                 <textarea
-                  placeholder="Descripción del premio o reconocimiento..."
+                  rows={4}
                   value={formDataPremio.descripcion}
                   onChange={(e) =>
                     setFormDataPremio({
                       ...formDataPremio,
-                      descripcion: e.target.value,
+                      descripcion:
+                        e.target.value,
                     })
                   }
-                  rows={4}
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-yellow-600 outline-none resize-none"
+                  className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  placeholder="Descripción breve del premio o reconocimiento..."
                 />
-
               </div>
 
-              {formDataPremio.logo && (
-                <div className="bg-zinc-950 border border-zinc-800 rounded-sm p-4">
+              {/* ===========================================
+                  ACTIONS
+              =========================================== */}
 
-                  <p className="text-zinc-500 text-xs uppercase tracking-wider mb-3">
-                    Vista previa del logo
-                  </p>
-
-                  <img
-                    src={formDataPremio.logo}
-                    alt="Vista previa"
-                    className="w-20 h-20 object-contain bg-white rounded-sm p-2"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-4 border-t border-zinc-800">
-
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-yellow-600 text-white font-bold uppercase tracking-widest hover:bg-yellow-700 transition-colors rounded-sm"
-                >
-                  Guardar Premio
-                </button>
-
+              <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
                 <button
                   type="button"
                   onClick={() =>
                     setModalPremioOpen(false)
                   }
-                  className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors rounded-sm"
+                  disabled={uploadingLogo}
+                  className="rounded-xl border border-white/10 px-5 py-3 text-sm text-white/60 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Cancelar
                 </button>
 
+                <button
+                  type="submit"
+                  disabled={uploadingLogo}
+                  className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {editingPremioId
+                    ? 'Guardar cambios'
+                    : 'Guardar premio'}
+                </button>
               </div>
-
             </form>
-
           </div>
-
         </div>
       )}
 
       {/* =====================================================
-          MODAL — CONFIRMAR ELIMINACIÓN
+          SOLICITUD DETAIL MODAL
+      ===================================================== */}
+
+      {selectedSolicitud && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  Detalle de la solicitud
+                </h3>
+
+                <p className="mt-1 text-xs text-white/35">
+                  Información enviada por el
+                  patrocinador.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedSolicitud(null)
+                }
+                className="rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
+              >
+                <Icon
+                  className="h-5 w-5"
+                  path="M6 6l12 12M18 6L6 18"
+                />
+              </button>
+            </div>
+
+            <div className="space-y-5 p-6">
+              {Object.entries(
+                selectedSolicitud
+              ).map(([key, value]) => {
+                if (
+                  key === 'id' ||
+                  key === 'updatedAt'
+                ) {
+                  return null;
+                }
+
+                return (
+                  <div key={key}>
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                      {key}
+                    </p>
+
+                    <p className="whitespace-pre-wrap break-words text-sm text-white/70">
+                      {value === null ||
+                      value === undefined ||
+                      value === ''
+                        ? '—'
+                        : String(value)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          DELETE MODAL
       ===================================================== */}
 
       {deleteTarget && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setDeleteTarget(null)}
-        >
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 shadow-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-red-500/20 bg-red-500/5">
+              <Icon
+                className="h-5 w-5 text-red-400"
+                path="M12 9v4m0 4h.01M10.29 3.86l-8.82 15a1 1 0 00.86 1.5h19.34a1 1 0 00.86-1.5l-8.82-15a1 1 0 00-1.72 0z"
+              />
+            </div>
 
-          <div
-            className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-
-            <h3 className="font-display text-xl text-white mb-2">
-              Confirmar Eliminación
+            <h3 className="mt-5 text-lg font-semibold">
+              ¿Eliminar este elemento?
             </h3>
 
-            <p className="text-zinc-400 text-sm mb-6">
-
-              ¿Está seguro de que desea eliminar permanentemente
-              este{' '}
-
-              {deleteTarget.type === 'solicitud'
-                ? 'mensaje de solicitud'
-                : deleteTarget.type === 'subvencion'
-                ? 'registro de subvención'
-                : 'premio o reconocimiento'}
-
-              ? Esta acción no se puede deshacer.
-
+            <p className="mt-2 text-sm leading-6 text-white/40">
+              Esta acción no se puede deshacer.
             </p>
 
-            <div className="flex gap-3">
-
+            <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-sm rounded-sm hover:bg-zinc-700"
+                type="button"
+                onClick={() =>
+                  setDeleteTarget(null)
+                }
+                className="rounded-xl border border-white/10 px-5 py-3 text-sm text-white/60 transition hover:bg-white/5 hover:text-white"
               >
                 Cancelar
               </button>
 
               <button
-                onClick={confirmarDelete}
-                className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-sm rounded-sm hover:bg-red-700"
+                type="button"
+                onClick={confirmarEliminacion}
+                className="rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-400"
               >
-                Sí, Eliminar
+                Eliminar
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
