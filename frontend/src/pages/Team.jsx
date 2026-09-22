@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 /* =========================================================
    CONSTANTES
@@ -25,6 +26,22 @@ const normalizeText = (value) => {
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toUpperCase();
+};
+
+/**
+ * Normaliza um nome para utilização em URLs/query params.
+ *
+ * Exemplo:
+ * "Cristhian Adrián Sanches (Xamaco)"
+ * → "cristhian-adrian-sanches-xamaco"
+ */
+const normalizeSlug = (value) => {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 };
 
 /**
@@ -285,6 +302,8 @@ export default function Team() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [searchParams] = useSearchParams();
+
   /* =======================================================
      FETCH TEAM
   ======================================================= */
@@ -388,6 +407,63 @@ export default function Team() {
       controller.abort();
     };
   }, [fetchPlayers]);
+
+  /* =======================================================
+     ABRIR PERFIL DESDE ABOUT
+  ======================================================= */
+
+  useEffect(() => {
+    const jugadorSlug = searchParams.get('jugador');
+
+    if (!jugadorSlug || loading) {
+      return;
+    }
+
+    const allPeople = [...players, ...staff];
+
+    /**
+     * Alias para garantir que os nomes continuem funcionando
+     * mesmo que no banco exista alguma diferença de escrita,
+     * acentos ou apelido.
+     */
+    const aliases = {
+      'jairo-beses': [
+        'jairo-beses',
+      ],
+
+      'jose-garcia': [
+        'jose-garcia',
+        'jose-garcia-pepe',
+      ],
+
+      'cristhian-adrian-sanches': [
+        'cristhian-adrian-sanches',
+        'cristhian-adrian-sanches-xamaco',
+      ],
+    };
+
+    const acceptedSlugs =
+      aliases[jugadorSlug] || [jugadorSlug];
+
+    const person = allPeople.find((item) => {
+      const personSlug = normalizeSlug(
+        item?.name
+      );
+
+      return acceptedSlugs.includes(
+        personSlug
+      );
+    });
+
+    if (person) {
+      setSelectedPerson(person);
+    }
+  }, [
+    players,
+    staff,
+    loading,
+    searchParams,
+  ]);
 
   /* =======================================================
      JUGADORES FILTRABLES

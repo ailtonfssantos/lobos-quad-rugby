@@ -726,86 +726,56 @@ export default function About() {
                 </span>
               </h2>
 
-              <p className="mt-6 sm:mt-8 text-base sm:text-lg text-black/80 max-w-2xl leading-relaxed">
+              <p className="text-black/70 text-lg leading-relaxed max-w-2xl">
                 Cuatro jugadores de Lobos han sido convocados con la Selección
                 Española. Un reconocimiento al trabajo, compromiso y nivel
                 deportivo alcanzado por nuestros atletas.
               </p>
 
-              {/* JUGADORES CONVOCADOS */}
-              <div className="mt-8 grid sm:grid-cols-2 gap-3 max-w-3xl">
+              <div className="mt-8 grid sm:grid-cols-2 gap-3 max-w-2xl">
 
-                {/* Jairo Beses */}
                 <Link
                   to="/equipo?jugador=jairo-beses"
-                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/5 px-5 py-4 hover:bg-black hover:text-white transition-all duration-300"
+                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 hover:bg-black hover:text-white transition-all duration-300"
                 >
-                  <div>
-                    <span className="block text-sm font-black uppercase">
-                      Jairo Beses
-                    </span>
-
-                    <span className="block mt-1 text-[10px] uppercase tracking-[0.2em] opacity-60">
-                      Ver perfil
-                    </span>
-                  </div>
+                  <span className="text-sm sm:text-base font-bold uppercase">
+                    Jairo Beses
+                  </span>
 
                   <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </Link>
 
-
-                {/* Jose García — Pepe */}
                 <Link
                   to="/equipo?jugador=jose-garcia"
-                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/5 px-5 py-4 hover:bg-black hover:text-white transition-all duration-300"
+                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 hover:bg-black hover:text-white transition-all duration-300"
                 >
-                  <div>
-                    <span className="block text-sm font-black uppercase">
-                      Jose García
-                    </span>
-
-                    <span className="block mt-1 text-[10px] uppercase tracking-[0.2em] opacity-60">
-                      “Pepe” · Ver perfil
-                    </span>
-                  </div>
+                  <span className="text-sm sm:text-base font-bold uppercase">
+                    Jose Garcia <span className="font-normal">(Pepe)</span>
+                  </span>
 
                   <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </Link>
 
-
-                {/* Cristhian Adrián Sanches — Xamaco */}
                 <Link
                   to="/equipo?jugador=cristhian-adrian-sanches"
-                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/5 px-5 py-4 hover:bg-black hover:text-white transition-all duration-300"
+                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 hover:bg-black hover:text-white transition-all duration-300"
                 >
-                  <div>
-                    <span className="block text-sm font-black uppercase">
-                      Cristhian Adrián Sanches
-                    </span>
-
-                    <span className="block mt-1 text-[10px] uppercase tracking-[0.2em] opacity-60">
-                      “Xamaco” · Ver perfil
-                    </span>
-                  </div>
+                  <span className="text-sm sm:text-base font-bold uppercase">
+                    Cristhian Adrian Sanches{' '}
+                    <span className="font-normal">(Xamaco)</span>
+                  </span>
 
                   <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </Link>
 
-
-                {/* Javi Navarro — Manitas */}
-                <div className="flex items-center justify-between gap-4 border border-black/20 bg-black/5 px-5 py-4">
-
-                  <div>
-                    <span className="block text-sm font-black uppercase">
-                      Javi Navarro
-                    </span>
-
-                    <span className="block mt-1 text-[10px] uppercase tracking-[0.2em] opacity-60">
-                      “Manitas”
-                    </span>
-                  </div>
-
+                <div className="flex items-center border border-black/20 bg-black/5 px-4 py-3">
+                  <span className="text-sm sm:text-base font-bold uppercase">
+                    Javi Navarro{' '}
+                    <span className="font-normal">(Manitas)</span>
+                  </span>
                 </div>
+
+              </div>
 
               </div>
 
