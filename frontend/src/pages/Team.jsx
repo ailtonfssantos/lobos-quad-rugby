@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 /* =========================================================
    CONSTANTES
 ========================================================= */
-
-const [searchParams] = useSearchParams();
 
 const FILTERS = ['TODOS', 'ATAQUE', 'DEFENSA'];
 
@@ -41,68 +38,6 @@ const normalizeText = (value) => {
  * 2º Entrenador / Asistente
  * Voluntarios
  */
-
-useEffect(() => {
-  const jugadorSlug = searchParams.get('jugador');
-
-  if (!jugadorSlug) return;
-
-  const allPeople = [
-    ...players,
-    ...staff,
-  ];
-
-  const normalizeSlug = (value) =>
-    String(value || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-  const aliases = {
-    'jairo-beses': [
-      'jairo-beses',
-      'jairo beses',
-    ],
-
-    'jose-garcia': [
-      'jose-garcia',
-      'jose garcia',
-      'jose garcia pepe',
-      'pepe',
-    ],
-
-    'cristhian-adrian-sanches': [
-      'cristhian-adrian-sanches',
-      'cristhian adrian sanches',
-      'cristhian-adrian-sanches-xamaco',
-      'xamaco',
-    ],
-
-    'javi-navarro': [
-      'javi-navarro',
-      'javi navarro',
-      'javi navarro manitas',
-      'manitas',
-    ],
-  };
-
-  const possibleNames = aliases[jugadorSlug] || [jugadorSlug];
-
-  const person = allPeople.find((item) => {
-    const normalizedName = normalizeSlug(item.name);
-
-    return possibleNames.some(
-      (name) => normalizeSlug(name) === normalizedName
-    );
-  });
-
-  if (person) {
-    setSelectedPerson(person);
-  }
-}, [players, staff, searchParams]);
-
 const getRolePriority = (role) => {
   const r = normalizeText(role);
 
