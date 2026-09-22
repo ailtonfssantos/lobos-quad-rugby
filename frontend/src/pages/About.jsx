@@ -94,9 +94,60 @@ const CheckIcon = ({ className = 'w-5 h-5' }) => (
   />
 );
 
+const CloseIcon = ({ className = 'w-6 h-6' }) => (
+  <Icon
+    className={className}
+    path="M6 6l12 12M18 6L6 18"
+  />
+);
+
+/* =========================================================
+   NORMALIZAR NOMBRES
+========================================================= */
+
+const normalizeName = (value) => {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+};
+
+/* =========================================================
+   ALIASES DE LOS JUGADORES
+========================================================= */
+
+const playerAliases = {
+  'jairo beses': [
+    'jairo beses',
+  ],
+
+  'jose garcia': [
+    'jose garcia',
+    'jose garcia pepe',
+    'jose pepe garcia',
+  ],
+
+  'cristhian adrian sanches': [
+    'cristhian adrian sanches',
+    'cristhian adrian sanches xamaco',
+    'cristhian sanches',
+  ],
+};
+
+/* =========================================================
+   COMPONENTE PRINCIPAL
+========================================================= */
+
 export default function About() {
   const [currentImage, setCurrentImage] = useState(0);
   const [isGalleryPaused, setIsGalleryPaused] = useState(false);
+
+  const [players, setPlayers] = useState([]);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+
+  const [playersLoading, setPlayersLoading] = useState(true);
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev + 1) % galleryImages.length);
@@ -108,6 +159,10 @@ export default function About() {
     );
   };
 
+  /* =========================================================
+     GALERÍA AUTOMÁTICA
+  ========================================================= */
+
   useEffect(() => {
     if (isGalleryPaused) return;
 
@@ -117,6 +172,176 @@ export default function About() {
 
     return () => clearInterval(interval);
   }, [isGalleryPaused]);
+
+  /* =========================================================
+     CARGAR JUGADORES
+  ========================================================= */
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadPlayers = async () => {
+      try {
+        setPlayersLoading(true);
+
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/jogadores`,
+          {
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('No se pudieron cargar los jugadores.');
+        }
+
+        const data = await response.json();
+
+        /*
+         * La API puede devolver directamente un array
+         * o un objeto que contenga los jugadores.
+         */
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.players)
+            ? data.players
+            : Array.isArray(data?.jogadores)
+              ? data.jogadores
+              : Array.isArray(data?.data)
+                ? data.data
+                : [];
+
+        setPlayers(list);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error cargando jugadores:', error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setPlayersLoading(false);
+        }
+      }
+    };
+
+    loadPlayers();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  /* =========================================================
+     BLOQUEAR SCROLL + ESC CUANDO EL MODAL ESTÁ ABIERTO
+  ========================================================= */
+
+  useEffect(() => {
+    if (!selectedPlayer) {
+      document.body.style.overflow = '';
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedPlayer(null);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedPlayer]);
+
+  /* =========================================================
+     ENCONTRAR JUGADOR
+  ========================================================= */
+
+  const findPlayer = (requestedName) => {
+    if (!players.length) {
+      return null;
+    }
+
+    const normalizedRequested = normalizeName(requestedName);
+
+    const acceptedNames =
+      playerAliases[normalizedRequested] || [normalizedRequested];
+
+    return players.find((player) => {
+      const playerName = normalizeName(player?.name);
+
+      return acceptedNames.includes(playerName);
+    }) || null;
+  };
+
+  /* =========================================================
+     ABRIR PERFIL
+  ========================================================= */
+
+  const openPlayerProfile = (name) => {
+    const player = findPlayer(name);
+
+    if (player) {
+      setSelectedPlayer(player);
+      return;
+    }
+
+    /*
+     * Si por algún motivo la API todavía está cargando,
+     * no hacemos nada. Javi Navarro tampoco tiene ficha
+     * y por eso no utiliza esta función.
+     */
+    if (playersLoading) {
+      return;
+    }
+
+    console.warn(`No se encontró el jugador: ${name}`);
+  };
+
+  /* =========================================================
+     DATOS DEL MODAL
+  ========================================================= */
+
+  const selectedImage =
+    selectedPlayer?.image ||
+    selectedPlayer?.photo ||
+    selectedPlayer?.foto ||
+    selectedPlayer?.imagen ||
+    selectedPlayer?.imageUrl ||
+    '/assets/logo1.png';
+
+  const selectedName =
+    selectedPlayer?.name ||
+    'Jugador';
+
+  const selectedRole =
+    selectedPlayer?.role ||
+    selectedPlayer?.position ||
+    selectedPlayer?.categoria ||
+    selectedPlayer?.category ||
+    'Jugador';
+
+  const selectedClassification =
+    selectedPlayer?.classification ||
+    selectedPlayer?.clasificacion ||
+    selectedPlayer?.class ||
+    selectedPlayer?.clase ||
+    null;
+
+  const selectedNationality =
+    selectedPlayer?.nationality ||
+    selectedPlayer?.nacionalidad ||
+    null;
+
+  const selectedBio =
+    selectedPlayer?.bio ||
+    selectedPlayer?.biography ||
+    selectedPlayer?.biografia ||
+    selectedPlayer?.description ||
+    selectedPlayer?.descripcion ||
+    null;
 
   return (
     <main className="bg-black text-white overflow-hidden selection:bg-red-600/30">
@@ -129,6 +354,7 @@ export default function About() {
 
           <div className="flex items-center gap-3 mb-8">
             <span className="w-8 h-px bg-red-600" />
+
             <span className="text-xs tracking-[0.3em] uppercase text-red-500 font-semibold">
               Quiénes somos
             </span>
@@ -279,7 +505,7 @@ export default function About() {
 
               <div className="flex justify-between items-start">
                 <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  
+                  &#x20;
                 </span>
 
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
@@ -314,7 +540,7 @@ export default function About() {
 
               <div className="flex justify-between items-start">
                 <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  
+                  &#x20;
                 </span>
 
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
@@ -341,7 +567,7 @@ export default function About() {
 
               <div className="flex justify-between items-start">
                 <span className="text-xs sm:text-sm text-gray-600 font-mono">
-                  
+                  &#x20;
                 </span>
 
                 <ArrowUpRight className="text-gray-600 group-hover:text-red-500 transition-colors w-3 h-3 sm:w-4 sm:h-4" />
@@ -598,7 +824,7 @@ export default function About() {
                 </figure>
 
 
-                {/* Primera jornada - COLORIDA em destaque */}
+                {/* Primera jornada */}
                 <figure className="col-span-2 relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden bg-black border border-red-600/30 group">
 
                   <img
@@ -642,7 +868,7 @@ export default function About() {
                 </figure>
 
 
-                {/* Jornada - P&B */}
+                {/* Jornada */}
                 <figure className="relative aspect-square overflow-hidden bg-black border border-white/10 group">
 
                   <img
@@ -734,31 +960,40 @@ export default function About() {
 
               <div className="mt-8 grid sm:grid-cols-2 gap-3 max-w-2xl">
 
-                <Link
-                  to="/equipo?jugador=jairo-beses"
-                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 hover:bg-black hover:text-white transition-all duration-300"
+                {/* Jairo */}
+                <button
+                  type="button"
+                  onClick={() => openPlayerProfile('jairo beses')}
+                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 text-left hover:bg-black hover:text-white transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
                 >
                   <span className="text-sm sm:text-base font-bold uppercase">
                     Jairo Beses
                   </span>
 
                   <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                </Link>
+                </button>
 
-                <Link
-                  to="/equipo?jugador=jose-garcia"
-                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 hover:bg-black hover:text-white transition-all duration-300"
+
+                {/* Pepe */}
+                <button
+                  type="button"
+                  onClick={() => openPlayerProfile('jose garcia')}
+                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 text-left hover:bg-black hover:text-white transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
                 >
                   <span className="text-sm sm:text-base font-bold uppercase">
-                    Jose Garcia <span className="font-normal">(Pepe)</span>
+                    Jose Garcia{' '}
+                    <span className="font-normal">(Pepe)</span>
                   </span>
 
                   <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                </Link>
+                </button>
 
-                <Link
-                  to="/equipo?jugador=cristhian-adrian-sanches"
-                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 hover:bg-black hover:text-white transition-all duration-300"
+
+                {/* Xamaco */}
+                <button
+                  type="button"
+                  onClick={() => openPlayerProfile('cristhian adrian sanches')}
+                  className="group flex items-center justify-between gap-4 border border-black/20 bg-black/10 px-4 py-3 text-left hover:bg-black hover:text-white transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
                 >
                   <span className="text-sm sm:text-base font-bold uppercase">
                     Cristhian Adrian Sanches{' '}
@@ -766,8 +1001,10 @@ export default function About() {
                   </span>
 
                   <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                </Link>
+                </button>
 
+
+                {/* Javi */}
                 <div className="flex items-center border border-black/20 bg-black/5 px-4 py-3">
                   <span className="text-sm sm:text-base font-bold uppercase">
                     Javi Navarro{' '}
@@ -777,9 +1014,8 @@ export default function About() {
 
               </div>
 
-              </div>
-
             </div>
+
 
             <div className="lg:col-span-4 lg:text-right">
 
@@ -794,6 +1030,8 @@ export default function About() {
                 </span>
 
               </div>
+
+            </div>
 
           </div>
         </div>
@@ -1005,7 +1243,7 @@ export default function About() {
 
               <div className="space-y-0">
 
-                {values.map((valor, index) => (
+                {values.map((valor) => (
                   <div
                     key={valor}
                     className="py-5 sm:py-6 flex items-center gap-4 sm:gap-5 border-b border-white/10 last:border-0"
@@ -1080,6 +1318,155 @@ export default function About() {
           </div>
         </div>
       </section>
+
+
+      {/* =========================================================
+          MODAL — PERFIL DEL JUGADOR
+      ========================================================= */}
+      {selectedPlayer && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="player-modal-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedPlayer(null);
+            }
+          }}
+        >
+
+          {/* Fondo */}
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
+
+          {/* Modal */}
+          <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0b0b0b] border border-white/10 shadow-2xl">
+
+            {/* Header / cerrar */}
+            <div className="absolute top-0 right-0 z-20 p-4">
+
+              <button
+                type="button"
+                onClick={() => setSelectedPlayer(null)}
+                aria-label="Cerrar perfil"
+                className="w-10 h-10 flex items-center justify-center border border-white/20 bg-black/60 text-white hover:bg-red-600 hover:border-red-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+              >
+                <CloseIcon className="w-5 h-5" />
+              </button>
+
+            </div>
+
+
+            <div className="grid md:grid-cols-5">
+
+              {/* FOTO */}
+              <div className="md:col-span-2 bg-black">
+
+                <div className="relative aspect-[4/5] md:aspect-auto md:h-full min-h-[320px]">
+
+                  <img
+                    src={selectedImage}
+                    alt={selectedName}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = '/assets/logo1.png';
+                    }}
+                  />
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
+
+                  <div className="absolute bottom-5 left-5 right-5">
+
+                    <span className="inline-block px-2.5 py-1 bg-red-600 text-[10px] uppercase tracking-[0.2em] font-bold text-white">
+                      Lobos Quad Rugby
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              {/* INFORMACIÓN */}
+              <div className="md:col-span-3 p-6 sm:p-8 lg:p-10">
+
+                <div className="mb-8">
+
+                  <span className="text-[10px] uppercase tracking-[0.3em] text-red-500 font-bold">
+                    Perfil del jugador
+                  </span>
+
+                  <h2
+                    id="player-modal-title"
+                    className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-[0.95] text-white pr-10"
+                  >
+                    {selectedName}
+                  </h2>
+
+                </div>
+
+
+                {/* ESPECIFICACIONES */}
+                <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10 mb-8">
+
+                  <div className="bg-[#0b0b0b] p-4 sm:p-5">
+                    <span className="block text-[9px] uppercase tracking-[0.2em] text-gray-600 font-bold">
+                      Rol
+                    </span>
+
+                    <span className="block mt-2 text-sm sm:text-base font-bold uppercase text-white">
+                      {selectedRole}
+                    </span>
+                  </div>
+
+
+                  <div className="bg-[#0b0b0b] p-4 sm:p-5">
+                    <span className="block text-[9px] uppercase tracking-[0.2em] text-gray-600 font-bold">
+                      Clasificación
+                    </span>
+
+                    <span className="block mt-2 text-sm sm:text-base font-bold uppercase text-red-500">
+                      {selectedClassification || '—'}
+                    </span>
+                  </div>
+
+
+                  <div className="bg-[#0b0b0b] p-4 sm:p-5 col-span-2">
+                    <span className="block text-[9px] uppercase tracking-[0.2em] text-gray-600 font-bold">
+                      Nacionalidad
+                    </span>
+
+                    <span className="block mt-2 text-sm sm:text-base font-bold uppercase text-white">
+                      {selectedNationality || '—'}
+                    </span>
+                  </div>
+
+                </div>
+
+
+                {/* BIO */}
+                {selectedBio && (
+                  <div>
+
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-red-500 font-bold">
+                      Sobre el jugador
+                    </span>
+
+                    <p className="mt-4 text-gray-400 text-sm sm:text-base leading-relaxed">
+                      {selectedBio}
+                    </p>
+
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </main>
   );
