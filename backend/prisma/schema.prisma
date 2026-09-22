@@ -7,14 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// MODELOS EXISTENTES (com novas relações adicionadas)
-// ═══════════════════════════════════════════════════════════════════════
-
 model Usuario {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String   
+  password  String
   role      String   @default("ADMIN")
   createdAt DateTime @default(now())
 }
@@ -38,32 +34,28 @@ model Inscricao {
 }
 
 model Patrocinio {
-  id               Int      @id @default(autoincrement())
-  companyName      String
-  contactName      String
-  email            String
-  phone            String?
-  sponsorshipType  String
-  message          String?
-  status           String   @default("PENDIENTE")
-  createdAt        DateTime @default(now())
-
-  // Nova relação com módulo financeiro
-  financeiro       PatrocinioFinanciero?
+  id              Int                   @id @default(autoincrement())
+  companyName     String
+  contactName     String
+  email           String
+  phone           String?
+  sponsorshipType String
+  message         String?
+  status          String                @default("PENDIENTE")
+  createdAt       DateTime              @default(now())
+  financeiro      PatrocinioFinanciero?
 }
 
 model Jogador {
-  id             Int      @id @default(autoincrement())
+  id             Int                   @id @default(autoincrement())
   name           String
   role           String
   classification String?
   nationality    String
   image          String?
   bio            String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-
-  // Novas relações com módulo financeiro
+  isActive       Boolean               @default(true)
+  createdAt      DateTime              @default(now())
   pagamentos     PagamentoCuota[]
   participacoes  ParticipanteJornada[]
 }
@@ -91,58 +83,49 @@ model InscricaoEvento {
   phone     String?
   message   String?
   eventId   Int
-  evento    Evento   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  evento    Evento   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model Jornada {
-  id            Int       @id @default(autoincrement())
+  id            Int                   @id @default(autoincrement())
   numero        String
   competicion   String
   ciudad        String
   pabellon      String
   fechas        String
   bannerUrl     String?
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-
-  // Relación con la temporada
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now())
   temporadaId   Int?
-  temporada     Temporada? @relation(fields: [temporadaId], references: [id], onDelete: SetNull)
-
-  partidos      Partido[]
-
-  // Relaciones con módulo financiero
-  ingressos     Ingresso[]
   gastos        Gasto[]
+  ingressos     Ingresso[]
+  temporada     Temporada?            @relation(fields: [temporadaId], references: [id])
   participantes ParticipanteJornada[]
+  partidos      Partido[]
 }
 
 model Partido {
-  id                    Int      @id @default(autoincrement())
+  id                    Int     @id @default(autoincrement())
   jornadaId             Int
-  jornada               Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
-  
-  // Campos existentes
   rival                 String?
   diaSemana             String
   horario               String
   youtubeLink           String?
   lobosScore            Int?
   rivalScore            Int?
-  status                String   @default("PROGRAMADO")
-
-  // Novos campos para estrutura avançada
-  fecha                 String?
-  equipoLocalNombre     String?
+  status                String  @default("PROGRAMADO")
   equipoLocalLogo       String?
-  equipoVisitanteNombre String?
+  equipoLocalNombre     String?
   equipoVisitanteLogo   String?
+  equipoVisitanteNombre String?
+  fecha                 String?
   rivalLogo             String?
+  jornada               Jornada @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
 }
 
 model Subvencion {
-  id             Int      @id @default(autoincrement())
+  id             Int                   @id @default(autoincrement())
   ano            Int
   valor          String
   entidad        String
@@ -152,190 +135,154 @@ model Subvencion {
   departamento   String?
   convocatoria   String?
   basesLink      String?
-  createdAt      DateTime @default(now())
-
-  // Nova relação com módulo financeiro
+  createdAt      DateTime              @default(now())
   financeiro     SubvencionFinanceira?
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// NOVOS MODELOS - MÓDULO FINANCEIRO
-// ═══════════════════════════════════════════════════════════════════════
-
-// ───────────────────────────────────────────────────────────────────────
-// 1. TEMPORADA - Base de todo o sistema financeiro
-// ───────────────────────────────────────────────────────────────────────
 model Temporada {
-  id              Int      @id @default(autoincrement())
-  nome            String
-  dataInicio      DateTime
-  dataFim         DateTime
-  saldoInicial    Float    @default(0)
-  cuotaMensual    Float
-  estado          String   @default("ACTIVA")
-  createdAt       DateTime @default(now())
-
-  cuotas          Cuota[]
-  pagamentos      PagamentoCuota[]
-  ingressos       Ingresso[]
-  gastos          Gasto[]
-  patrociniosFin  PatrocinioFinanciero[]
-  subvencoesFin   SubvencionFinanceira[]
-  participantes   ParticipanteJornada[]
-
-  // NUEVO
-  jornadas        Jornada[]
+  id             Int                    @id @default(autoincrement())
+  nome           String
+  dataInicio     DateTime
+  dataFim        DateTime
+  saldoInicial   Float                  @default(0)
+  cuotaMensual   Float
+  estado         String                 @default("ACTIVA")
+  createdAt      DateTime               @default(now())
+  cuotas         Cuota[]
+  gastos         Gasto[]
+  ingressos      Ingresso[]
+  jornadas       Jornada[]
+  pagamentos     PagamentoCuota[]
+  participantes  ParticipanteJornada[]
+  patrociniosFin PatrocinioFinanciero[]
+  subvencoesFin  SubvencionFinanceira[]
 }
 
-// ──────────────────────────────────────────────────────────────────────
-// 2. CUOTA - Configuração mensal por temporada
-// ───────────────────────────────────────────────────────────────────────
 model Cuota {
-  id              Int      @id @default(autoincrement())
-  temporadaId     Int
-  mes             Int      // 1-12
-  anio            Int      // 2026
-  importe         Float    // Por defeito = temporada.cuotaMensual
-  createdAt       DateTime @default(now())
-  
-  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
-  pagamentos      PagamentoCuota[]
-  
+  id          Int              @id @default(autoincrement())
+  temporadaId Int
+  mes         Int
+  anio        Int
+  importe     Float
+  createdAt   DateTime         @default(now())
+  temporada   Temporada        @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  pagamentos  PagamentoCuota[]
+
   @@unique([temporadaId, mes, anio])
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// 3. PAGAMENTO_CUOTA - Registro de pagamento de cada atleta
-// ───────────────────────────────────────────────────────────────────────
 model PagamentoCuota {
-  id              Int      @id @default(autoincrement())
-  jogadorId       Int
-  cuotaId         Int
-  temporadaId     Int
-  importePago     Float    @default(0)
-  estado          String   @default("PENDIENTE") 
-                           // PAGADO, PENDIENTE, PARCIAL, EXENTO, DEVUELTO
-  metodoPago      String?  // TRANSFERENCIA, EFECTIVO, DOMICILIACION, OTRO
-  dataPago        DateTime?
-  observacoes     String?
-  createdAt       DateTime @default(now())
-  
-  jogador         Jogador  @relation(fields: [jogadorId], references: [id], onDelete: Cascade)
-  cuota           Cuota    @relation(fields: [cuotaId], references: [id], onDelete: Cascade)
-  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
-  
+  id          Int       @id @default(autoincrement())
+  jogadorId   Int
+  cuotaId     Int
+  temporadaId Int
+  importePago Float     @default(0)
+  estado      String    @default("PENDIENTE")
+  metodoPago  String?
+  dataPago    DateTime?
+  observacoes String?
+  createdAt   DateTime  @default(now())
+  cuota       Cuota     @relation(fields: [cuotaId], references: [id], onDelete: Cascade)
+  jogador     Jogador   @relation(fields: [jogadorId], references: [id], onDelete: Cascade)
+  temporada   Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+
   @@unique([jogadorId, cuotaId])
 }
 
-// ──────────────────────────────────────────────────────────────────────
-// 4. INGRESSO - Todos os ingressos do clube
-// ───────────────────────────────────────────────────────────────────────
 model Ingresso {
-  id              Int      @id @default(autoincrement())
-  temporadaId     Int
-  data            DateTime
-  categoria       String   // CUOTAS, PATROCINIOS, SUBVENCIONES, DONACIONES, EVENTOS, OTROS
-  conceito        String
-  importe         Float
-  entidade        String?  // Empresa/pessoa que paga
-  jornadaId       Int?     // Opcional, se o ingresso é de uma jornada específica
-  referenciaTipo  String?  // "CUOTA", "PATROCINIO", "SUBVENCION" (para evitar duplicados)
-  referenciaId    Int?     // ID do registro relacionado
-  documento       String?  // URL do documento/factura
-  observacoes     String?
-  createdAt       DateTime @default(now())
-  
-  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
-  jornada         Jornada? @relation(fields: [jornadaId], references: [id])
+  id             Int       @id @default(autoincrement())
+  temporadaId    Int
+  data           DateTime
+  categoria      String
+  conceito       String
+  importe        Float
+  entidade       String?
+  jornadaId      Int?
+  referenciaTipo String?
+  referenciaId   Int?
+  documento      String?
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  jornada        Jornada?  @relation(fields: [jornadaId], references: [id])
+  temporada      Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// 5. GASTO - Todos os gastos (gerais e de jornada)
-// ───────────────────────────────────────────────────────────────────────
 model Gasto {
-  id              Int      @id @default(autoincrement())
-  temporadaId     Int
-  jornadaId       Int?     // NULL = gasto geral, tem valor = gasto de jornada
-  data            DateTime
-  categoria       String   // HOTEL, GASOLINA, TRANSPORTE, PEAJES, ALIMENTACION, 
-                           // INSCRIPCION, MATERIAL, EQUIPAMIENTO, CAMARAS, TECNOLOGIA,
-                           // PIEZAS, MANTENIMIENTO, REPARACIONES, SEGUROS, 
-                           // ADMINISTRACION, PUBLICIDAD, OTROS
-  conceito        String
-  importe         Float
-  proveedor       String?
-  numeroFactura   String?
-  documento       String?  // URL do documento/factura
-  observacoes     String?
-  createdAt       DateTime @default(now())
-  
-  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
-  jornada         Jornada? @relation(fields: [jornadaId], references: [id])
+  id            Int       @id @default(autoincrement())
+  temporadaId   Int
+  jornadaId     Int?
+  data          DateTime
+  categoria     String
+  conceito      String
+  importe       Float
+  proveedor     String?
+  numeroFactura String?
+  documento     String?
+  observacoes   String?
+  createdAt     DateTime  @default(now())
+  jornada       Jornada?  @relation(fields: [jornadaId], references: [id])
+  temporada     Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// 6. PARTICIPANTE_JORNADA - Que atletas foram a cada jornada
-// ───────────────────────────────────────────────────────────────────────
 model ParticipanteJornada {
-  id                  Int      @id @default(autoincrement())
-  jornadaId           Int
-  jogadorId           Int
-  temporadaId         Int
-  gastosIndividuais   Float    @default(0) // Gastos específicos desse atleta
-  observacoes         String?
-  createdAt           DateTime @default(now())
-  
-  jornada             Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
-  jogador             Jogador  @relation(fields: [jogadorId], references: [id], onDelete: Cascade)
-  temporada           Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
-  
+  id                Int       @id @default(autoincrement())
+  jornadaId         Int
+  jogadorId         Int
+  temporadaId       Int
+  gastosIndividuais Float     @default(0)
+  observacoes       String?
+  createdAt         DateTime  @default(now())
+  jogador           Jogador   @relation(fields: [jogadorId], references: [id], onDelete: Cascade)
+  jornada           Jornada   @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  temporada         Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+
   @@unique([jornadaId, jogadorId])
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// 7. PATROCINIO_FINANCEIRO - Controle contábil de patrocínios
-//    (Vinculado ao modelo Patrocinio existente)
-// ───────────────────────────────────────────────────────────────────────
 model PatrocinioFinanciero {
-  id              Int      @id @default(autoincrement())
-  patrocinioId    Int?     @unique  // ✅ Adicionado @unique
+  id              Int         @id @default(autoincrement())
+  patrocinioId    Int?        @unique
   temporadaId     Int
   empresa         String
   importeTotal    Float
-  importeRecebido Float    @default(0)
-  estado          String   @default("PENDIENTE") // PENDIENTE, PARCIAL, RECIBIDO
+  importeRecebido Float       @default(0)
+  estado          String      @default("PENDIENTE")
   dataCompromiso  DateTime?
   dataRecepcion   DateTime?
   documento       String?
   observacoes     String?
-  createdAt       DateTime @default(now())
-  
-  temporada       Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
   patrocinio      Patrocinio? @relation(fields: [patrocinioId], references: [id])
+  temporada       Temporada   @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
 }
 
-// ───────────────────────────────────────────────────────────────────────
-// 8. SUBVENCAO_FINANCEIRA - Controle contábil de subvenções
-//    (Vinculado ao modelo Subvencion existente)
-// ───────────────────────────────────────────────────────────────────────
 model SubvencionFinanceira {
-  id                  Int      @id @default(autoincrement())
-  subvencionId        Int?     @unique  // ✅ Adicionado @unique
-  temporadaId         Int
-  organismo           String
-  tipoAyuda           String
-  importeSolicitado   Float
-  importeConcedido    Float    @default(0)
-  importeRecebido     Float    @default(0) // SÓ ISTO aumenta o saldo
-  estado              String   @default("SOLICITADA") 
-                               // SOLICITADA, CONCEDIDA, RECIBIDA, DENEGADA, PENDIENTE
-  dataSolicitud       DateTime?
-  dataConcesion       DateTime?
-  dataRecepcion       DateTime?
-  documento           String?
-  observacoes         String?
-  createdAt           DateTime  @default(now())
-  
-  temporada           Temporada @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
-  subvencion          Subvencion? @relation(fields: [subvencionId], references: [id])
+  id                Int         @id @default(autoincrement())
+  subvencionId      Int?        @unique
+  temporadaId       Int
+  organismo         String
+  tipoAyuda         String
+  importeSolicitado Float
+  importeConcedido  Float       @default(0)
+  importeRecebido   Float       @default(0)
+  estado            String      @default("SOLICITADA")
+  dataSolicitud     DateTime?
+  dataConcesion     DateTime?
+  dataRecepcion     DateTime?
+  documento         String?
+  observacoes       String?
+  createdAt         DateTime    @default(now())
+  subvencion        Subvencion? @relation(fields: [subvencionId], references: [id])
+  temporada         Temporada   @relation(fields: [temporadaId], references: [id], onDelete: Cascade)
+}
+
+model PremioReconocimiento {
+  id           Int      @id @default(autoincrement())
+  ano          Int
+  valor        String
+  entidad      String
+  premio       String
+  descripcion  String?
+  logo         String?
+  createdAt    DateTime @default(now())
 }

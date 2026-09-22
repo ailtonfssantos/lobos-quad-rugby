@@ -15,6 +15,7 @@ import patrocinadoresRoutes from './routes/patrocinadores.js';
 import subvencionesRoutes from './routes/subvenciones.js';
 import jornadasRoutes from './routes/jornadas.js';
 import uploadRoutes from './routes/upload.js';
+import premiosRoutes from './routes/premios.js';
 
 // Novas rotas financeiras
 import temporadasRoutes from './routes/temporadas.js';
@@ -55,6 +56,7 @@ app.use('/api/patrocinadores', patrocinadoresRoutes);
 app.use('/api/subvenciones', subvencionesRoutes);
 app.use('/api/jornadas', jornadasRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/premios', premiosRoutes);
 
 // Novas rotas financeiras
 app.use('/api/temporadas', temporadasRoutes);

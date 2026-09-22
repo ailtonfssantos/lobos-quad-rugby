@@ -31,30 +31,43 @@ const formatCurrency = (value) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const calculateYearlySummaries = (subvenciones) => {
-  const summaries = {};
+const calculateTransparencySummaries = (subvenciones, premios) => {
+  const years = new Set([
+    ...subvenciones.map((item) => String(item.ano ?? '')),
+    ...premios.map((item) => String(item.ano ?? '')),
+  ]);
 
-  subvenciones.forEach((sub) => {
-    const year = sub.ano;
-
-    if (!summaries[year]) {
-      summaries[year] = {
-        count: 0,
-        total: 0,
-      };
-    }
-
-    summaries[year].count += 1;
-    summaries[year].total += parseEuropeanNumber(sub.valor);
-  });
-
-  return Object.keys(summaries)
+  return [...years]
+    .filter(Boolean)
     .sort((a, b) => Number(b) - Number(a))
-    .map((year) => ({
-      year,
-      count: summaries[year].count,
-      total: formatCurrency(summaries[year].total),
-    }));
+    .map((year) => {
+      const subvencionesDelAno = subvenciones.filter(
+        (item) => String(item.ano) === year
+      );
+
+      const premiosDelAno = premios.filter(
+        (item) => String(item.ano) === year
+      );
+
+      const subvencionesTotal = subvencionesDelAno.reduce(
+        (total, item) => total + parseEuropeanNumber(item.valor),
+        0
+      );
+
+      const premiosTotal = premiosDelAno.reduce(
+        (total, item) => total + parseEuropeanNumber(item.valor),
+        0
+      );
+
+      return {
+        year,
+        subvencionesTotal,
+        premiosTotal,
+        total: subvencionesTotal + premiosTotal,
+        subvencionesCount: subvencionesDelAno.length,
+        premiosCount: premiosDelAno.length,
+      };
+    });
 };
 
 // ============================================================
@@ -128,9 +141,13 @@ export default function Sponsors() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+
   const [subvenciones, setSubvenciones] = useState([]);
-  const [loadingSubvenciones, setLoadingSubvenciones] = useState(true);
-  const [subvencionesError, setSubvencionesError] = useState('');
+  const [premios, setPremios] = useState([]);
+
+  const [loadingTransparency, setLoadingTransparency] = useState(true);
+  const [transparencyError, setTransparencyError] = useState('');
+
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -169,6 +186,11 @@ export default function Sponsors() {
       url: 'https://www.gva.es/es/',
       logo: '/assets/generalitat.png',
     },
+    {
+      name: 'Fundación "La Caixa"',
+      url: 'https://fundacionlacaixa.org/es/home',
+      logo: '/assets/caixa.png',
+    },
   ];
 
   const modalidades = [
@@ -180,7 +202,6 @@ export default function Sponsors() {
       description:
         'La máxima presencia de marca y una colaboración estratégica con Lobos.',
       featured: true,
-      borderColor: 'border-red-600',
       benefits: [
         'Exclusividad sectorial',
         'Patrocinador principal en la jornada de liga organizada en Valencia',
@@ -202,7 +223,6 @@ export default function Sponsors() {
       description:
         'Una colaboración con presencia destacada en competición y comunicación.',
       featured: false,
-      borderColor: 'border-zinc-700',
       benefits: [
         'Exclusividad sectorial del patrocinador',
         'Logo en sillas de ruedas (ruedas)',
@@ -221,7 +241,6 @@ export default function Sponsors() {
       description:
         'Una forma de apoyar al equipo con visibilidad en nuestras principales acciones.',
       featured: false,
-      borderColor: 'border-zinc-700',
       benefits: [
         'Logo en el cartel jornada Liga Valencia',
         'Logo en retransmisión partidos jornada Liga Valencia',
@@ -238,7 +257,6 @@ export default function Sponsors() {
       description:
         'Una colaboración directa para contribuir al crecimiento de la manada.',
       featured: false,
-      borderColor: 'border-zinc-700',
       benefits: [
         'Organización de jornada de sensibilización para trabajadores',
         'Publicidad y agradecimiento en redes sociales',
@@ -334,56 +352,71 @@ export default function Sponsors() {
   ];
 
   // ==========================================================
-  // FETCH SUBVENCIONES
+  // FETCH TRANSPARENCIA
   // ==========================================================
 
   useEffect(() => {
     let cancelled = false;
 
-    const fetchSubvenciones = async () => {
+    const fetchTransparency = async () => {
       try {
-        setLoadingSubvenciones(true);
-        setSubvencionesError('');
+        setLoadingTransparency(true);
+        setTransparencyError('');
 
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/subvenciones`
-        );
+        const [subvencionesResponse, premiosResponse] = await Promise.all([
+          fetch(`${import.meta.env.VITE_API_URL}/api/subvenciones`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/premios`),
+        ]);
 
-        if (!response.ok) {
-          throw new Error('No se pudieron cargar los datos.');
+        if (!subvencionesResponse.ok) {
+          throw new Error('No se pudieron cargar las subvenciones.');
         }
 
-        const data = await response.json();
+        if (!premiosResponse.ok) {
+          throw new Error('No se pudieron cargar los premios.');
+        }
+
+        const [subvencionesData, premiosData] = await Promise.all([
+          subvencionesResponse.json(),
+          premiosResponse.json(),
+        ]);
 
         if (!cancelled) {
-          setSubvenciones(Array.isArray(data) ? data : []);
+          setSubvenciones(
+            Array.isArray(subvencionesData) ? subvencionesData : []
+          );
+
+          setPremios(Array.isArray(premiosData) ? premiosData : []);
         }
       } catch (error) {
-        console.error('Error cargando subvenciones:', error);
+        console.error('Error cargando datos de transparencia:', error);
 
         if (!cancelled) {
-          setSubvencionesError(
+          setTransparencyError(
             'No ha sido posible cargar los datos de transparencia.'
           );
         }
       } finally {
         if (!cancelled) {
-          setLoadingSubvenciones(false);
+          setLoadingTransparency(false);
         }
       }
     };
 
-    fetchSubvenciones();
+    fetchTransparency();
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const yearlySummaries = useMemo(
-    () => calculateYearlySummaries(subvenciones),
-    [subvenciones]
+  const transparencySummaries = useMemo(
+    () => calculateTransparencySummaries(subvenciones, premios),
+    [subvenciones, premios]
   );
+
+  const hasTransparencyData =
+    subvenciones.length > 0 || premios.length > 0;
 
   // ==========================================================
   // FORM
@@ -498,6 +531,7 @@ export default function Sponsors() {
             alt=""
             className="h-full w-full object-cover opacity-20 grayscale"
           />
+
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-950/30" />
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-transparent to-zinc-950/70" />
         </div>
@@ -506,6 +540,7 @@ export default function Sponsors() {
           <div className="max-w-4xl">
             <div className="mb-7 flex items-center gap-4">
               <span className="h-px w-10 bg-red-600" />
+
               <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-red-500">
                 Colabora con Lobos
               </span>
@@ -554,6 +589,7 @@ export default function Sponsors() {
             <div className="lg:col-span-7">
               <div className="mb-5 flex items-center gap-4">
                 <span className="h-px w-8 bg-red-600" />
+
                 <span className="text-[9px] font-bold uppercase tracking-[0.28em] text-red-500">
                   Ya forman parte
                 </span>
@@ -623,9 +659,8 @@ export default function Sponsors() {
 
             <div className="lg:col-span-7">
               <div className="mb-5 flex items-center gap-4">
-                <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                </span>
                 <span className="h-px w-8 bg-red-600" />
+
                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
                   Oportunidades
                 </span>
@@ -671,9 +706,8 @@ export default function Sponsors() {
 
           <div className="mb-14">
             <div className="mb-5 flex items-center gap-4">
-              <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-              </span>
               <span className="h-px w-8 bg-red-600" />
+
               <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
                 Modalidades
               </span>
@@ -699,7 +733,9 @@ export default function Sponsors() {
               <article
                 key={mod.name}
                 className={`relative flex flex-col bg-zinc-900 p-7 sm:p-8 transition-colors duration-300 hover:bg-zinc-800 ${
-                  mod.featured ? 'ring-1 ring-inset ring-red-600' : ''
+                  mod.featured
+                    ? 'ring-1 ring-inset ring-red-600'
+                    : ''
                 }`}
               >
                 {mod.featured && (
@@ -789,9 +825,8 @@ export default function Sponsors() {
 
           <div className="mb-12">
             <div className="mb-5 flex items-center gap-4">
-              <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-              </span>
               <span className="h-px w-8 bg-red-600" />
+
               <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
                 Comparativa
               </span>
@@ -848,28 +883,31 @@ export default function Sponsors() {
                       {row.feature}
                     </td>
 
-                    {['platinum', 'gold', 'silver', 'colabora'].map(
-                      (tier) => {
-                        const value = row[tier];
+                    {[
+                      'platinum',
+                      'gold',
+                      'silver',
+                      'colabora',
+                    ].map((tier) => {
+                      const value = row[tier];
 
-                        return (
-                          <td
-                            key={tier}
-                            className="p-5 text-center"
-                          >
-                            {typeof value === 'boolean' ? (
-                              <span className="inline-flex justify-center">
-                                <CheckIcon muted={!value} />
-                              </span>
-                            ) : (
-                              <span className="font-display text-sm text-white">
-                                {value}
-                              </span>
-                            )}
-                          </td>
-                        );
-                      }
-                    )}
+                      return (
+                        <td
+                          key={tier}
+                          className="p-5 text-center"
+                        >
+                          {typeof value === 'boolean' ? (
+                            <span className="inline-flex justify-center">
+                              <CheckIcon muted={!value} />
+                            </span>
+                          ) : (
+                            <span className="font-display text-sm text-white">
+                              {value}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
@@ -894,9 +932,8 @@ export default function Sponsors() {
 
             <div className="lg:col-span-7">
               <div className="mb-5 flex items-center gap-4">
-                <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                </span>
                 <span className="h-px w-8 bg-red-600" />
+
                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
                   Transparencia
                 </span>
@@ -905,7 +942,9 @@ export default function Sponsors() {
               <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-white">
                 TRANSPARENCIA
                 <br />
-                <span className="text-zinc-600">Y COMPROMISO</span>
+                <span className="text-zinc-600">
+                  Y COMPROMISO
+                </span>
               </h2>
             </div>
 
@@ -918,168 +957,396 @@ export default function Sponsors() {
             </div>
           </div>
 
-          {loadingSubvenciones ? (
+          {loadingTransparency ? (
             <div className="border border-white/10 bg-zinc-900 px-6 py-14 text-center">
               <div className="mx-auto h-8 w-8 animate-spin border-2 border-zinc-700 border-t-red-600" />
+
               <p className="mt-5 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600">
                 Cargando datos de transparencia
               </p>
             </div>
-          ) : subvencionesError ? (
+          ) : transparencyError ? (
             <div className="border border-red-900/40 bg-red-950/10 px-6 py-12 text-center">
               <p className="text-sm text-zinc-400">
-                {subvencionesError}
+                {transparencyError}
               </p>
             </div>
-          ) : subvenciones.length === 0 ? (
+          ) : !hasTransparencyData ? (
             <div className="border border-white/10 bg-zinc-900 px-6 py-12 text-center">
               <p className="text-sm text-zinc-500">
-                No hay subvenciones registradas públicamente aún.
+                No hay subvenciones ni premios registrados públicamente aún.
               </p>
             </div>
           ) : (
             <>
-              {/* YEAR SUMMARY */}
+              {/* ==================================================
+                  YEAR SUMMARY
+              ================================================== */}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10">
-                {yearlySummaries.map((summary) => (
-                  <div
-                    key={summary.year}
-                    className="bg-zinc-900 p-8 sm:p-10"
-                  >
-                    <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-zinc-600">
-                      Total ayudas {summary.year}
-                    </p>
-
-                    <div className="mt-5 font-display text-4xl sm:text-5xl text-white">
-                      {summary.total}€
-                    </div>
-
-                    <div className="mt-5 flex items-center gap-3">
-                      <span className="h-px w-8 bg-red-600" />
-
-                      <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-red-500">
-                        {summary.count}{' '}
-                        {summary.count === 1
-                          ? 'subvención'
-                          : 'subvenciones'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mx-auto mt-12 max-w-3xl text-center">
-                <p className="text-sm sm:text-base leading-7 text-zinc-500">
-                  Estas ayudas nos permiten seguir haciendo crecer
-                  el proyecto y cubrir parte de los costes necesarios
-                  para nuestra actividad deportiva, como
-                  desplazamientos, material, licencias y
-                  participación en competiciones oficiales.
-                </p>
-              </div>
-
-              {/* DETAILED LIST */}
-
-              <div className="mt-16">
+              <div>
                 <div className="mb-8">
-                  <h3 className="font-display text-2xl sm:text-3xl text-white">
-                    SUBVENCIONES RECIBIDAS
-                  </h3>
-
-                  <p className="mt-3 max-w-3xl text-xs sm:text-sm leading-6 text-zinc-600">
-                    Información suministrada por los órganos y
-                    entidades de las Administraciones Públicas a la
-                    Base de Datos Nacional de Subvenciones.
+                  <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-zinc-600">
+                    Resumen económico
                   </p>
+
+                  <h3 className="mt-3 font-display text-2xl sm:text-3xl text-white">
+                    AYUDAS Y RECONOCIMIENTOS
+                  </h3>
                 </div>
 
                 <div className="space-y-px bg-white/10">
-                  {subvenciones.map((sub) => (
-                    <article
-                      key={sub.id}
-                      className="bg-zinc-900 p-6 sm:p-8 transition-colors hover:bg-zinc-800"
+                  {transparencySummaries.map((summary) => (
+                    <div
+                      key={summary.year}
+                      className="bg-zinc-900 p-7 sm:p-9"
                     >
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
-
-                        <div className="lg:col-span-8">
-                          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                            <span className="font-display text-3xl text-red-500">
-                              {sub.ano}
-                            </span>
-
-                            <span className="font-display text-3xl text-white">
-                              {sub.valor}€
-                            </span>
-                          </div>
-
-                          <h4 className="mt-4 text-base sm:text-lg font-bold text-white">
-                            {sub.entidad}
-                          </h4>
-
-                          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                              <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
-                                Administración
-                              </span>
-
-                              <span className="mt-2 block text-sm text-zinc-400">
-                                {sub.tipo} - {sub.ambito}
-                              </span>
-                            </div>
-
-                            <div>
-                              <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
-                                Departamento
-                              </span>
-
-                              <span className="mt-2 block text-sm text-zinc-400">
-                                {sub.departamento ||
-                                  'No especificado'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="lg:col-span-4 lg:text-right">
-                          <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
-                            Fecha de concesión
-                          </span>
-
-                          <span className="mt-2 block text-sm text-zinc-300">
-                            {sub.fechaConcesion}
-                          </span>
-                        </div>
-
-                        <div className="lg:col-span-12 border-t border-white/5 pt-6">
-                          <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
-                            Convocatoria
-                          </span>
-
-                          <p className="mt-2 max-w-4xl text-sm leading-6 text-zinc-500">
-                            {sub.convocatoria}
+                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-8">
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-zinc-600">
+                            Resumen económico
                           </p>
 
-                          {sub.basesLink && (
-                            <a
-                              href={sub.basesLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-5 inline-flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.18em] text-red-500 transition-colors hover:text-red-400"
-                            >
-                              Ver bases reguladoras (BBRR)
-                              <ExternalIcon className="h-3.5 w-3.5" />
-                            </a>
-                          )}
+                          <div className="mt-2 font-display text-4xl sm:text-5xl text-white">
+                            {summary.year}
+                          </div>
+                        </div>
+
+                        <div className="sm:text-right">
+                          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                            Total ayudas y premios
+                          </p>
+
+                          <p className="mt-2 font-display text-3xl sm:text-4xl text-red-500">
+                            {formatCurrency(summary.total)}€
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/10">
+
+                        {/* SUBVENCIONES */}
+
+                        <div className="bg-zinc-950 p-6">
+                          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                            Subvenciones
+                          </p>
+
+                          <p className="mt-4 font-display text-2xl text-white">
+                            {formatCurrency(summary.subvencionesTotal)}€
+                          </p>
+
+                          <div className="mt-4 flex items-center gap-3">
+                            <span className="h-px w-6 bg-red-600" />
+
+                            <span className="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-500">
+                              {summary.subvencionesCount}{' '}
+                              {summary.subvencionesCount === 1
+                                ? 'subvención'
+                                : 'subvenciones'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* PREMIOS */}
+
+                        <div className="bg-zinc-950 p-6">
+                          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                            Premios y reconocimientos
+                          </p>
+
+                          <p className="mt-4 font-display text-2xl text-white">
+                            {formatCurrency(summary.premiosTotal)}€
+                          </p>
+
+                          <div className="mt-4 flex items-center gap-3">
+                            <span className="h-px w-6 bg-red-600" />
+
+                            <span className="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-500">
+                              {summary.premiosCount}{' '}
+                              {summary.premiosCount === 1
+                                ? 'reconocimiento'
+                                : 'reconocimientos'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* TOTAL */}
+
+                        <div className="bg-zinc-950 p-6">
+                          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                            Total combinado
+                          </p>
+
+                          <p className="mt-4 font-display text-2xl text-red-500">
+                            {formatCurrency(summary.total)}€
+                          </p>
+
+                          <div className="mt-4 flex items-center gap-3">
+                            <span className="h-px w-6 bg-red-600" />
+
+                            <span className="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-500">
+                              Ayudas + premios
+                            </span>
+                          </div>
                         </div>
 
                       </div>
-                    </article>
+                    </div>
                   ))}
                 </div>
               </div>
 
-              {/* ADMINISTRATIONS */}
+              {/* ==================================================
+                  INTRO TRANSPARENCIA
+              ================================================== */}
+
+              <div className="mx-auto mt-12 max-w-3xl text-center">
+                <p className="text-sm sm:text-base leading-7 text-zinc-500">
+                  Estas ayudas y reconocimientos nos permiten seguir
+                  haciendo crecer el proyecto y cubrir parte de los
+                  costes necesarios para nuestra actividad deportiva,
+                  como desplazamientos, material, licencias y
+                  participación en competiciones oficiales.
+                </p>
+              </div>
+
+              {/* ==================================================
+                  PREMIOS Y RECONOCIMIENTOS
+              ================================================== */}
+
+              {premios.length > 0 && (
+                <div className="mt-20">
+                  <div className="mb-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <span className="h-px w-8 bg-red-600" />
+
+                      <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
+                        Reconocimientos
+                      </span>
+                    </div>
+
+                    <h3 className="font-display text-2xl sm:text-3xl text-white">
+                      PREMIOS Y RECONOCIMIENTOS
+                    </h3>
+
+                    <p className="mt-3 max-w-3xl text-xs sm:text-sm leading-6 text-zinc-600">
+                      Reconocimientos y premios concedidos a Lobos
+                      Quad Rugby por entidades que valoran nuestro
+                      trabajo deportivo y social.
+                    </p>
+                  </div>
+
+                  <div className="space-y-px bg-white/10">
+                    {premios.map((premio) => (
+                      <article
+                        key={premio.id}
+                        className="bg-zinc-900 p-6 sm:p-8 transition-colors hover:bg-zinc-800"
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                          {/* LOGO */}
+
+                          <div className="lg:col-span-3">
+                            <div className="flex h-32 w-full items-center justify-center border border-white/5 bg-zinc-950 p-6">
+                              {premio.logo ? (
+                                <img
+                                  src={premio.logo}
+                                  alt={premio.entidad || 'Entidad concedente'}
+                                  className="max-h-full max-w-full object-contain grayscale opacity-70 transition-all duration-500 hover:grayscale-0 hover:opacity-100"
+                                />
+                              ) : (
+                                <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-700 text-center">
+                                  Sin logotipo
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* INFORMATION */}
+
+                          <div className="lg:col-span-7">
+                            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                              <span className="font-display text-3xl text-red-500">
+                                {premio.ano}
+                              </span>
+
+                              {premio.valor !== null &&
+                                premio.valor !== undefined &&
+                                String(premio.valor).trim() !== '' && (
+                                  <span className="font-display text-3xl text-white">
+                                    {formatCurrency(
+                                      parseEuropeanNumber(premio.valor)
+                                    )}
+                                    €
+                                  </span>
+                                )}
+                            </div>
+
+                            <h4 className="mt-4 text-base sm:text-lg font-bold text-white">
+                              {premio.titulo ||
+                                premio.premio ||
+                                premio.nombre ||
+                                'Premio o reconocimiento'}
+                            </h4>
+
+                            <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">
+                              {premio.entidad ||
+                                'Entidad concedente'}
+                            </p>
+
+                            {premio.descripcion && (
+                              <div className="mt-6 border-t border-white/5 pt-5">
+                                <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                                  Descripción
+                                </span>
+
+                                <p className="mt-2 text-sm leading-6 text-zinc-500">
+                                  {premio.descripcion}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* YEAR / VALUE */}
+
+                          <div className="lg:col-span-2 lg:text-right">
+                            <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                              Importe destinado
+                            </span>
+
+                            <span className="mt-2 block text-sm text-zinc-300">
+                              {premio.valor !== null &&
+                              premio.valor !== undefined &&
+                              String(premio.valor).trim() !== ''
+                                ? `${formatCurrency(
+                                    parseEuropeanNumber(premio.valor)
+                                  )}€`
+                                : 'Reconocimiento no económico'}
+                            </span>
+                          </div>
+
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ==================================================
+                  SUBVENCIONES
+              ================================================== */}
+
+              {subvenciones.length > 0 && (
+                <div className="mt-20">
+                  <div className="mb-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <span className="h-px w-8 bg-red-600" />
+
+                      <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
+                        Ayudas públicas
+                      </span>
+                    </div>
+
+                    <h3 className="font-display text-2xl sm:text-3xl text-white">
+                      SUBVENCIONES RECIBIDAS
+                    </h3>
+
+                    <p className="mt-3 max-w-3xl text-xs sm:text-sm leading-6 text-zinc-600">
+                      Información suministrada por los órganos y
+                      entidades de las Administraciones Públicas a la
+                      Base de Datos Nacional de Subvenciones.
+                    </p>
+                  </div>
+
+                  <div className="space-y-px bg-white/10">
+                    {subvenciones.map((sub) => (
+                      <article
+                        key={sub.id}
+                        className="bg-zinc-900 p-6 sm:p-8 transition-colors hover:bg-zinc-800"
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
+
+                          <div className="lg:col-span-8">
+                            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                              <span className="font-display text-3xl text-red-500">
+                                {sub.ano}
+                              </span>
+
+                              <span className="font-display text-3xl text-white">
+                                {sub.valor}€
+                              </span>
+                            </div>
+
+                            <h4 className="mt-4 text-base sm:text-lg font-bold text-white">
+                              {sub.entidad}
+                            </h4>
+
+                            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                              <div>
+                                <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                                  Administración
+                                </span>
+
+                                <span className="mt-2 block text-sm text-zinc-400">
+                                  {sub.tipo} - {sub.ambito}
+                                </span>
+                              </div>
+
+                              <div>
+                                <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                                  Departamento
+                                </span>
+
+                                <span className="mt-2 block text-sm text-zinc-400">
+                                  {sub.departamento ||
+                                    'No especificado'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="lg:col-span-4 lg:text-right">
+                            <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                              Fecha de concesión
+                            </span>
+
+                            <span className="mt-2 block text-sm text-zinc-300">
+                              {sub.fechaConcesion}
+                            </span>
+                          </div>
+
+                          <div className="lg:col-span-12 border-t border-white/5 pt-6">
+                            <span className="block text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-700">
+                              Convocatoria
+                            </span>
+
+                            <p className="mt-2 max-w-4xl text-sm leading-6 text-zinc-500">
+                              {sub.convocatoria}
+                            </p>
+
+                            {sub.basesLink && (
+                              <a
+                                href={sub.basesLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-5 inline-flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.18em] text-red-500 transition-colors hover:text-red-400"
+                              >
+                                Ver bases reguladoras (BBRR)
+                                <ExternalIcon className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                          </div>
+
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ==================================================
+                  ADMINISTRATIONS
+              ================================================== */}
 
               <div className="mt-20 border-t border-white/10 pt-12">
                 <div className="mb-8 text-center">
@@ -1127,9 +1394,8 @@ export default function Sponsors() {
             <div className="lg:col-span-5">
               <div className="sticky top-28">
                 <div className="mb-5 flex items-center gap-4">
-                  <span className="text-[9px] font-bold tracking-[0.25em] text-zinc-600">
-                  </span>
                   <span className="h-px w-8 bg-red-600" />
+
                   <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-red-500">
                     Contacto
                   </span>
@@ -1138,7 +1404,9 @@ export default function Sponsors() {
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-white">
                   HABLEMOS
                   <br />
-                  <span className="text-zinc-600">DE TU MARCA</span>
+                  <span className="text-zinc-600">
+                    DE TU MARCA
+                  </span>
                 </h2>
 
                 <p className="mt-7 text-sm sm:text-base leading-7 text-zinc-500">
@@ -1277,15 +1545,19 @@ export default function Sponsors() {
                     <option value="">
                       Selecciona una modalidad
                     </option>
+
                     <option value="Platinum">
                       Platinum - 6.000€
                     </option>
+
                     <option value="Gold">
                       Gold - 3.000€
                     </option>
+
                     <option value="Silver">
                       Silver - 1.500€
                     </option>
+
                     <option value="Colabora">
                       Colabora - 500€
                     </option>
