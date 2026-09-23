@@ -77,7 +77,6 @@ const getMonthIndex = (month) => {
 const getEventDate = (evento) => {
   if (!evento) return null;
 
-  // Compatibilidad futura si el backend incorpora dateISO.
   if (evento.dateISO) {
     const isoDate = new Date(evento.dateISO);
 
@@ -89,6 +88,7 @@ const getEventDate = (evento) => {
   const dateValue = String(evento.date || '').trim();
 
   const dayMatch = dateValue.match(/\d{1,2}/);
+
   const day = dayMatch
     ? Number(dayMatch[0])
     : null;
@@ -220,14 +220,6 @@ const getUpcomingSortDate = (evento) => {
     0
   );
 
-  /*
-   * Solo se utiliza para ordenar.
-   *
-   * IMPORTANTE:
-   * Esto NO cambia el estado del evento.
-   * Un evento solo está finalizado cuando
-   * el backend devuelve FINALIZADO.
-   */
   if (normalized < today) {
     normalized.setFullYear(
       normalized.getFullYear() + 1
@@ -1088,7 +1080,7 @@ export default function Eventos() {
       normalizedType ===
       'PUERTAS ABIERTAS'
     ) {
-      return 'bg-green-500/10 text-green-500 border-green-500/20';
+      return 'bg-green-500/10 text-green-400 border-green-500/20';
     }
 
     if (
@@ -1097,17 +1089,17 @@ export default function Eventos() {
       normalizedType ===
         'CLÍNICA'
     ) {
-      return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     }
 
     if (
       normalizedType ===
       'EVENTO SOCIAL'
     ) {
-      return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+      return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
     }
 
-    return 'bg-zinc-800 text-zinc-300 border-zinc-700';
+    return 'bg-zinc-800/60 text-zinc-400 border-zinc-700';
   };
 
   // =========================================================
@@ -1154,13 +1146,6 @@ export default function Eventos() {
             return -1;
           }
 
-          /*
-           * Próximos:
-           * más cercano primero.
-           *
-           * Historial:
-           * más reciente primero.
-           */
           if (
             activeTab ===
             'historico'
@@ -1188,12 +1173,12 @@ export default function Eventos() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-24">
         <div className="flex flex-col items-center">
 
-          <div className="w-8 h-8 border-2 border-zinc-700 border-t-red-600 rounded-full animate-spin mb-4" />
+          <div className="w-8 h-8 border-2 border-zinc-800 border-t-red-600 rounded-full animate-spin mb-4" />
 
-          <div className="text-zinc-500 text-sm uppercase tracking-widest">
+          <div className="text-zinc-600 text-[10px] font-semibold uppercase tracking-[0.2em]">
             Cargando eventos...
           </div>
 
@@ -1207,50 +1192,60 @@ export default function Eventos() {
   // =========================================================
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
 
       {/* =====================================================
           CABECERA
       ===================================================== */}
 
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+      <div className="border-b border-zinc-800 pb-8">
 
-        <div>
+        <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-7">
 
-          <div className="flex items-center gap-3 mb-2">
+          <div>
 
-            <span className="w-8 h-px bg-red-600" />
+            {/* BADGE */}
 
-            <span className="text-red-500 text-[10px] font-bold uppercase tracking-[0.25em]">
-              Actividades
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 mb-5">
+
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+              <span className="text-emerald-400 text-[9px] font-bold uppercase tracking-[0.22em]">
+                Administración
+              </span>
+
+            </div>
+
+            {/* TÍTULO */}
+
+            <h1 className="text-3xl md:text-[36px] leading-tight font-semibold tracking-tight text-white">
+              Gestión de Eventos
+            </h1>
+
+            <p className="text-zinc-500 text-sm mt-3 max-w-2xl">
+              Gestiona eventos, inscripciones y la galería de actividades del club.
+            </p>
 
           </div>
 
-          <h1 className="font-display text-3xl md:text-4xl text-white">
-            Gestión de Eventos
-          </h1>
+          {/* ACCIÓN PRINCIPAL */}
 
-          <p className="text-zinc-500 text-sm mt-2 max-w-xl">
-            Gestiona eventos, inscripciones y la galería de actividades del club.
-          </p>
+          <button
+            type="button"
+            onClick={() =>
+              openModal()
+            }
+            className="inline-flex items-center justify-center gap-2.5 px-5 py-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-[0.16em] hover:bg-red-500 transition-colors rounded-sm shrink-0"
+          >
+            <Icon
+              path="M12 4.5v15m7.5-7.5h-15"
+              className="w-4 h-4"
+            />
+
+            Nuevo Evento
+          </button>
 
         </div>
-
-        <button
-          type="button"
-          onClick={() =>
-            openModal()
-          }
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 text-white text-xs font-bold uppercase tracking-[0.15em] hover:bg-red-500 transition-colors rounded-sm"
-        >
-          <Icon
-            path="M12 4.5v15m7.5-7.5h-15"
-            className="w-4 h-4"
-          />
-
-          Nuevo Evento
-        </button>
 
       </div>
 
@@ -1259,15 +1254,17 @@ export default function Eventos() {
       ===================================================== */}
 
       {error && (
-        <div className="bg-red-500/5 border border-red-500/20 rounded-sm px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="mt-6 bg-red-500/[0.04] border border-red-500/20 rounded-lg px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
           <div className="flex items-center gap-3">
 
-            <div className="w-8 h-8 bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+
               <Icon
                 path="M12 9v3.75m0 3.75h.007M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 className="w-4 h-4 text-red-500"
               />
+
             </div>
 
             <p className="text-red-400 text-sm">
@@ -1279,7 +1276,7 @@ export default function Eventos() {
           <button
             type="button"
             onClick={fetchEventos}
-            className="px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-700 hover:text-white transition-colors rounded-sm"
+            className="px-4 py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 text-[9px] font-bold uppercase tracking-[0.16em] hover:bg-zinc-800 hover:text-white transition-colors rounded-md"
           >
             Reintentar
           </button>
@@ -1291,7 +1288,7 @@ export default function Eventos() {
           TABS
       ===================================================== */}
 
-      <div className="flex border-b border-zinc-800">
+      <div className="flex items-center gap-1 border-b border-zinc-800 mt-0">
 
         <button
           type="button"
@@ -1300,14 +1297,37 @@ export default function Eventos() {
               'activos'
             )
           }
-          className={`px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] transition-colors border-b-2 ${
+          className={`relative flex items-center gap-2 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${
             activeTab ===
             'activos'
-              ? 'border-red-600 text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              ? 'text-white'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
+
+          <Icon
+            path="M6.75 3.75h10.5A2.25 2.25 0 0119.5 6v12a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 18V6a2.25 2.25 0 012.25-2.25zM8.25 8.25h7.5M8.25 12h7.5M8.25 15.75h4.5"
+            className="w-4 h-4"
+          />
+
           Próximos Eventos
+
+          <span className="min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 text-[9px]">
+            {
+              eventos.filter(
+                (evento) =>
+                  evento.status !==
+                    'FINALIZADO' &&
+                  evento.isActive
+              ).length
+            }
+          </span>
+
+          {activeTab ===
+            'activos' && (
+            <span className="absolute left-0 right-0 bottom-[-1px] h-px bg-red-600" />
+          )}
+
         </button>
 
         <button
@@ -1317,14 +1337,36 @@ export default function Eventos() {
               'historico'
             )
           }
-          className={`px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] transition-colors border-b-2 ${
+          className={`relative flex items-center gap-2 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${
             activeTab ===
             'historico'
-              ? 'border-red-600 text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              ? 'text-white'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
+
+          <Icon
+            path="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            className="w-4 h-4"
+          />
+
           Historial
+
+          <span className="min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 text-[9px]">
+            {
+              eventos.filter(
+                (evento) =>
+                  evento.status ===
+                  'FINALIZADO'
+              ).length
+            }
+          </span>
+
+          {activeTab ===
+            'historico' && (
+            <span className="absolute left-0 right-0 bottom-[-1px] h-px bg-red-600" />
+          )}
+
         </button>
 
       </div>
@@ -1333,443 +1375,518 @@ export default function Eventos() {
           LISTA
       ===================================================== */}
 
-      {displayedEventos.length ===
-      0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-16 text-center">
+      <div className="pt-8">
 
-          <div className="w-14 h-14 mx-auto mb-5 border border-zinc-800 flex items-center justify-center">
+        {displayedEventos.length ===
+        0 ? (
+          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
 
-            <Icon
-              path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              className="w-6 h-6 text-zinc-600"
-            />
+            <div className="px-5 py-3 border-b border-zinc-800 bg-zinc-900/70 flex items-center justify-between">
+
+              <div className="flex items-center gap-2">
+
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+
+                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em]">
+                  {activeTab ===
+                  'activos'
+                    ? 'Eventos programados'
+                    : 'Historial de eventos'}
+                </span>
+
+              </div>
+
+            </div>
+
+            <div className="p-16 text-center">
+
+              <div className="w-12 h-12 mx-auto mb-5 rounded-lg border border-zinc-800 bg-zinc-950 flex items-center justify-center">
+
+                <Icon
+                  path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  className="w-5 h-5 text-zinc-600"
+                />
+
+              </div>
+
+              <p className="text-zinc-400 text-sm mb-5">
+                {activeTab ===
+                'activos'
+                  ? 'Aún no hay eventos programados.'
+                  : 'No hay eventos finalizados.'}
+              </p>
+
+              {activeTab ===
+                'activos' && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openModal()
+                  }
+                  className="px-5 py-2.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-[0.16em] hover:bg-red-500 transition-colors rounded-md"
+                >
+                  Crear Primer Evento
+                </button>
+              )}
+
+            </div>
 
           </div>
+        ) : (
+          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
 
-          <p className="text-zinc-400 text-sm mb-5">
-            {activeTab ===
-            'activos'
-              ? 'Aún no hay eventos programados.'
-              : 'No hay eventos finalizados.'}
-          </p>
+            {/* CABECERA DEL CARD */}
 
-          {activeTab ===
-            'activos' && (
-            <button
-              type="button"
-              onClick={() =>
-                openModal()
-              }
-              className="px-5 py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-500 transition-colors rounded-sm"
-            >
-              Crear Primer Evento
-            </button>
-          )}
+            <div className="px-5 py-3.5 border-b border-zinc-800 bg-zinc-900/80 flex items-center justify-between">
 
-        </div>
-      ) : (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
+              <div className="flex items-center gap-2.5">
 
-          <table className="w-full text-left min-w-[1100px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
 
-            <thead className="bg-zinc-950 border-b border-zinc-800">
+                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em]">
+                  {activeTab ===
+                  'activos'
+                    ? 'Eventos programados'
+                    : 'Eventos finalizados'}
+                </span>
 
-              <tr>
+              </div>
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold">
-                  Fecha
-                </th>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-zinc-800 bg-zinc-950">
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold">
-                  Evento
-                </th>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold">
-                  Estado
-                </th>
+                <span className="text-zinc-400 text-[9px] font-semibold uppercase tracking-wider">
+                  {displayedEventos.length}{' '}
+                  {displayedEventos.length ===
+                  1
+                    ? 'evento'
+                    : 'eventos'}
+                </span>
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold">
-                  Acceso
-                </th>
+              </div>
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold">
-                  Galería
-                </th>
+            </div>
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold">
-                  Inscritos
-                </th>
+            {/* TABLA */}
 
-                <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.18em] font-bold text-right">
-                  Acciones
-                </th>
+            <div className="overflow-x-auto">
 
-              </tr>
+              <table className="w-full text-left min-w-[1100px]">
 
-            </thead>
+                <thead className="bg-zinc-950/70 border-b border-zinc-800">
 
-            <tbody className="divide-y divide-zinc-800">
+                  <tr>
 
-              {displayedEventos.map(
-                (ev) => {
-                  const photos =
-                    getEventPhotos(ev);
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      Fecha
+                    </th>
 
-                  const isFinalizado =
-                    isEventCompleted(ev);
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      Evento
+                    </th>
 
-                  const finalizando =
-                    actionLoading ===
-                    `finalizar-${ev.id}`;
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      Estado
+                    </th>
 
-                  const reabriendo =
-                    actionLoading ===
-                    `reabrir-${ev.id}`;
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      Acceso
+                    </th>
 
-                  const changingActive =
-                    actionLoading ===
-                    `active-${ev.id}`;
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      Galería
+                    </th>
 
-                  const deleting =
-                    actionLoading ===
-                    `delete-${ev.id}`;
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      Inscritos
+                    </th>
 
-                  const rowBusy =
-                    finalizando ||
-                    reabriendo ||
-                    changingActive ||
-                    deleting;
+                    <th className="px-5 py-4 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold text-right">
+                      Acciones
+                    </th>
 
-                  return (
-                    <tr
-                      key={ev.id}
-                      className="hover:bg-zinc-800/30 transition-colors"
-                    >
+                  </tr>
 
-                      {/* FECHA */}
+                </thead>
 
-                      <td className="px-6 py-5">
+                <tbody className="divide-y divide-zinc-800/80">
 
-                        <p className="text-white font-display text-2xl leading-none">
-                          {ev.date ||
-                            '—'}
-                        </p>
+                  {displayedEventos.map(
+                    (ev) => {
+                      const photos =
+                        getEventPhotos(ev);
 
-                        <p className="text-red-500 text-[10px] uppercase tracking-widest mt-2">
-                          {ev.month ||
-                            '—'}{' '}
-                          ·{' '}
-                          {ev.day ||
-                            '—'}
-                        </p>
+                      const isFinalizado =
+                        isEventCompleted(ev);
 
-                        {isFinalizado &&
-                          ev.completedAt && (
-                            <p className="text-zinc-600 text-[9px] uppercase tracking-wider mt-2">
-                              Finalizado el{' '}
-                              {formatDate(
-                                ev.completedAt
-                              )}
+                      const finalizando =
+                        actionLoading ===
+                        `finalizar-${ev.id}`;
+
+                      const reabriendo =
+                        actionLoading ===
+                        `reabrir-${ev.id}`;
+
+                      const changingActive =
+                        actionLoading ===
+                        `active-${ev.id}`;
+
+                      const deleting =
+                        actionLoading ===
+                        `delete-${ev.id}`;
+
+                      const rowBusy =
+                        finalizando ||
+                        reabriendo ||
+                        changingActive ||
+                        deleting;
+
+                      return (
+                        <tr
+                          key={ev.id}
+                          className="group hover:bg-white/[0.015] transition-colors"
+                        >
+
+                          {/* FECHA */}
+
+                          <td className="px-5 py-5 align-top">
+
+                            <p className="text-white text-xl font-semibold leading-none tracking-tight">
+                              {ev.date ||
+                                '—'}
                             </p>
-                          )}
 
-                      </td>
+                            <p className="text-red-500 text-[9px] uppercase tracking-[0.12em] font-semibold mt-2">
+                              {ev.month ||
+                                '—'}{' '}
+                              ·{' '}
+                              {ev.day ||
+                                '—'}
+                            </p>
 
-                      {/* EVENTO */}
+                            {isFinalizado &&
+                              ev.completedAt && (
+                                <p className="text-zinc-600 text-[8px] uppercase tracking-wider mt-2">
+                                  Finalizado el{' '}
+                                  {formatDate(
+                                    ev.completedAt
+                                  )}
+                                </p>
+                              )}
 
-                      <td className="px-6 py-5">
+                          </td>
 
-                        <p className="text-white font-medium">
-                          {ev.name ||
-                            'Sin nombre'}
-                        </p>
+                          {/* EVENTO */}
 
-                        <p className="text-zinc-500 text-xs mt-1">
-                          {ev.time ||
-                            'Horario no indicado'}{' '}
-                          ·{' '}
-                          {ev.location ||
-                            'Ubicación no indicada'}
-                        </p>
+                          <td className="px-5 py-5 align-top">
 
-                        {ev.description && (
-                          <p className="text-zinc-600 text-xs mt-2 max-w-xs line-clamp-2">
-                            {
-                              ev.description
-                            }
-                          </p>
-                        )}
+                            <p className="text-white text-sm font-medium">
+                              {ev.name ||
+                                'Sin nombre'}
+                            </p>
 
-                        <span
-                          className={`inline-flex mt-3 items-center px-2.5 py-1 rounded-sm text-[9px] font-bold uppercase tracking-wider border ${getTypeStyle(
-                            ev.type
-                          )}`}
-                        >
-                          {ev.type ||
-                            'EVENTO'}
-                        </span>
+                            <p className="text-zinc-600 text-[11px] mt-1.5">
+                              {ev.time ||
+                                'Horario no indicado'}{' '}
+                              <span className="text-zinc-800">
+                                ·
+                              </span>{' '}
+                              {ev.location ||
+                                'Ubicación no indicada'}
+                            </p>
 
-                      </td>
+                            {ev.description && (
+                              <p className="text-zinc-600 text-[11px] mt-2 max-w-xs line-clamp-2 leading-relaxed">
+                                {
+                                  ev.description
+                                }
+                              </p>
+                            )}
 
-                      {/* ESTADO */}
-
-                      <td className="px-6 py-5">
-
-                        {isFinalizado ? (
-                          <span className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-400 border border-zinc-700">
-
-                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-
-                            Finalizado
-
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
-
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-
-                            Programado
-
-                          </span>
-                        )}
-
-                      </td>
-
-                      {/* ACCESO */}
-
-                      <td className="px-6 py-5">
-
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[9px] font-bold uppercase tracking-wider border ${
-                            ev.isPublic
-                              ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                              : 'bg-zinc-800 text-zinc-500 border-zinc-700'
-                          }`}
-                        >
-                          {ev.isPublic
-                            ? 'Público'
-                            : 'Interno'}
-                        </span>
-
-                      </td>
-
-                      {/* GALERÍA */}
-
-                      <td className="px-6 py-5">
-
-                        {isFinalizado ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setGaleriaEvento(
-                                ev
-                              )
-                            }
-                            className="inline-flex items-center gap-2 text-zinc-300 hover:text-white text-xs font-bold transition-colors"
-                          >
-                            <Icon
-                              path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              className="w-4 h-4"
-                            />
-
-                            {photos.length}{' '}
-                            {photos.length ===
-                            1
-                              ? 'foto'
-                              : 'fotos'}
-                          </button>
-                        ) : (
-                          <span className="text-zinc-700 text-sm">
-                            —
-                          </span>
-                        )}
-
-                      </td>
-
-                      {/* INSCRITOS */}
-
-                      <td className="px-6 py-5">
-
-                        {ev.isPublic ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              verInscricoes(
-                                ev
-                              )
-                            }
-                            disabled={
-                              loadingInscricoes
-                            }
-                            className="text-blue-500 hover:text-blue-400 disabled:opacity-50 text-xs font-bold transition-colors"
-                          >
-                            {loadingInscricoes
-                              ? 'Cargando...'
-                              : 'Ver lista'}
-                          </button>
-                        ) : (
-                          <span className="text-zinc-600 text-sm">
-                            —
-                          </span>
-                        )}
-
-                      </td>
-
-                      {/* ACCIONES */}
-
-                      <td className="px-6 py-5">
-
-                        <div className="flex items-center justify-end gap-1">
-
-                          {/* EDITAR */}
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openModal(
-                                ev
-                              )
-                            }
-                            disabled={
-                              rowBusy
-                            }
-                            className="p-2.5 text-zinc-500 hover:text-white hover:bg-zinc-800 disabled:opacity-40 rounded-sm transition-colors"
-                            title="Editar"
-                          >
-                            <Icon
-                              path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-                            />
-                          </button>
-
-                          {/* FINALIZAR / REABRIR */}
-
-                          {!isFinalizado ? (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFinalizarEvento(
-                                  ev
-                                )
-                              }
-                              disabled={
-                                rowBusy
-                              }
-                              className="p-2.5 text-green-500 hover:text-green-400 hover:bg-green-500/10 disabled:opacity-40 rounded-sm transition-colors"
-                              title="Marcar como finalizado"
+                            <span
+                              className={`inline-flex mt-3 items-center px-2 py-1 rounded-md text-[8px] font-bold uppercase tracking-[0.12em] border ${getTypeStyle(
+                                ev.type
+                              )}`}
                             >
-                              <Icon
-                                path="M5 13l4 4L19 7"
-                              />
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleReabrirEvento(
-                                  ev
-                                )
-                              }
-                              disabled={
-                                rowBusy
-                              }
-                              className="p-2.5 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 disabled:opacity-40 rounded-sm transition-colors"
-                              title="Reabrir evento"
+                              {ev.type ||
+                                'EVENTO'}
+                            </span>
+
+                          </td>
+
+                          {/* ESTADO */}
+
+                          <td className="px-5 py-5 align-top">
+
+                            {isFinalizado ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[8px] font-bold uppercase tracking-[0.1em] bg-zinc-800/80 text-zinc-500 border border-zinc-700">
+
+                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+
+                                Finalizado
+
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[8px] font-bold uppercase tracking-[0.1em] bg-emerald-500/[0.07] text-emerald-400 border border-emerald-500/15">
+
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+                                Programado
+
+                              </span>
+                            )}
+
+                          </td>
+
+                          {/* ACCESO */}
+
+                          <td className="px-5 py-5 align-top">
+
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1.5 rounded-md text-[8px] font-bold uppercase tracking-[0.1em] border ${
+                                ev.isPublic
+                                  ? 'bg-emerald-500/[0.07] text-emerald-400 border-emerald-500/15'
+                                  : 'bg-zinc-800/80 text-zinc-600 border-zinc-700'
+                              }`}
                             >
-                              <Icon
-                                path="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                              />
-                            </button>
-                          )}
+                              {ev.isPublic
+                                ? 'Público'
+                                : 'Interno'}
+                            </span>
+
+                          </td>
 
                           {/* GALERÍA */}
 
-                          {isFinalizado && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setGaleriaEvento(
-                                  ev
-                                )
-                              }
-                              disabled={
-                                rowBusy
-                              }
-                              className="p-2.5 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 disabled:opacity-40 rounded-sm transition-colors"
-                              title="Gestionar galería"
-                            >
-                              <Icon
-                                path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              />
-                            </button>
-                          )}
+                          <td className="px-5 py-5 align-top">
 
-                          {/* ARCHIVAR / REACTIVAR */}
+                            {isFinalizado ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setGaleriaEvento(
+                                    ev
+                                  )
+                                }
+                                className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-white text-[11px] font-medium transition-colors"
+                              >
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              toggleActivo(
-                                ev.id,
-                                ev.isActive
-                              )
-                            }
-                            disabled={
-                              rowBusy
-                            }
-                            className={`p-2.5 rounded-sm disabled:opacity-40 transition-colors ${
-                              ev.isActive
-                                ? 'text-yellow-500 hover:bg-yellow-500/10'
-                                : 'text-green-500 hover:bg-green-500/10'
-                            }`}
-                            title={
-                              ev.isActive
-                                ? 'Archivar'
-                                : 'Reactivar'
-                            }
-                          >
-                            <Icon
-                              path={
-                                ev.isActive
-                                  ? 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'
-                                  : 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
-                              }
-                            />
-                          </button>
+                                <Icon
+                                  path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12"
+                                  className="w-3.5 h-3.5"
+                                />
 
-                          {/* ELIMINAR */}
+                                {photos.length}{' '}
+                                {photos.length ===
+                                1
+                                  ? 'foto'
+                                  : 'fotos'}
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setItemToDelete(
-                                ev.id
-                              )
-                            }
-                            disabled={
-                              rowBusy
-                            }
-                            className="p-2.5 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 disabled:opacity-40 rounded-sm transition-colors"
-                            title="Eliminar"
-                          >
-                            <Icon
-                              path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                            />
-                          </button>
+                              </button>
+                            ) : (
+                              <span className="text-zinc-800 text-sm">
+                                —
+                              </span>
+                            )}
 
-                        </div>
+                          </td>
 
-                      </td>
+                          {/* INSCRITOS */}
 
-                    </tr>
-                  );
-                }
-              )}
+                          <td className="px-5 py-5 align-top">
 
-            </tbody>
-          </table>
+                            {ev.isPublic ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  verInscricoes(
+                                    ev
+                                  )
+                                }
+                                disabled={
+                                  loadingInscricoes
+                                }
+                                className="text-zinc-500 hover:text-blue-400 disabled:opacity-50 text-[11px] font-medium transition-colors"
+                              >
+                                {loadingInscricoes
+                                  ? 'Cargando...'
+                                  : 'Ver lista'}
+                              </button>
+                            ) : (
+                              <span className="text-zinc-800 text-sm">
+                                —
+                              </span>
+                            )}
 
-        </div>
-      )}
+                          </td>
+
+                          {/* ACCIONES */}
+
+                          <td className="px-5 py-5 align-top">
+
+                            <div className="flex items-center justify-end gap-0.5">
+
+                              {/* EDITAR */}
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openModal(
+                                    ev
+                                  )
+                                }
+                                disabled={
+                                  rowBusy
+                                }
+                                className="p-2 text-zinc-600 hover:text-white hover:bg-zinc-800/80 disabled:opacity-30 rounded-md transition-colors"
+                                title="Editar"
+                              >
+                                <Icon
+                                  path="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                                  className="w-4 h-4"
+                                />
+                              </button>
+
+                              {/* FINALIZAR / REABRIR */}
+
+                              {!isFinalizado ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setFinalizarEvento(
+                                      ev
+                                    )
+                                  }
+                                  disabled={
+                                    rowBusy
+                                  }
+                                  className="p-2 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-30 rounded-md transition-colors"
+                                  title="Marcar como finalizado"
+                                >
+                                  <Icon
+                                    path="M5 13l4 4L19 7"
+                                    className="w-4 h-4"
+                                  />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleReabrirEvento(
+                                      ev
+                                    )
+                                  }
+                                  disabled={
+                                    rowBusy
+                                  }
+                                  className="p-2 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 disabled:opacity-30 rounded-md transition-colors"
+                                  title="Reabrir evento"
+                                >
+                                  <Icon
+                                    path="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    className="w-4 h-4"
+                                  />
+                                </button>
+                              )}
+
+                              {/* GALERÍA */}
+
+                              {isFinalizado && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setGaleriaEvento(
+                                      ev
+                                    )
+                                  }
+                                  disabled={
+                                    rowBusy
+                                  }
+                                  className="p-2 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 disabled:opacity-30 rounded-md transition-colors"
+                                  title="Gestionar galería"
+                                >
+                                  <Icon
+                                    path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12"
+                                    className="w-4 h-4"
+                                  />
+                                </button>
+                              )}
+
+                              {/* ARCHIVAR / REACTIVAR */}
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  toggleActivo(
+                                    ev.id,
+                                    ev.isActive
+                                  )
+                                }
+                                disabled={
+                                  rowBusy
+                                }
+                                className={`p-2 rounded-md disabled:opacity-30 transition-colors ${
+                                  ev.isActive
+                                    ? 'text-amber-500 hover:bg-amber-500/10'
+                                    : 'text-emerald-500 hover:bg-emerald-500/10'
+                                }`}
+                                title={
+                                  ev.isActive
+                                    ? 'Archivar'
+                                    : 'Reactivar'
+                                }
+                              >
+                                <Icon
+                                  path={
+                                    ev.isActive
+                                      ? 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'
+                                      : 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                                  }
+                                  className="w-4 h-4"
+                                />
+                              </button>
+
+                              {/* ELIMINAR */}
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setItemToDelete(
+                                    ev.id
+                                  )
+                                }
+                                disabled={
+                                  rowBusy
+                                }
+                                className="p-2 text-zinc-700 hover:text-red-500 hover:bg-red-500/10 disabled:opacity-30 rounded-md transition-colors"
+                                title="Eliminar"
+                              >
+                                <Icon
+                                  path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                  className="w-4 h-4"
+                                />
+                              </button>
+
+                            </div>
+
+                          </td>
+
+                        </tr>
+                      );
+                    }
+                  )}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
 
       {/* =====================================================
           MODAL CREAR / EDITAR
@@ -1788,19 +1905,23 @@ export default function Eventos() {
           }}
         >
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
 
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between">
 
               <div>
 
-                <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
-                  {editingId
-                    ? 'Editar'
-                    : 'Nuevo'}
-                </p>
+                <div className="flex items-center gap-2 mb-2">
 
-                <h2 className="font-display text-2xl text-white">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+                  <p className="text-emerald-400 text-[9px] font-bold uppercase tracking-[0.2em]">
+                    Actividades
+                  </p>
+
+                </div>
+
+                <h2 className="text-xl font-semibold text-white tracking-tight">
                   {editingId
                     ? 'Editar Evento'
                     : 'Nuevo Evento'}
@@ -1814,10 +1935,13 @@ export default function Eventos() {
                   closeModal
                 }
                 disabled={saving}
-                className="text-zinc-500 hover:text-white disabled:opacity-40 transition-colors"
+                className="w-8 h-8 rounded-md border border-zinc-800 text-zinc-600 hover:text-white hover:bg-zinc-800 flex items-center justify-center disabled:opacity-40 transition-colors"
                 aria-label="Cerrar"
               >
-                <Icon path="M6 18L18 6M6 6l12 12" />
+                <Icon
+                  path="M6 18L18 6M6 6l12 12"
+                  className="w-4 h-4"
+                />
               </button>
 
             </div>
@@ -1833,7 +1957,7 @@ export default function Eventos() {
 
               <div>
 
-                <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                   Tipo de Evento *
                 </label>
 
@@ -1848,7 +1972,7 @@ export default function Eventos() {
                     })
                   }
                   required
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                 >
                   <option value="PUERTAS ABIERTAS">
                     Puertas Abiertas
@@ -1869,7 +1993,7 @@ export default function Eventos() {
 
               <div>
 
-                <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                   Nombre del Evento *
                 </label>
 
@@ -1886,7 +2010,7 @@ export default function Eventos() {
                   }
                   required
                   maxLength={120}
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                 />
 
               </div>
@@ -1897,7 +2021,7 @@ export default function Eventos() {
 
                 <div>
 
-                  <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                  <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                     Día *
                   </label>
 
@@ -1915,14 +2039,14 @@ export default function Eventos() {
                     required
                     maxLength={20}
                     placeholder="14"
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                   />
 
                 </div>
 
                 <div>
 
-                  <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                  <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                     Mes *
                   </label>
 
@@ -1940,14 +2064,14 @@ export default function Eventos() {
                     required
                     maxLength={20}
                     placeholder="Septiembre"
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                   />
 
                 </div>
 
                 <div className="col-span-2">
 
-                  <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                  <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                     Día de la Semana *
                   </label>
 
@@ -1962,7 +2086,7 @@ export default function Eventos() {
                       })
                     }
                     required
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                   >
                     <option>
                       Lunes
@@ -1997,7 +2121,7 @@ export default function Eventos() {
 
                 <div>
 
-                  <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                  <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                     Horario *
                   </label>
 
@@ -2015,14 +2139,14 @@ export default function Eventos() {
                     required
                     maxLength={50}
                     placeholder="17:00 — 19:30"
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                   />
 
                 </div>
 
                 <div>
 
-                  <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                  <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                     Ubicación *
                   </label>
 
@@ -2040,7 +2164,7 @@ export default function Eventos() {
                     }
                     required
                     maxLength={180}
-                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none text-sm"
                   />
 
                 </div>
@@ -2051,7 +2175,7 @@ export default function Eventos() {
 
               <div>
 
-                <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
+                <label className="block text-zinc-500 text-[9px] font-bold uppercase tracking-[0.18em] mb-2">
                   Descripción
                 </label>
 
@@ -2068,10 +2192,10 @@ export default function Eventos() {
                   }
                   rows={3}
                   maxLength={500}
-                  className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none resize-none"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-md focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none resize-none text-sm"
                 />
 
-                <p className="text-zinc-700 text-[10px] text-right mt-1">
+                <p className="text-zinc-700 text-[9px] text-right mt-1">
                   {
                     formData.description
                       .length
@@ -2083,17 +2207,17 @@ export default function Eventos() {
 
               {/* PÚBLICO */}
 
-              <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-sm">
+              <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-lg">
 
                 <div className="flex items-center justify-between gap-5">
 
                   <div>
 
-                    <p className="text-white font-bold text-sm">
+                    <p className="text-white font-medium text-sm">
                       ¿Abierto al público?
                     </p>
 
-                    <p className="text-zinc-500 text-xs mt-1">
+                    <p className="text-zinc-600 text-xs mt-1">
                       Los visitantes podrán inscribirse desde la web.
                     </p>
 
@@ -2111,17 +2235,17 @@ export default function Eventos() {
                     aria-pressed={
                       formData.isPublic
                     }
-                    className={`relative w-14 h-7 rounded-full transition-colors ${
+                    className={`relative w-12 h-6 rounded-full transition-colors ${
                       formData.isPublic
-                        ? 'bg-green-600'
+                        ? 'bg-emerald-600'
                         : 'bg-zinc-700'
                     }`}
                   >
 
                     <span
-                      className={`absolute top-0.5 w-6 h-6 bg-white rounded-full transition-transform ${
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
                         formData.isPublic
-                          ? 'left-7'
+                          ? 'left-6.5'
                           : 'left-0.5'
                       }`}
                     />
@@ -2134,12 +2258,12 @@ export default function Eventos() {
 
               {/* BOTONES */}
 
-              <div className="flex gap-3 pt-4 border-t border-zinc-800">
+              <div className="flex gap-3 pt-5 border-t border-zinc-800">
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest hover:bg-red-500 disabled:opacity-50 transition-colors rounded-sm"
+                  className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-[10px] tracking-[0.16em] hover:bg-red-500 disabled:opacity-50 transition-colors rounded-md"
                 >
                   {saving
                     ? 'Guardando...'
@@ -2154,7 +2278,7 @@ export default function Eventos() {
                     closeModal
                   }
                   disabled={saving}
-                  className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-widest hover:bg-zinc-700 disabled:opacity-50 transition-colors rounded-sm"
+                  className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase text-[10px] tracking-[0.16em] hover:bg-zinc-700 disabled:opacity-50 transition-colors rounded-md"
                 >
                   Cancelar
                 </button>
@@ -2184,21 +2308,27 @@ export default function Eventos() {
           }}
         >
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-2xl">
 
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between">
 
               <div>
 
-                <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
-                  Archivo del club
-                </p>
+                <div className="flex items-center gap-2 mb-2">
 
-                <h2 className="font-display text-2xl text-white">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+                  <p className="text-emerald-400 text-[9px] font-bold uppercase tracking-[0.2em]">
+                    Archivo del club
+                  </p>
+
+                </div>
+
+                <h2 className="text-xl font-semibold text-white tracking-tight">
                   {galeriaEvento.name}
                 </h2>
 
-                <p className="text-zinc-500 text-xs mt-1">
+                <p className="text-zinc-600 text-xs mt-1">
                   {formatEventDate(
                     galeriaEvento
                   )}{' '}
@@ -2215,10 +2345,13 @@ export default function Eventos() {
                     null
                   )
                 }
-                className="text-zinc-500 hover:text-white transition-colors"
+                className="w-8 h-8 rounded-md border border-zinc-800 text-zinc-600 hover:text-white hover:bg-zinc-800 flex items-center justify-center transition-colors"
                 aria-label="Cerrar galería"
               >
-                <Icon path="M6 18L18 6M6 6l12 12" />
+                <Icon
+                  path="M6 18L18 6M6 6l12 12"
+                  className="w-4 h-4"
+                />
               </button>
 
             </div>
@@ -2229,11 +2362,11 @@ export default function Eventos() {
 
                 <div>
 
-                  <p className="text-white font-bold">
+                  <p className="text-white font-medium text-sm">
                     Galería del evento
                   </p>
 
-                  <p className="text-zinc-500 text-xs mt-1">
+                  <p className="text-zinc-600 text-xs mt-1">
 
                     {
                       getEventPhotos(
@@ -2252,7 +2385,7 @@ export default function Eventos() {
                 </div>
 
                 <label
-                  className={`inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-widest transition-colors rounded-sm ${
+                  className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white text-[9px] font-bold uppercase tracking-[0.16em] transition-colors rounded-md ${
                     uploadingPhotos
                       ? 'opacity-50 cursor-not-allowed'
                       : 'cursor-pointer'
@@ -2301,7 +2434,7 @@ export default function Eventos() {
                             foto
                           )
                         }
-                        className="group relative aspect-square bg-zinc-950 border border-zinc-800 overflow-hidden"
+                        className="group relative aspect-square bg-zinc-950 border border-zinc-800 rounded-md overflow-hidden"
                       >
 
                         <img
@@ -2330,7 +2463,7 @@ export default function Eventos() {
                                 deletingPhoto ===
                                 foto.id
                               }
-                              className="opacity-0 group-hover:opacity-100 p-2 bg-red-600 text-white rounded-sm transition-opacity disabled:opacity-50"
+                              className="opacity-0 group-hover:opacity-100 p-2 bg-red-600 text-white rounded-md transition-opacity disabled:opacity-50"
                               title="Eliminar foto"
                             >
                               <Icon
@@ -2348,10 +2481,10 @@ export default function Eventos() {
 
                 </div>
               ) : (
-                <div className="border border-dashed border-zinc-800 p-14 text-center">
+                <div className="border border-dashed border-zinc-800 rounded-lg bg-zinc-950/40 p-14 text-center">
 
                   <Icon
-                    path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H6"
+                    path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12"
                     className="w-8 h-8 mx-auto text-zinc-700 mb-4"
                   />
 
@@ -2389,21 +2522,27 @@ export default function Eventos() {
           }}
         >
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
 
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between">
 
               <div>
 
-                <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
-                  Registro
-                </p>
+                <div className="flex items-center gap-2 mb-2">
 
-                <h2 className="font-display text-2xl text-white">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+                  <p className="text-emerald-400 text-[9px] font-bold uppercase tracking-[0.2em]">
+                    Registro
+                  </p>
+
+                </div>
+
+                <h2 className="text-xl font-semibold text-white tracking-tight">
                   Inscritos
                 </h2>
 
-                <p className="text-zinc-500 text-sm mt-1">
+                <p className="text-zinc-600 text-xs mt-1">
                   {inscricoesModal.name}{' '}
                   ·{' '}
                   {inscricoes.length}{' '}
@@ -2419,10 +2558,13 @@ export default function Eventos() {
                     null
                   )
                 }
-                className="text-zinc-500 hover:text-white transition-colors"
+                className="w-8 h-8 rounded-md border border-zinc-800 text-zinc-600 hover:text-white hover:bg-zinc-800 flex items-center justify-center transition-colors"
                 aria-label="Cerrar inscritos"
               >
-                <Icon path="M6 18L18 6M6 6l12 12" />
+                <Icon
+                  path="M6 18L18 6M6 6l12 12"
+                  className="w-4 h-4"
+                />
               </button>
 
             </div>
@@ -2432,16 +2574,16 @@ export default function Eventos() {
               {loadingInscricoes ? (
                 <div className="py-12 flex flex-col items-center">
 
-                  <div className="w-7 h-7 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin mb-4" />
+                  <div className="w-7 h-7 border-2 border-zinc-800 border-t-blue-500 rounded-full animate-spin mb-4" />
 
-                  <p className="text-zinc-500 text-sm">
+                  <p className="text-zinc-600 text-sm">
                     Cargando inscripciones...
                   </p>
 
                 </div>
               ) : inscricoes.length ===
                 0 ? (
-                <p className="text-zinc-500 text-center py-8">
+                <p className="text-zinc-600 text-center py-8">
                   Aún no hay inscritos para este evento.
                 </p>
               ) : (
@@ -2451,19 +2593,19 @@ export default function Eventos() {
 
                     <tr>
 
-                      <th className="pb-3 text-zinc-500 text-[10px] uppercase tracking-wider">
+                      <th className="pb-3 text-zinc-600 text-[9px] uppercase tracking-[0.16em] font-bold">
                         Nombre
                       </th>
 
-                      <th className="pb-3 text-zinc-500 text-[10px] uppercase tracking-wider">
+                      <th className="pb-3 text-zinc-600 text-[9px] uppercase tracking-[0.16em] font-bold">
                         Email
                       </th>
 
-                      <th className="pb-3 text-zinc-500 text-[10px] uppercase tracking-wider">
+                      <th className="pb-3 text-zinc-600 text-[9px] uppercase tracking-[0.16em] font-bold">
                         Teléfono
                       </th>
 
-                      <th className="pb-3 text-zinc-500 text-[10px] uppercase tracking-wider">
+                      <th className="pb-3 text-zinc-600 text-[9px] uppercase tracking-[0.16em] font-bold">
                         Fecha
                       </th>
 
@@ -2479,26 +2621,27 @@ export default function Eventos() {
                           key={
                             insc.id
                           }
+                          className="hover:bg-white/[0.015] transition-colors"
                         >
 
-                          <td className="py-3 text-white font-medium">
+                          <td className="py-3 text-white text-sm font-medium">
                             {
                               insc.fullName
                             }
                           </td>
 
-                          <td className="py-3 text-zinc-400 text-sm">
+                          <td className="py-3 text-zinc-500 text-xs">
                             {
                               insc.email
                             }
                           </td>
 
-                          <td className="py-3 text-zinc-400 text-sm">
+                          <td className="py-3 text-zinc-500 text-xs">
                             {insc.phone ||
                               '—'}
                           </td>
 
-                          <td className="py-3 text-zinc-500 text-xs">
+                          <td className="py-3 text-zinc-600 text-[10px]">
                             {formatDate(
                               insc.createdAt
                             )}
@@ -2538,18 +2681,18 @@ export default function Eventos() {
           }}
         >
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-7 shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full p-7 shadow-2xl">
 
-            <div className="w-12 h-12 bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-5">
+            <div className="w-11 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5">
 
               <Icon
                 path="M5 13l4 4L19 7"
-                className="w-6 h-6 text-green-500"
+                className="w-5 h-5 text-emerald-400"
               />
 
             </div>
 
-            <h3 className="font-display text-2xl text-white mb-2">
+            <h3 className="text-xl font-semibold text-white mb-2 tracking-tight">
               Finalizar evento
             </h3>
 
@@ -2582,7 +2725,7 @@ export default function Eventos() {
                   actionLoading ===
                   `finalizar-${finalizarEvento.id}`
                 }
-                className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase text-xs tracking-widest hover:bg-zinc-700 disabled:opacity-50 transition-colors rounded-sm"
+                className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase text-[10px] tracking-[0.16em] hover:bg-zinc-700 disabled:opacity-50 transition-colors rounded-md"
               >
                 Cancelar
               </button>
@@ -2596,7 +2739,7 @@ export default function Eventos() {
                   actionLoading ===
                   `finalizar-${finalizarEvento.id}`
                 }
-                className="flex-1 py-3 bg-green-600 text-white font-bold uppercase text-xs tracking-widest hover:bg-green-500 disabled:opacity-50 transition-colors rounded-sm"
+                className="flex-1 py-3 bg-emerald-600 text-white font-bold uppercase text-[10px] tracking-[0.16em] hover:bg-emerald-500 disabled:opacity-50 transition-colors rounded-md"
               >
                 {actionLoading ===
                 `finalizar-${finalizarEvento.id}`
@@ -2623,22 +2766,22 @@ export default function Eventos() {
         >
 
           <div
-            className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-7 shadow-2xl"
+            className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full p-7 shadow-2xl"
             onClick={(e) =>
               e.stopPropagation()
             }
           >
 
-            <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
+            <div className="w-11 h-11 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
 
               <Icon
                 path="M12 9v3.75m0 3.75h.007M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                className="w-6 h-6 text-red-500"
+                className="w-5 h-5 text-red-500"
               />
 
             </div>
 
-            <h3 className="font-display text-xl text-white mb-2">
+            <h3 className="text-xl font-semibold text-white mb-2 tracking-tight">
               Confirmar Eliminación
             </h3>
 
@@ -2659,7 +2802,7 @@ export default function Eventos() {
                   actionLoading ===
                   `delete-${itemToDelete}`
                 }
-                className="flex-1 py-3 bg-zinc-800 text-zinc-300 font-bold uppercase text-xs tracking-widest rounded-sm hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+                className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase text-[10px] tracking-[0.16em] rounded-md hover:bg-zinc-700 disabled:opacity-50 transition-colors"
               >
                 Cancelar
               </button>
@@ -2673,7 +2816,7 @@ export default function Eventos() {
                   actionLoading ===
                   `delete-${itemToDelete}`
                 }
-                className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-xs tracking-widest rounded-sm hover:bg-red-500 disabled:opacity-50 transition-colors"
+                className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-[10px] tracking-[0.16em] rounded-md hover:bg-red-500 disabled:opacity-50 transition-colors"
               >
                 {actionLoading ===
                 `delete-${itemToDelete}`
