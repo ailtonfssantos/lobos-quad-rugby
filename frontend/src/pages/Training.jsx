@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config';
 
@@ -76,6 +76,40 @@ const ArrowUpRight = ({ className = 'w-5 h-5' }) => (
   </svg>
 );
 
+const ChevronLeftIcon = ({ className = 'w-5 h-5' }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m15 18-6-6 6-6"
+    />
+  </svg>
+);
+
+const ChevronRightIcon = ({ className = 'w-5 h-5' }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m9 18 6-6-6-6"
+    />
+  </svg>
+);
+
 const CloseIcon = ({ className = 'w-5 h-5' }) => (
   <svg
     className={className}
@@ -134,7 +168,10 @@ const RefreshIcon = ({ className = 'w-5 h-5' }) => (
 const getEventTypeStyle = (type) => {
   const normalized = String(type || '').toUpperCase();
 
-  if (normalized === 'PUERTAS ABIERTAS') {
+  if (
+    normalized === 'PUERTAS ABIERTAS' ||
+    normalized === 'JORNADA DE PUERTAS ABIERTAS'
+  ) {
     return {
       wrapper:
         'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -142,7 +179,10 @@ const getEventTypeStyle = (type) => {
     };
   }
 
-  if (normalized === 'CLINICA' || normalized === 'CLÍNICA') {
+  if (
+    normalized === 'CLINICA' ||
+    normalized === 'CLÍNICA'
+  ) {
     return {
       wrapper:
         'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -155,6 +195,102 @@ const getEventTypeStyle = (type) => {
       'bg-purple-500/10 text-purple-400 border-purple-500/20',
     dot: 'bg-purple-400',
   };
+};
+
+/* =========================================================
+   DATE HELPERS
+========================================================= */
+
+const getEventDate = (evento) => {
+  if (!evento?.dateISO) return null;
+
+  const date = new Date(evento.dateISO);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+};
+
+const isPastEvent = (evento) => {
+  const date = getEventDate(evento);
+
+  if (!date) return false;
+
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  const eventDate = new Date(date);
+
+  eventDate.setHours(0, 0, 0, 0);
+
+  return eventDate < today;
+};
+
+const formatEventDate = (evento) => {
+  const date = getEventDate(evento);
+
+  if (!date) {
+    return {
+      day: evento?.date || '—',
+      month: evento?.month || '',
+      weekday: evento?.day || '',
+    };
+  }
+
+  return {
+    day: new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+    }).format(date),
+
+    month: new Intl.DateTimeFormat('es-ES', {
+      month: 'short',
+    })
+      .format(date)
+      .replace('.', '')
+      .toUpperCase(),
+
+    weekday: new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long',
+    }).format(date),
+  };
+};
+
+/* =========================================================
+   PHOTO HELPERS
+========================================================= */
+
+const getEventPhotos = (evento) => {
+  if (!Array.isArray(evento?.photos)) {
+    return [];
+  }
+
+  return evento.photos.filter((photo) => {
+    if (typeof photo === 'string') {
+      return Boolean(photo);
+    }
+
+    return Boolean(
+      photo?.url ||
+      photo?.secure_url ||
+      photo?.secureUrl
+    );
+  });
+};
+
+const getPhotoUrl = (photo) => {
+  if (typeof photo === 'string') {
+    return photo;
+  }
+
+  return (
+    photo?.url ||
+    photo?.secure_url ||
+    photo?.secureUrl ||
+    ''
+  );
 };
 
 /* =========================================================
@@ -180,6 +316,420 @@ const EventSkeleton = () => (
 );
 
 /* =========================================================
+   EVENT CARD
+========================================================= */
+
+const EventCard = ({
+  evento,
+  past = false,
+  onRegister,
+  onOpenGallery,
+}) => {
+  const typeStyle = getEventTypeStyle(evento?.type);
+  const date = formatEventDate(evento);
+  const photos = getEventPhotos(evento);
+
+  return (
+    <article
+      className={`group bg-zinc-950 border ${
+        past
+          ? 'border-zinc-800'
+          : 'border-zinc-800 hover:border-red-600/50'
+      } transition-all duration-300 overflow-hidden`}
+    >
+      <div className="p-5 sm:p-6 md:p-7">
+
+        <div className="flex flex-col md:flex-row gap-6">
+
+          {/* DATE */}
+
+          <div className="shrink-0">
+
+            <div className="w-full md:w-28 h-24 md:h-28 bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden">
+
+              <div
+                className={`absolute top-0 left-0 w-full h-[2px] ${
+                  past ? 'bg-zinc-700' : 'bg-red-600'
+                }`}
+              />
+
+              <span className="font-display text-3xl md:text-4xl text-white leading-none">
+                {date.day}
+              </span>
+
+              <span
+                className={`text-[10px] uppercase tracking-[0.18em] mt-2 ${
+                  past
+                    ? 'text-zinc-500'
+                    : 'text-red-500'
+                }`}
+              >
+                {date.month}
+              </span>
+
+              <span className="text-zinc-600 text-[9px] uppercase tracking-[0.15em] mt-1">
+                {date.weekday}
+              </span>
+
+            </div>
+
+          </div>
+
+          {/* INFO */}
+
+          <div className="flex-1 min-w-0">
+
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+
+              {past ? (
+                <span className="inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] border bg-zinc-800/60 text-zinc-400 border-zinc-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                  Evento realizado
+                </span>
+              ) : (
+                evento?.type && (
+                  <span
+                    className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] border ${typeStyle.wrapper}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${typeStyle.dot}`}
+                    />
+
+                    {evento.type}
+                  </span>
+                )
+              )}
+
+              {!past && evento?.time && (
+                <span className="inline-flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-[0.12em]">
+                  <ClockIcon className="w-3.5 h-3.5" />
+                  {evento.time}
+                </span>
+              )}
+
+            </div>
+
+            <h3
+              className={`font-display text-2xl md:text-3xl text-white mb-3 transition-colors ${
+                past
+                  ? ''
+                  : 'group-hover:text-red-500'
+              }`}
+            >
+              {evento?.name || 'Evento'}
+            </h3>
+
+            {evento?.location && (
+              <div className="flex items-start gap-2 text-zinc-500 text-sm mb-3">
+
+                <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-zinc-700" />
+
+                <span>
+                  {evento.location}
+                </span>
+
+              </div>
+            )}
+
+            {evento?.description && (
+              <p className="text-zinc-600 text-sm leading-relaxed max-w-3xl">
+                {evento.description}
+              </p>
+            )}
+
+          </div>
+
+          {/* ARROW */}
+
+          {!past && (
+            <div className="hidden md:flex items-start justify-end">
+
+              <div className="w-10 h-10 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:text-red-500 group-hover:border-red-600/40 transition-all">
+
+                <ArrowUpRight className="w-4 h-4" />
+
+              </div>
+
+            </div>
+          )}
+
+        </div>
+
+        {/* REGISTRATION */}
+
+        {!past && evento?.isPublic && (
+          <div className="mt-6 pt-5 border-t border-zinc-800">
+
+            <button
+              type="button"
+              onClick={() => onRegister(evento)}
+              className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
+            >
+              Inscribirme al evento
+
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+
+          </div>
+        )}
+
+        {/* GALLERY BUTTON */}
+
+        {past && photos.length > 0 && (
+          <div className="mt-6 pt-5 border-t border-zinc-800">
+
+            <button
+              type="button"
+              onClick={() => onOpenGallery(evento)}
+              className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
+            >
+              Ver galería
+
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+
+          </div>
+        )}
+
+        {/* INLINE GALLERY PREVIEW */}
+
+        {past && photos.length > 0 && (
+          <div className="mt-6 pt-6 border-t border-zinc-800">
+
+            <div className="flex items-center justify-between gap-4 mb-4">
+
+              <div>
+                <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em] mb-1">
+                  Recuerdos
+                </p>
+
+                <p className="text-zinc-600 text-[10px] uppercase tracking-[0.15em]">
+                  {photos.length}{' '}
+                  {photos.length === 1
+                    ? 'fotografía'
+                    : 'fotografías'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onOpenGallery(evento)}
+                className="text-zinc-600 hover:text-white text-[9px] font-bold uppercase tracking-[0.15em] transition-colors"
+              >
+                Ver todas
+              </button>
+
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+
+              {photos.slice(0, 4).map((photo, index) => {
+
+                const url = getPhotoUrl(photo);
+
+                return (
+                  <button
+                    key={`${evento.id}-photo-${index}`}
+                    type="button"
+                    onClick={() => onOpenGallery(evento, index)}
+                    className="relative aspect-[4/3] overflow-hidden bg-zinc-900 group/photo"
+                    aria-label={`Ver fotografía ${index + 1}`}
+                  >
+                    <img
+                      src={url}
+                      alt={`${evento?.name || 'Evento'} — fotografía ${index + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover grayscale group-hover/photo:grayscale-0 group-hover/photo:scale-105 transition-all duration-700"
+                    />
+
+                    <div className="absolute inset-0 bg-black/10 group-hover/photo:bg-transparent transition-colors" />
+
+                    {index === 3 && photos.length > 4 && (
+                      <div className="absolute inset-0 bg-black/65 flex items-center justify-center">
+                        <span className="text-white font-display text-xl">
+                          +{photos.length - 4}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </article>
+  );
+};
+
+/* =========================================================
+   GALLERY MODAL
+========================================================= */
+
+const GalleryModal = ({
+  evento,
+  currentIndex,
+  setCurrentIndex,
+  onClose,
+}) => {
+  if (!evento) return null;
+
+  const photos = getEventPhotos(evento);
+
+  if (!photos.length) return null;
+
+  const currentPhoto =
+    photos[currentIndex] || photos[0];
+
+  const currentUrl = getPhotoUrl(currentPhoto);
+
+  const previousPhoto = () => {
+    setCurrentIndex((current) =>
+      current === 0
+        ? photos.length - 1
+        : current - 1
+    );
+  };
+
+  const nextPhoto = () => {
+    setCurrentIndex((current) =>
+      current === photos.length - 1
+        ? 0
+        : current + 1
+    );
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Galería de ${evento.name || 'evento'}`}
+      onMouseDown={onClose}
+    >
+
+      <div
+        className="relative w-full max-w-6xl h-full max-h-[92vh] flex flex-col"
+        onMouseDown={(event) =>
+          event.stopPropagation()
+        }
+      >
+
+        {/* HEADER */}
+
+        <div className="shrink-0 flex items-center justify-between gap-4 pb-4">
+
+          <div className="min-w-0">
+
+            <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em] mb-1">
+              Galería
+            </p>
+
+            <h2 className="font-display text-xl sm:text-2xl text-white uppercase truncate">
+              {evento.name || 'Evento'}
+            </h2>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar galería"
+            className="shrink-0 w-10 h-10 flex items-center justify-center border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors"
+          >
+            <CloseIcon className="w-5 h-5" />
+          </button>
+
+        </div>
+
+        {/* MAIN IMAGE */}
+
+        <div className="relative flex-1 min-h-0 bg-zinc-950 border border-zinc-800 overflow-hidden flex items-center justify-center">
+
+          <img
+            src={currentUrl}
+            alt={`${evento.name || 'Evento'} — fotografía ${currentIndex + 1}`}
+            className="max-w-full max-h-full w-full h-full object-contain"
+          />
+
+          {photos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={previousPhoto}
+                aria-label="Fotografía anterior"
+                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 bg-black/70 border border-zinc-700 text-white hover:bg-red-600 hover:border-red-600 transition-colors flex items-center justify-center"
+              >
+                <ChevronLeftIcon />
+              </button>
+
+              <button
+                type="button"
+                onClick={nextPhoto}
+                aria-label="Fotografía siguiente"
+                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 bg-black/70 border border-zinc-700 text-white hover:bg-red-600 hover:border-red-600 transition-colors flex items-center justify-center"
+              >
+                <ChevronRightIcon />
+              </button>
+            </>
+          )}
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/75 border border-zinc-800 px-4 py-2 text-white text-[9px] font-bold uppercase tracking-[0.15em]">
+            {currentIndex + 1} / {photos.length}
+          </div>
+
+        </div>
+
+        {/* THUMBNAILS */}
+
+        {photos.length > 1 && (
+          <div className="shrink-0 pt-4 overflow-x-auto">
+
+            <div className="flex gap-2 min-w-max">
+
+              {photos.map((photo, index) => {
+
+                const url = getPhotoUrl(photo);
+
+                return (
+                  <button
+                    key={`thumbnail-${index}`}
+                    type="button"
+                    onClick={() =>
+                      setCurrentIndex(index)
+                    }
+                    className={`relative w-20 h-14 sm:w-24 sm:h-16 overflow-hidden border transition-all ${
+                      index === currentIndex
+                        ? 'border-red-600'
+                        : 'border-zinc-800 opacity-50 hover:opacity-100'
+                    }`}
+                    aria-label={`Ver fotografía ${index + 1}`}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                );
+              })}
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+
+/* =========================================================
    TRAINING
 ========================================================= */
 
@@ -188,7 +738,14 @@ export default function Training() {
   const [loadingEventos, setLoadingEventos] = useState(true);
   const [errorEventos, setErrorEventos] = useState(null);
 
-  const [inscricaoModal, setInscricaoModal] = useState(null);
+  const [inscricaoModal, setInscricaoModal] =
+    useState(null);
+
+  const [galleryModal, setGalleryModal] =
+    useState(null);
+
+  const [galleryIndex, setGalleryIndex] =
+    useState(0);
 
   const [inscricaoForm, setInscricaoForm] = useState({
     fullName: '',
@@ -197,9 +754,14 @@ export default function Training() {
     message: '',
   });
 
-  const [inscricaoSucesso, setInscricaoSucesso] = useState(false);
-  const [inscricaoLoading, setInscricaoLoading] = useState(false);
-  const [inscricaoError, setInscricaoError] = useState(null);
+  const [inscricaoSucesso, setInscricaoSucesso] =
+    useState(false);
+
+  const [inscricaoLoading, setInscricaoLoading] =
+    useState(false);
+
+  const [inscricaoError, setInscricaoError] =
+    useState(null);
 
   /* =======================================================
      FETCH EVENTOS
@@ -241,6 +803,13 @@ export default function Training() {
           );
         }
 
+        /*
+         * Mantenemos exactamente el criterio actual:
+         * solamente eventos activos.
+         *
+         * La diferencia es que ahora los eventos activos
+         * se separan posteriormente entre próximos y realizados.
+         */
         const eventosActivos = data
           .filter(
             (evento) => evento?.isActive === true
@@ -258,7 +827,9 @@ export default function Training() {
           });
 
         setEventos(eventosActivos);
+
       } catch (error) {
+
         if (error?.name === 'AbortError') {
           return;
         }
@@ -269,14 +840,17 @@ export default function Training() {
         );
 
         setErrorEventos(
-          'No hemos podido cargar los próximos eventos.'
+          'No hemos podido cargar los eventos.'
         );
 
         setEventos([]);
+
       } finally {
+
         if (!signal?.aborted) {
           setLoadingEventos(false);
         }
+
       }
     },
     []
@@ -293,10 +867,64 @@ export default function Training() {
   }, [fetchEventos]);
 
   /* =======================================================
+     SEPARAR EVENTOS
+  ======================================================= */
+
+  const {
+    proximosEventos,
+    eventosRealizados,
+  } = useMemo(() => {
+
+    const proximos = [];
+    const realizados = [];
+
+    eventos.forEach((evento) => {
+
+      if (isPastEvent(evento)) {
+        realizados.push(evento);
+      } else {
+        proximos.push(evento);
+      }
+
+    });
+
+    proximos.sort((a, b) => {
+      const dateA =
+        getEventDate(a)?.getTime() ??
+        Number.MAX_SAFE_INTEGER;
+
+      const dateB =
+        getEventDate(b)?.getTime() ??
+        Number.MAX_SAFE_INTEGER;
+
+      return dateA - dateB;
+    });
+
+    realizados.sort((a, b) => {
+      const dateA =
+        getEventDate(a)?.getTime() ??
+        0;
+
+      const dateB =
+        getEventDate(b)?.getTime() ??
+        0;
+
+      return dateB - dateA;
+    });
+
+    return {
+      proximosEventos: proximos,
+      eventosRealizados: realizados,
+    };
+
+  }, [eventos]);
+
+  /* =======================================================
      ABRIR INSCRIPCIÓN
   ======================================================= */
 
   const abrirInscricao = (evento) => {
+
     setInscricaoModal(evento);
 
     setInscricaoForm({
@@ -311,27 +939,105 @@ export default function Training() {
   };
 
   /* =======================================================
-     FECHAR MODAL
+     FECHAR MODAL INSCRIPCIÓN
   ======================================================= */
 
   const fecharInscricao = useCallback(() => {
+
     if (inscricaoLoading) return;
 
     setInscricaoModal(null);
     setInscricaoSucesso(false);
     setInscricaoError(null);
+
   }, [inscricaoLoading]);
 
   /* =======================================================
-     ESC PARA FECHAR MODAL
+     GALERÍA
+  ======================================================= */
+
+  const abrirGaleria = useCallback(
+    (evento, index = 0) => {
+
+      const photos = getEventPhotos(evento);
+
+      if (!photos.length) {
+        return;
+      }
+
+      setGalleryModal(evento);
+
+      setGalleryIndex(
+        Math.min(
+          Math.max(index, 0),
+          photos.length - 1
+        )
+      );
+    },
+    []
+  );
+
+  const fecharGaleria = useCallback(() => {
+    setGalleryModal(null);
+    setGalleryIndex(0);
+  }, []);
+
+  /* =======================================================
+     ESC PARA MODALES
   ======================================================= */
 
   useEffect(() => {
-    if (!inscricaoModal) return;
+
+    if (!inscricaoModal && !galleryModal) {
+      return;
+    }
 
     const handleKeyDown = (event) => {
+
       if (event.key === 'Escape') {
-        fecharInscricao();
+
+        if (galleryModal) {
+          fecharGaleria();
+          return;
+        }
+
+        if (inscricaoModal) {
+          fecharInscricao();
+        }
+      }
+
+      if (
+        galleryModal &&
+        event.key === 'ArrowLeft'
+      ) {
+
+        const photos =
+          getEventPhotos(galleryModal);
+
+        if (photos.length > 1) {
+          setGalleryIndex((current) =>
+            current === 0
+              ? photos.length - 1
+              : current - 1
+          );
+        }
+      }
+
+      if (
+        galleryModal &&
+        event.key === 'ArrowRight'
+      ) {
+
+        const photos =
+          getEventPhotos(galleryModal);
+
+        if (photos.length > 1) {
+          setGalleryIndex((current) =>
+            current === photos.length - 1
+              ? 0
+              : current + 1
+          );
+        }
       }
     };
 
@@ -346,6 +1052,7 @@ export default function Training() {
     document.body.style.overflow = 'hidden';
 
     return () => {
+
       document.removeEventListener(
         'keydown',
         handleKeyDown
@@ -354,13 +1061,20 @@ export default function Training() {
       document.body.style.overflow =
         previousOverflow;
     };
-  }, [inscricaoModal, fecharInscricao]);
+
+  }, [
+    inscricaoModal,
+    galleryModal,
+    fecharInscricao,
+    fecharGaleria,
+  ]);
 
   /* =======================================================
      FORM
   ======================================================= */
 
   const handleFormChange = (event) => {
+
     const { name, value } = event.target;
 
     setInscricaoForm((previous) => ({
@@ -378,9 +1092,11 @@ export default function Training() {
   ======================================================= */
 
   const enviarInscricao = async (event) => {
+
     event.preventDefault();
 
     if (!inscricaoModal?.id) {
+
       setInscricaoError(
         'No se ha podido identificar el evento.'
       );
@@ -392,6 +1108,7 @@ export default function Training() {
     setInscricaoError(null);
 
     try {
+
       if (!API_URL) {
         throw new Error(
           'La configuración de la API no está disponible.'
@@ -406,27 +1123,42 @@ export default function Training() {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
+
           body: JSON.stringify({
             ...inscricaoForm,
-            fullName: inscricaoForm.fullName.trim(),
-            email: inscricaoForm.email.trim(),
-            phone: inscricaoForm.phone.trim(),
-            message: inscricaoForm.message.trim(),
-            eventId: inscricaoModal.id,
+
+            fullName:
+              inscricaoForm.fullName.trim(),
+
+            email:
+              inscricaoForm.email.trim(),
+
+            phone:
+              inscricaoForm.phone.trim(),
+
+            message:
+              inscricaoForm.message.trim(),
+
+            eventId:
+              inscricaoModal.id,
           }),
         }
       );
 
       if (!response.ok) {
+
         let message =
           'No se ha podido completar la inscripción.';
 
         try {
-          const data = await response.json();
+
+          const data =
+            await response.json();
 
           if (data?.message) {
             message = data.message;
           }
+
         } catch {
           // Respuesta sin JSON
         }
@@ -435,7 +1167,9 @@ export default function Training() {
       }
 
       setInscricaoSucesso(true);
+
     } catch (error) {
+
       console.error(
         'Error al enviar inscripción:',
         error
@@ -445,7 +1179,9 @@ export default function Training() {
         error?.message ||
           'Error al inscribirse. Inténtalo de nuevo.'
       );
+
     } finally {
+
       setInscricaoLoading(false);
     }
   };
@@ -463,9 +1199,8 @@ export default function Training() {
 
       <section className="relative min-h-[620px] md:min-h-[680px] flex items-center bg-zinc-950 border-b border-zinc-800 overflow-hidden">
 
-        {/* IMAGEN */}
-
         <div className="absolute inset-0">
+
           <img
             src="/assets/IMG_8358.jpg"
             alt=""
@@ -473,31 +1208,26 @@ export default function Training() {
             className="absolute inset-0 w-full h-full object-cover object-center grayscale opacity-60 md:opacity-70"
           />
 
-          {/* Gradiente principal: protege completamente el texto */}
-
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/95 via-55% to-zinc-950/35" />
-
-          {/* Gradiente inferior */}
 
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/30" />
 
-          {/* Escurecimento extra no mobile */}
-
           <div className="absolute inset-0 bg-zinc-950/35 md:bg-transparent" />
-        </div>
 
-        {/* Conteúdo */}
+        </div>
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
 
           <div className="max-w-3xl">
 
             <div className="flex items-center gap-4 mb-6">
+
               <span className="w-12 h-[2px] bg-red-600" />
 
               <p className="text-red-500 font-bold tracking-[0.28em] text-[10px] sm:text-xs uppercase">
                 Entrena con nosotros
               </p>
+
             </div>
 
             <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-[110px] leading-[0.82] tracking-tight text-white mb-8">
@@ -516,6 +1246,7 @@ export default function Training() {
                 className="inline-flex items-center gap-3 px-6 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
               >
                 Ver horarios
+
                 <ArrowUpRight className="w-4 h-4" />
               </a>
 
@@ -524,6 +1255,7 @@ export default function Training() {
                 className="inline-flex items-center gap-3 text-zinc-300 hover:text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
               >
                 Quiero formar parte
+
                 <ArrowUpRight className="w-4 h-4 text-red-500" />
               </Link>
 
@@ -531,9 +1263,8 @@ export default function Training() {
 
           </div>
 
-          {/* Indicador editorial */}
-
           <div className="hidden md:flex absolute right-8 bottom-10 items-center gap-4 text-zinc-600">
+
             <span className="text-[9px] uppercase tracking-[0.2em]">
               Lobos Quad Rugby
             </span>
@@ -543,9 +1274,11 @@ export default function Training() {
             <span className="text-[9px] uppercase tracking-[0.2em]">
               Valencia
             </span>
+
           </div>
 
         </div>
+
       </section>
 
       {/* =====================================================
@@ -556,17 +1289,21 @@ export default function Training() {
         id="horarios"
         className="py-16 md:py-20 bg-zinc-950"
       >
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="flex items-end justify-between gap-6 mb-10 md:mb-12">
 
             <div>
+
               <div className="flex items-center gap-4 mb-4">
+
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
                   Cada semana
                 </p>
+
               </div>
 
               <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
@@ -576,9 +1313,11 @@ export default function Training() {
                   habituales
                 </span>
               </h2>
+
             </div>
 
             <div className="hidden md:block text-right">
+
               <p className="text-zinc-700 text-[9px] uppercase tracking-[0.18em]">
                 Entrenamiento
               </p>
@@ -586,13 +1325,12 @@ export default function Training() {
               <p className="text-zinc-500 text-xs mt-1">
                 Valencia, España
               </p>
+
             </div>
 
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-
-            {/* LOCATION */}
 
             <div className="group relative bg-zinc-900 border border-zinc-800 p-6 md:p-8 hover:border-red-600/50 transition-all duration-300 overflow-hidden">
 
@@ -618,8 +1356,6 @@ export default function Training() {
 
             </div>
 
-            {/* LUNES / MIÉRCOLES */}
-
             <div className="group relative bg-zinc-900 border border-zinc-800 p-6 md:p-8 hover:border-red-600/50 transition-all duration-300 overflow-hidden">
 
               <div className="absolute top-0 right-0 w-20 h-20 bg-red-600/5 blur-2xl group-hover:bg-red-600/10 transition-colors" />
@@ -644,8 +1380,6 @@ export default function Training() {
               </p>
 
             </div>
-
-            {/* VIERNES */}
 
             <div className="group relative bg-zinc-900 border border-zinc-800 p-6 md:p-8 hover:border-red-600/50 transition-all duration-300 overflow-hidden">
 
@@ -673,7 +1407,9 @@ export default function Training() {
             </div>
 
           </div>
+
         </div>
+
       </section>
 
       {/* =====================================================
@@ -687,12 +1423,15 @@ export default function Training() {
           <div className="flex items-end justify-between gap-6 mb-10">
 
             <div>
+
               <div className="flex items-center gap-4 mb-4">
+
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
                   En acción
                 </p>
+
               </div>
 
               <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
@@ -702,6 +1441,7 @@ export default function Training() {
                   entrena
                 </span>
               </h2>
+
             </div>
 
             <p className="hidden md:block text-zinc-600 text-[10px] uppercase tracking-[0.18em]">
@@ -711,8 +1451,6 @@ export default function Training() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-5 md:gap-6">
-
-            {/* FOTO 1 */}
 
             <div className="relative aspect-[4/3] overflow-hidden group">
 
@@ -739,8 +1477,6 @@ export default function Training() {
               </div>
 
             </div>
-
-            {/* FOTO 2 */}
 
             <div className="relative aspect-[4/3] overflow-hidden group">
 
@@ -769,11 +1505,13 @@ export default function Training() {
             </div>
 
           </div>
+
         </div>
+
       </section>
 
       {/* =====================================================
-          EVENTOS
+          PRÓXIMOS EVENTOS
       ===================================================== */}
 
       <section className="py-16 md:py-20 bg-zinc-950">
@@ -785,11 +1523,13 @@ export default function Training() {
             <div>
 
               <div className="flex items-center gap-4 mb-4">
+
                 <span className="w-10 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
                   Calendario
                 </p>
+
               </div>
 
               <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
@@ -804,18 +1544,20 @@ export default function Training() {
 
             {!loadingEventos &&
               !errorEventos &&
-              eventos.length > 0 && (
+              proximosEventos.length > 0 && (
+
                 <p className="text-zinc-600 text-[10px] uppercase tracking-[0.18em]">
-                  {eventos.length}{' '}
-                  {eventos.length === 1
+
+                  {proximosEventos.length}{' '}
+
+                  {proximosEventos.length === 1
                     ? 'evento programado'
                     : 'eventos programados'}
+
                 </p>
               )}
 
           </div>
-
-          {/* LOADING */}
 
           {loadingEventos && (
             <div className="space-y-4">
@@ -824,9 +1566,8 @@ export default function Training() {
             </div>
           )}
 
-          {/* ERROR */}
-
           {!loadingEventos && errorEventos && (
+
             <div className="border border-zinc-800 bg-zinc-950 p-10 md:p-14 text-center">
 
               <RefreshIcon className="w-8 h-8 text-red-500 mx-auto mb-5" />
@@ -842,6 +1583,7 @@ export default function Training() {
               <button
                 type="button"
                 onClick={() => {
+
                   const controller =
                     new AbortController();
 
@@ -856,170 +1598,115 @@ export default function Training() {
             </div>
           )}
 
-          {/* EVENTOS */}
-
           {!loadingEventos &&
             !errorEventos &&
-            eventos.length > 0 && (
+            proximosEventos.length > 0 && (
+
               <div className="space-y-4">
 
-                {eventos.map((evento) => {
+                {proximosEventos.map((evento) => (
 
-                  const typeStyle =
-                    getEventTypeStyle(evento?.type);
+                  <EventCard
+                    key={evento.id}
+                    evento={evento}
+                    past={false}
+                    onRegister={abrirInscricao}
+                    onOpenGallery={abrirGaleria}
+                  />
 
-                  return (
-                    <article
-                      key={evento.id}
-                      className="group bg-zinc-950 border border-zinc-800 hover:border-red-600/50 transition-all duration-300 overflow-hidden"
-                    >
-
-                      <div className="p-5 sm:p-6 md:p-7">
-
-                        <div className="flex flex-col md:flex-row gap-6">
-
-                          {/* DATE */}
-
-                          <div className="shrink-0">
-
-                            <div className="w-full md:w-28 h-24 md:h-28 bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden">
-
-                              <div className="absolute top-0 left-0 w-full h-[2px] bg-red-600" />
-
-                              <span className="font-display text-3xl md:text-4xl text-white leading-none">
-                                {evento?.date || '—'}
-                              </span>
-
-                              <span className="text-red-500 text-[10px] uppercase tracking-[0.18em] mt-2">
-                                {evento?.month || ''}
-                              </span>
-
-                              <span className="text-zinc-600 text-[9px] uppercase tracking-[0.15em] mt-1">
-                                {evento?.day || ''}
-                              </span>
-
-                            </div>
-
-                          </div>
-
-                          {/* INFO */}
-
-                          <div className="flex-1 min-w-0">
-
-                            <div className="flex flex-wrap items-center gap-3 mb-3">
-
-                              {evento?.type && (
-                                <span
-                                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] border ${typeStyle.wrapper}`}
-                                >
-                                  <span
-                                    className={`w-1.5 h-1.5 rounded-full ${typeStyle.dot}`}
-                                  />
-
-                                  {evento.type}
-                                </span>
-                              )}
-
-                              {evento?.time && (
-                                <span className="inline-flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-[0.12em]">
-                                  <ClockIcon className="w-3.5 h-3.5" />
-                                  {evento.time}
-                                </span>
-                              )}
-
-                            </div>
-
-                            <h3 className="font-display text-2xl md:text-3xl text-white mb-3 group-hover:text-red-500 transition-colors">
-                              {evento?.name || 'Evento'}
-                            </h3>
-
-                            {evento?.location && (
-                              <div className="flex items-start gap-2 text-zinc-500 text-sm mb-3">
-
-                                <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-zinc-700" />
-
-                                <span>
-                                  {evento.location}
-                                </span>
-
-                              </div>
-                            )}
-
-                            {evento?.description && (
-                              <p className="text-zinc-600 text-sm leading-relaxed max-w-3xl">
-                                {evento.description}
-                              </p>
-                            )}
-
-                          </div>
-
-                          {/* ARROW */}
-
-                          <div className="hidden md:flex items-start justify-end">
-
-                            <div className="w-10 h-10 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:text-red-500 group-hover:border-red-600/40 transition-all">
-
-                              <ArrowUpRight className="w-4 h-4" />
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                        {/* REGISTER */}
-
-                        {evento?.isPublic && (
-                          <div className="mt-6 pt-5 border-t border-zinc-800">
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                abrirInscricao(evento)
-                              }
-                              className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
-                            >
-                              Inscribirme al evento
-
-                              <ArrowUpRight className="w-4 h-4" />
-                            </button>
-
-                          </div>
-                        )}
-
-                      </div>
-
-                    </article>
-                  );
-                })}
+                ))}
 
               </div>
             )}
 
-          {/* EMPTY */}
-
           {!loadingEventos &&
             !errorEventos &&
-            eventos.length === 0 && (
+            proximosEventos.length === 0 && (
+
               <div className="border border-zinc-800 bg-zinc-950 p-12 md:p-16 text-center">
 
                 <CalendarIcon className="w-10 h-10 text-zinc-700 mx-auto mb-6" />
 
                 <h3 className="font-display text-2xl md:text-3xl text-zinc-400 mb-3">
-                  No hay eventos próximos
+                  No hay próximos eventos
                 </h3>
 
                 <p className="text-zinc-600 text-sm max-w-md mx-auto leading-relaxed">
-                  No hay eventos especiales programados en
-                  este momento. Consulta nuestros horarios
-                  habituales de entrenamiento.
+                  En este momento no hay eventos
+                  especiales programados. Consulta
+                  nuestros horarios habituales de
+                  entrenamiento.
                 </p>
 
               </div>
             )}
 
         </div>
+
       </section>
+
+      {/* =====================================================
+          EVENTOS REALIZADOS
+      ===================================================== */}
+
+      {!loadingEventos &&
+        !errorEventos &&
+        eventosRealizados.length > 0 && (
+
+          <section className="py-16 md:py-24 bg-zinc-900 border-y border-zinc-800">
+
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+
+                <div>
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <span className="w-10 h-[2px] bg-red-600" />
+
+                    <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">
+                      Nuestro recorrido
+                    </p>
+
+                  </div>
+
+                  <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
+                    Eventos
+                    <br />
+                    <span className="text-zinc-600">
+                      realizados
+                    </span>
+                  </h2>
+
+                </div>
+
+                <p className="text-zinc-600 text-[10px] uppercase tracking-[0.18em]">
+                  Momentos que forman nuestra historia
+                </p>
+
+              </div>
+
+              <div className="space-y-4">
+
+                {eventosRealizados.map((evento) => (
+
+                  <EventCard
+                    key={evento.id}
+                    evento={evento}
+                    past
+                    onRegister={abrirInscricao}
+                    onOpenGallery={abrirGaleria}
+                  />
+
+                ))}
+
+              </div>
+
+            </div>
+
+          </section>
+        )}
 
       {/* =====================================================
           MAPA
@@ -1093,7 +1780,9 @@ export default function Training() {
             </div>
 
           </div>
+
         </div>
+
       </section>
 
       {/* =====================================================
@@ -1132,6 +1821,7 @@ export default function Training() {
           </Link>
 
         </div>
+
       </section>
 
       {/* =====================================================
@@ -1139,6 +1829,7 @@ export default function Training() {
       ===================================================== */}
 
       {inscricaoModal && (
+
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md"
           role="dialog"
@@ -1153,8 +1844,6 @@ export default function Training() {
               event.stopPropagation()
             }
           >
-
-            {/* HEADER */}
 
             <div className="relative p-6 sm:p-8 border-b border-zinc-800 overflow-hidden">
 
@@ -1183,7 +1872,9 @@ export default function Training() {
               </h2>
 
               {inscricaoModal.date && (
+
                 <p className="relative text-zinc-500 text-sm mt-3">
+
                   {inscricaoModal.date}
 
                   {inscricaoModal.month
@@ -1193,14 +1884,14 @@ export default function Training() {
                   {inscricaoModal.time
                     ? ` · ${inscricaoModal.time}`
                     : ''}
+
                 </p>
               )}
 
             </div>
 
-            {/* SUCCESS */}
-
             {inscricaoSucesso ? (
+
               <div className="p-8 sm:p-10 text-center">
 
                 <div className="w-16 h-16 mx-auto mb-6 border border-emerald-500/40 bg-emerald-500/5 flex items-center justify-center">
@@ -1231,9 +1922,8 @@ export default function Training() {
                 </button>
 
               </div>
-            ) : (
 
-              /* FORM */
+            ) : (
 
               <form
                 onSubmit={enviarInscricao}
@@ -1241,8 +1931,6 @@ export default function Training() {
               >
 
                 <div className="space-y-5">
-
-                  {/* NAME */}
 
                   <div>
 
@@ -1267,8 +1955,6 @@ export default function Training() {
 
                   </div>
 
-                  {/* EMAIL */}
-
                   <div>
 
                     <label
@@ -1292,8 +1978,6 @@ export default function Training() {
 
                   </div>
 
-                  {/* PHONE */}
-
                   <div>
 
                     <label
@@ -1315,8 +1999,6 @@ export default function Training() {
                     />
 
                   </div>
-
-                  {/* MESSAGE */}
 
                   <div>
 
@@ -1344,20 +2026,19 @@ export default function Training() {
 
                 </div>
 
-                {/* ERROR */}
-
                 {inscricaoError && (
+
                   <div
                     className="mt-5 border border-red-500/20 bg-red-500/5 p-4"
                     role="alert"
                   >
+
                     <p className="text-red-400 text-sm leading-relaxed">
                       {inscricaoError}
                     </p>
+
                   </div>
                 )}
-
-                {/* SUBMIT */}
 
                 <button
                   type="submit"
@@ -1388,7 +2069,23 @@ export default function Training() {
             )}
 
           </div>
+
         </div>
+      )}
+
+      {/* =====================================================
+          MODAL GALERÍA
+      ===================================================== */}
+
+      {galleryModal && (
+
+        <GalleryModal
+          evento={galleryModal}
+          currentIndex={galleryIndex}
+          setCurrentIndex={setGalleryIndex}
+          onClose={fecharGaleria}
+        />
+
       )}
 
     </div>
