@@ -207,12 +207,201 @@ const getEventTypeStyle = (type) => {
    DATE HELPERS
 ========================================================= */
 
+/*
+ * El modelo Evento no tiene dateISO.
+ *
+ * Los campos disponibles son:
+ * date  -> día
+ * month -> mes
+ * day   -> día de la semana
+ *
+ * Por eso construimos una fecha únicamente para ordenar.
+ */
+
+const MONTHS = {
+  ENERO: 0,
+  FEBRERO: 1,
+  MARZO: 2,
+  ABRIL: 3,
+  MAYO: 4,
+  JUNIO: 5,
+  JULIO: 6,
+  AGOSTO: 7,
+  SEPTIEMBRE: 8,
+  SETIEMBRE: 8,
+  OCTUBRE: 9,
+  NOVIEMBRE: 10,
+  DICIEMBRE: 11,
+
+  JANUARY: 0,
+  FEBRUARY: 1,
+  MARCH: 2,
+  APRIL: 3,
+  MAY: 4,
+  JUNE: 5,
+  JULY: 6,
+  AUGUST: 7,
+  SEPTEMBER: 8,
+  OCTOBER: 9,
+  NOVEMBER: 10,
+  DECEMBER: 11,
+};
+
+const normalizeMonth = (month) => {
+  if (!month) return null;
+
+  const value = String(month)
+    .trim()
+    .toUpperCase()
+    .replace(
+      /Á/g,
+      'A'
+    )
+    .replace(
+      /É/g,
+      'E'
+    )
+    .replace(
+      /Í/g,
+      'I'
+    )
+    .replace(
+      /Ó/g,
+      'O'
+    )
+    .replace(
+      /Ú/g,
+      'U'
+    );
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      MONTHS,
+      value
+    )
+  ) {
+    return MONTHS[value];
+  }
+
+  const numericMonth = Number(value);
+
+  if (
+    Number.isInteger(numericMonth) &&
+    numericMonth >= 1 &&
+    numericMonth <= 12
+  ) {
+    return numericMonth - 1;
+  }
+
+  const shortMonth = value.slice(0, 3);
+
+  const match = Object.entries(
+    MONTHS
+  ).find(([name]) =>
+    name.startsWith(shortMonth)
+  );
+
+  return match ? match[1] : null;
+};
+
 const getEventDate = (evento) => {
-  if (!evento?.dateISO) return null;
+  if (!evento) return null;
 
-  const date = new Date(evento.dateISO);
+  /*
+   * Compatibilidad con una eventual versión futura
+   * que incluya dateISO.
+   */
+  if (evento.dateISO) {
+    const dateISO = new Date(
+      evento.dateISO
+    );
 
-  if (Number.isNaN(date.getTime())) {
+    if (
+      !Number.isNaN(
+        dateISO.getTime()
+      )
+    ) {
+      return dateISO;
+    }
+  }
+
+  /*
+   * Para eventos finalizados, completedAt es la
+   * referencia más fiable disponible en el modelo.
+   */
+  if (evento.completedAt) {
+    const completedAt = new Date(
+      evento.completedAt
+    );
+
+    if (
+      !Number.isNaN(
+        completedAt.getTime()
+      )
+    ) {
+      return completedAt;
+    }
+  }
+
+  const day = parseInt(
+    String(evento.date || '').replace(
+      /\D/g,
+      ''
+    ),
+    10
+  );
+
+  const month = normalizeMonth(
+    evento.month
+  );
+
+  if (
+    !Number.isInteger(day) ||
+    month === null
+  ) {
+    return null;
+  }
+
+  const now = new Date();
+
+  let year = now.getFullYear();
+
+  let date = new Date(
+    year,
+    month,
+    day
+  );
+
+  /*
+   * Para un evento PROGRAMADO cuya fecha ya pasó,
+   * asumimos el siguiente año para poder ordenar
+   * correctamente el calendario.
+   *
+   * Esto solamente afecta a la ordenación visual.
+   * El estado real lo controla el administrador.
+   */
+  if (
+    evento.status !== 'FINALIZADO' &&
+    date < new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    )
+  ) {
+    year += 1;
+
+    date = new Date(
+      year,
+      month,
+      day
+    );
+  }
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return null;
   }
 
@@ -220,26 +409,21 @@ const getEventDate = (evento) => {
 };
 
 /*
- * Un evento puede considerarse realizado por:
+ * IMPORTANTE:
  *
- * 1. isCompleted === true
- * 2. status con valores de finalización conocidos
- * 3. completedAt informado
- * 4. su fecha ya ha pasado
+ * El estado real del evento viene del backend.
  *
- * Esto permite que el frontend sea compatible con la
- * estructura actual y con la nueva gestión desde el admin.
+ * FINALIZADO = historial
+ * PROGRAMADO = próximo
+ *
+ * completedAt queda como respaldo.
+ *
+ * No utilizamos la fecha para decidir si un evento
+ * está realizado porque el administrador es quien
+ * confirma que realmente terminó.
  */
 const isEventCompleted = (evento) => {
   if (!evento) return false;
-
-  if (evento.isCompleted === true) {
-    return true;
-  }
-
-  if (evento.completedAt) {
-    return true;
-  }
 
   const status = String(
     evento.status ||
@@ -249,39 +433,38 @@ const isEventCompleted = (evento) => {
     .trim()
     .toUpperCase();
 
-  const completedStatuses = [
-    'COMPLETED',
-    'COMPLETADO',
-    'FINALIZADO',
-    'FINALIZADO',
-    'REALIZADO',
-    'PASADO',
-  ];
-
-  if (completedStatuses.includes(status)) {
+  if (
+    status === 'FINALIZADO' ||
+    status === 'COMPLETADO' ||
+    status === 'REALIZADO' ||
+    status === 'FINISHED' ||
+    status === 'COMPLETED'
+  ) {
     return true;
   }
 
-  const date = getEventDate(evento);
-
-  if (!date) {
-    return false;
+  if (evento.completedAt) {
+    return true;
   }
 
-  const today = new Date();
+  /*
+   * Compatibilidad con datos antiguos que pudieran
+   * utilizar isCompleted.
+   */
+  if (evento.isCompleted === true) {
+    return true;
+  }
 
-  today.setHours(0, 0, 0, 0);
-
-  const eventDate = new Date(date);
-
-  eventDate.setHours(0, 0, 0, 0);
-
-  return eventDate < today;
+  return false;
 };
 
 const formatEventDate = (evento) => {
   const date = getEventDate(evento);
 
+  /*
+   * Si no podemos construir una fecha real,
+   * utilizamos directamente los valores guardados.
+   */
   if (!date) {
     return {
       day: evento?.date || '—',
@@ -291,20 +474,29 @@ const formatEventDate = (evento) => {
   }
 
   return {
-    day: new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit',
-    }).format(date),
+    day: new Intl.DateTimeFormat(
+      'es-ES',
+      {
+        day: '2-digit',
+      }
+    ).format(date),
 
-    month: new Intl.DateTimeFormat('es-ES', {
-      month: 'short',
-    })
+    month: new Intl.DateTimeFormat(
+      'es-ES',
+      {
+        month: 'short',
+      }
+    )
       .format(date)
       .replace('.', '')
       .toUpperCase(),
 
-    weekday: new Intl.DateTimeFormat('es-ES', {
-      weekday: 'long',
-    }).format(date),
+    weekday: new Intl.DateTimeFormat(
+      'es-ES',
+      {
+        weekday: 'long',
+      }
+    ).format(date),
   };
 };
 
@@ -312,12 +504,28 @@ const formatEventDate = (evento) => {
    PHOTO HELPERS
 ========================================================= */
 
+/*
+ * El backend Prisma devuelve:
+ *
+ * evento.fotos
+ *
+ * No:
+ *
+ * evento.photos
+ *
+ * Mantenemos ambos para compatibilidad.
+ */
 const getEventPhotos = (evento) => {
-  if (!Array.isArray(evento?.photos)) {
+  const photos =
+    evento?.fotos ??
+    evento?.photos ??
+    [];
+
+  if (!Array.isArray(photos)) {
     return [];
   }
 
-  return evento.photos.filter((photo) => {
+  return photos.filter((photo) => {
     if (typeof photo === 'string') {
       return Boolean(photo);
     }
@@ -375,9 +583,16 @@ const EventCard = ({
   onRegister,
   onOpenGallery,
 }) => {
-  const typeStyle = getEventTypeStyle(evento?.type);
-  const date = formatEventDate(evento);
-  const photos = getEventPhotos(evento);
+  const typeStyle =
+    getEventTypeStyle(
+      evento?.type
+    );
+
+  const date =
+    formatEventDate(evento);
+
+  const photos =
+    getEventPhotos(evento);
 
   return (
     <article
@@ -397,7 +612,9 @@ const EventCard = ({
 
               <div
                 className={`absolute top-0 left-0 w-full h-[2px] ${
-                  past ? 'bg-zinc-700' : 'bg-red-600'
+                  past
+                    ? 'bg-zinc-700'
+                    : 'bg-red-600'
                 }`}
               />
 
@@ -447,12 +664,13 @@ const EventCard = ({
                 )
               )}
 
-              {!past && evento?.time && (
-                <span className="inline-flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-[0.12em]">
-                  <ClockIcon className="w-3.5 h-3.5" />
-                  {evento.time}
-                </span>
-              )}
+              {!past &&
+                evento?.time && (
+                  <span className="inline-flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-[0.12em]">
+                    <ClockIcon className="w-3.5 h-3.5" />
+                    {evento.time}
+                  </span>
+                )}
 
             </div>
 
@@ -463,7 +681,8 @@ const EventCard = ({
                   : 'group-hover:text-red-500'
               }`}
             >
-              {evento?.name || 'Evento'}
+              {evento?.name ||
+                'Evento'}
             </h3>
 
             {evento?.location && (
@@ -498,112 +717,142 @@ const EventCard = ({
 
         {/* REGISTRATION */}
 
-        {!past && evento?.isPublic && (
-          <div className="mt-6 pt-5 border-t border-zinc-800">
-
-            <button
-              type="button"
-              onClick={() => onRegister(evento)}
-              className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
-            >
-              Inscribirme al evento
-
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-
-          </div>
-        )}
-
-        {/* GALLERY BUTTON */}
-
-        {past && photos.length > 0 && (
-          <div className="mt-6 pt-5 border-t border-zinc-800">
-
-            <button
-              type="button"
-              onClick={() => onOpenGallery(evento)}
-              className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
-            >
-              Ver galería
-
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-
-          </div>
-        )}
-
-        {/* INLINE GALLERY PREVIEW */}
-
-        {past && photos.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-zinc-800">
-
-            <div className="flex items-center justify-between gap-4 mb-4">
-
-              <div>
-                <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em] mb-1">
-                  Recuerdos
-                </p>
-
-                <p className="text-zinc-600 text-[10px] uppercase tracking-[0.15em]">
-                  {photos.length}{' '}
-                  {photos.length === 1
-                    ? 'fotografía'
-                    : 'fotografías'}
-                </p>
-              </div>
+        {!past &&
+          evento?.isPublic && (
+            <div className="mt-6 pt-5 border-t border-zinc-800">
 
               <button
                 type="button"
-                onClick={() => onOpenGallery(evento)}
-                className="text-zinc-600 hover:text-white text-[9px] font-bold uppercase tracking-[0.15em] transition-colors"
+                onClick={() =>
+                  onRegister(evento)
+                }
+                className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
               >
-                Ver todas
+                Inscribirme al evento
+
+                <ArrowUpRight className="w-4 h-4" />
               </button>
 
             </div>
+          )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {/* GALLERY BUTTON */}
 
-              {photos.slice(0, 4).map((photo, index) => {
+        {past &&
+          photos.length > 0 && (
+            <div className="mt-6 pt-5 border-t border-zinc-800">
 
-                const url = getPhotoUrl(photo);
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenGallery(
+                    evento
+                  )
+                }
+                className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
+              >
+                Ver galería
 
-                return (
-                  <button
-                    key={`${evento.id}-photo-${index}`}
-                    type="button"
-                    onClick={() =>
-                      onOpenGallery(evento, index)
-                    }
-                    className="relative aspect-[4/3] overflow-hidden bg-zinc-900 group/photo"
-                    aria-label={`Ver fotografía ${index + 1}`}
-                  >
-                    <img
-                      src={url}
-                      alt={`${evento?.name || 'Evento'} — fotografía ${index + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover grayscale group-hover/photo:grayscale-0 group-hover/photo:scale-105 transition-all duration-700"
-                    />
-
-                    <div className="absolute inset-0 bg-black/10 group-hover/photo:bg-transparent transition-colors" />
-
-                    {index === 3 &&
-                      photos.length > 4 && (
-                        <div className="absolute inset-0 bg-black/65 flex items-center justify-center">
-                          <span className="text-white font-display text-xl">
-                            +{photos.length - 4}
-                          </span>
-                        </div>
-                      )}
-                  </button>
-                );
-              })}
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
 
             </div>
+          )}
 
-          </div>
-        )}
+        {/* INLINE GALLERY PREVIEW */}
+
+        {past &&
+          photos.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-zinc-800">
+
+              <div className="flex items-center justify-between gap-4 mb-4">
+
+                <div>
+                  <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em] mb-1">
+                    Recuerdos
+                  </p>
+
+                  <p className="text-zinc-600 text-[10px] uppercase tracking-[0.15em]">
+                    {photos.length}{' '}
+                    {photos.length ===
+                    1
+                      ? 'fotografía'
+                      : 'fotografías'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenGallery(
+                      evento
+                    )
+                  }
+                  className="text-zinc-600 hover:text-white text-[9px] font-bold uppercase tracking-[0.15em] transition-colors"
+                >
+                  Ver todas
+                </button>
+
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+
+                {photos
+                  .slice(0, 4)
+                  .map(
+                    (
+                      photo,
+                      index
+                    ) => {
+                      const url =
+                        getPhotoUrl(
+                          photo
+                        );
+
+                      return (
+                        <button
+                          key={`${evento.id}-photo-${index}`}
+                          type="button"
+                          onClick={() =>
+                            onOpenGallery(
+                              evento,
+                              index
+                            )
+                          }
+                          className="relative aspect-[4/3] overflow-hidden bg-zinc-900 group/photo"
+                          aria-label={`Ver fotografía ${index + 1}`}
+                        >
+                          <img
+                            src={url}
+                            alt={`${evento?.name || 'Evento'} — fotografía ${index + 1}`}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover grayscale group-hover/photo:grayscale-0 group-hover/photo:scale-105 transition-all duration-700"
+                          />
+
+                          <div className="absolute inset-0 bg-black/10 group-hover/photo:bg-transparent transition-colors" />
+
+                          {index ===
+                            3 &&
+                            photos.length >
+                              4 && (
+                              <div className="absolute inset-0 bg-black/65 flex items-center justify-center">
+                                <span className="text-white font-display text-xl">
+                                  +
+                                  {photos.length -
+                                    4}
+                                </span>
+                              </div>
+                            )}
+                        </button>
+                      );
+                    }
+                  )}
+
+              </div>
+
+            </div>
+          )}
 
       </div>
     </article>
@@ -622,28 +871,34 @@ const GalleryModal = ({
 }) => {
   if (!evento) return null;
 
-  const photos = getEventPhotos(evento);
+  const photos =
+    getEventPhotos(evento);
 
   if (!photos.length) return null;
 
   const currentPhoto =
-    photos[currentIndex] || photos[0];
+    photos[currentIndex] ||
+    photos[0];
 
-  const currentUrl = getPhotoUrl(currentPhoto);
+  const currentUrl =
+    getPhotoUrl(currentPhoto);
 
   const previousPhoto = () => {
-    setCurrentIndex((current) =>
-      current === 0
-        ? photos.length - 1
-        : current - 1
+    setCurrentIndex(
+      (current) =>
+        current === 0
+          ? photos.length - 1
+          : current - 1
     );
   };
 
   const nextPhoto = () => {
-    setCurrentIndex((current) =>
-      current === photos.length - 1
-        ? 0
-        : current + 1
+    setCurrentIndex(
+      (current) =>
+        current ===
+        photos.length - 1
+          ? 0
+          : current + 1
     );
   };
 
@@ -674,7 +929,8 @@ const GalleryModal = ({
             </p>
 
             <h2 className="font-display text-xl sm:text-2xl text-white uppercase truncate">
-              {evento.name || 'Evento'}
+              {evento.name ||
+                'Evento'}
             </h2>
 
           </div>
@@ -723,7 +979,8 @@ const GalleryModal = ({
           )}
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/75 border border-zinc-800 px-4 py-2 text-white text-[9px] font-bold uppercase tracking-[0.15em]">
-            {currentIndex + 1} / {photos.length}
+            {currentIndex + 1} /{' '}
+            {photos.length}
           </div>
 
         </div>
@@ -735,33 +992,43 @@ const GalleryModal = ({
 
             <div className="flex gap-2 min-w-max">
 
-              {photos.map((photo, index) => {
+              {photos.map(
+                (
+                  photo,
+                  index
+                ) => {
+                  const url =
+                    getPhotoUrl(
+                      photo
+                    );
 
-                const url = getPhotoUrl(photo);
-
-                return (
-                  <button
-                    key={`thumbnail-${index}`}
-                    type="button"
-                    onClick={() =>
-                      setCurrentIndex(index)
-                    }
-                    className={`relative w-20 h-14 sm:w-24 sm:h-16 overflow-hidden border transition-all ${
-                      index === currentIndex
-                        ? 'border-red-600'
-                        : 'border-zinc-800 opacity-50 hover:opacity-100'
-                    }`}
-                    aria-label={`Ver fotografía ${index + 1}`}
-                  >
-                    <img
-                      src={url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={`thumbnail-${index}`}
+                      type="button"
+                      onClick={() =>
+                        setCurrentIndex(
+                          index
+                        )
+                      }
+                      className={`relative w-20 h-14 sm:w-24 sm:h-16 overflow-hidden border transition-all ${
+                        index ===
+                        currentIndex
+                          ? 'border-red-600'
+                          : 'border-zinc-800 opacity-50 hover:opacity-100'
+                      }`}
+                      aria-label={`Ver fotografía ${index + 1}`}
+                    >
+                      <img
+                        src={url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </button>
+                  );
+                }
+              )}
 
             </div>
 
@@ -778,16 +1045,17 @@ const GalleryModal = ({
 ========================================================= */
 
 export default function Training() {
-  const [eventos, setEventos] = useState([]);
-  const [loadingEventos, setLoadingEventos] = useState(true);
-  const [errorEventos, setErrorEventos] = useState(null);
+  const [eventos, setEventos] =
+    useState([]);
 
-  /*
-   * Un único controlador para las peticiones de eventos.
-   * Permite cancelar la petición anterior antes de iniciar
-   * una nueva, incluido el botón "Reintentar".
-   */
-  const eventosAbortControllerRef = useRef(null);
+  const [loadingEventos, setLoadingEventos] =
+    useState(true);
+
+  const [errorEventos, setErrorEventos] =
+    useState(null);
+
+  const eventosAbortControllerRef =
+    useRef(null);
 
   const [inscricaoModal, setInscricaoModal] =
     useState(null);
@@ -798,12 +1066,13 @@ export default function Training() {
   const [galleryIndex, setGalleryIndex] =
     useState(0);
 
-  const [inscricaoForm, setInscricaoForm] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    message: '',
-  });
+  const [inscricaoForm, setInscricaoForm] =
+    useState({
+      fullName: '',
+      email: '',
+      phone: '',
+      message: '',
+    });
 
   const [inscricaoSucesso, setInscricaoSucesso] =
     useState(false);
@@ -818,120 +1087,126 @@ export default function Training() {
      FETCH EVENTOS
   ======================================================= */
 
-  const fetchEventos = useCallback(async () => {
-    setLoadingEventos(true);
-    setErrorEventos(null);
+  const fetchEventos =
+    useCallback(async () => {
+      setLoadingEventos(true);
+      setErrorEventos(null);
 
-    /*
-     * Si ya existe una petición en curso, la cancelamos.
-     * Esto evita peticiones duplicadas al pulsar "Reintentar"
-     * o si se vuelve a solicitar la información.
-     */
-    if (eventosAbortControllerRef.current) {
-      eventosAbortControllerRef.current.abort();
-    }
-
-    const controller = new AbortController();
-
-    eventosAbortControllerRef.current =
-      controller;
-
-    try {
-      if (!API_URL) {
-        throw new Error(
-          'La configuración de la API no está disponible.'
-        );
-      }
-
-      const response = await fetch(
-        `${API_URL}/api/eventos`,
-        {
-          signal: controller.signal,
-          headers: {
-            Accept: 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Error HTTP: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error(
-          'El servidor devolvió datos inválidos.'
-        );
-      }
-
-      /*
-       * Mantenemos la lógica actual:
-       * solamente se muestran públicamente los eventos
-       * marcados como activos.
-       *
-       * Los eventos realizados siguen siendo activos porque
-       * ahora forman parte del historial público.
-       */
-      const eventosActivos = data
-        .filter(
-          (evento) =>
-            evento?.isActive === true
-        )
-        .sort((a, b) => {
-          const dateA = a?.dateISO
-            ? new Date(a.dateISO).getTime()
-            : Number.MAX_SAFE_INTEGER;
-
-          const dateB = b?.dateISO
-            ? new Date(b.dateISO).getTime()
-            : Number.MAX_SAFE_INTEGER;
-
-          return dateA - dateB;
-        });
-
-      setEventos(eventosActivos);
-
-    } catch (error) {
-      if (error?.name === 'AbortError') {
-        return;
-      }
-
-      console.error(
-        'Error al cargar eventos:',
-        error
-      );
-
-      setErrorEventos(
-        'No hemos podido cargar los eventos.'
-      );
-
-      setEventos([]);
-
-    } finally {
-      /*
-       * Solo la petición que sigue siendo activa puede
-       * modificar el estado de carga.
-       */
       if (
-        eventosAbortControllerRef.current ===
-        controller
+        eventosAbortControllerRef.current
       ) {
-        setLoadingEventos(false);
-        eventosAbortControllerRef.current = null;
+        eventosAbortControllerRef.current.abort();
       }
-    }
-  }, []);
+
+      const controller =
+        new AbortController();
+
+      eventosAbortControllerRef.current =
+        controller;
+
+      try {
+        if (!API_URL) {
+          throw new Error(
+            'La configuración de la API no está disponible.'
+          );
+        }
+
+        const response =
+          await fetch(
+            `${API_URL}/api/eventos`,
+            {
+              signal:
+                controller.signal,
+              headers: {
+                Accept:
+                  'application/json',
+              },
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `Error HTTP: ${response.status}`
+          );
+        }
+
+        const data =
+          await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error(
+            'El servidor devolvió datos inválidos.'
+          );
+        }
+
+        /*
+         * El backend público debe devolver únicamente
+         * eventos activos y públicos.
+         *
+         * Mantenemos la comprobación de isActive aquí
+         * como segunda capa de seguridad visual.
+         */
+        const eventosActivos =
+          data
+            .filter(
+              (evento) =>
+                evento?.isActive === true &&
+                (
+                  evento?.isPublic === true ||
+                  evento?.status ===
+                    'FINALIZADO'
+                )
+            );
+
+        setEventos(
+          eventosActivos
+        );
+
+      } catch (error) {
+        if (
+          error?.name ===
+          'AbortError'
+        ) {
+          return;
+        }
+
+        console.error(
+          'Error al cargar eventos:',
+          error
+        );
+
+        setErrorEventos(
+          'No hemos podido cargar los eventos.'
+        );
+
+        setEventos([]);
+
+      } finally {
+        if (
+          eventosAbortControllerRef.current ===
+          controller
+        ) {
+          setLoadingEventos(
+            false
+          );
+
+          eventosAbortControllerRef.current =
+            null;
+        }
+      }
+    }, []);
 
   useEffect(() => {
     fetchEventos();
 
     return () => {
-      if (eventosAbortControllerRef.current) {
+      if (
+        eventosAbortControllerRef.current
+      ) {
         eventosAbortControllerRef.current.abort();
-        eventosAbortControllerRef.current = null;
+
+        eventosAbortControllerRef.current =
+          null;
       }
     };
   }, [fetchEventos]);
@@ -944,18 +1219,30 @@ export default function Training() {
     proximosEventos,
     eventosRealizados,
   } = useMemo(() => {
-
     const proximos = [];
     const realizados = [];
 
     eventos.forEach((evento) => {
-      if (isEventCompleted(evento)) {
-        realizados.push(evento);
+      if (
+        isEventCompleted(
+          evento
+        )
+      ) {
+        realizados.push(
+          evento
+        );
       } else {
-        proximos.push(evento);
+        proximos.push(
+          evento
+        );
       }
     });
 
+    /*
+     * PRÓXIMOS
+     *
+     * Ordenamos por día/mes cuando es posible.
+     */
     proximos.sort((a, b) => {
       const dateA =
         getEventDate(a)?.getTime() ??
@@ -968,29 +1255,67 @@ export default function Training() {
       return dateA - dateB;
     });
 
+    /*
+     * HISTORIAL
+     *
+     * completedAt tiene prioridad porque representa
+     * el momento real en que el administrador finalizó
+     * el evento.
+     */
     realizados.sort((a, b) => {
+      const completedA =
+        a?.completedAt
+          ? new Date(
+              a.completedAt
+            ).getTime()
+          : 0;
+
+      const completedB =
+        b?.completedAt
+          ? new Date(
+              b.completedAt
+            ).getTime()
+          : 0;
+
+      if (
+        completedA &&
+        completedB
+      ) {
+        return (
+          completedB -
+          completedA
+        );
+      }
+
       const dateA =
-        getEventDate(a)?.getTime() ?? 0;
+        getEventDate(a)?.getTime() ??
+        0;
 
       const dateB =
-        getEventDate(b)?.getTime() ?? 0;
+        getEventDate(b)?.getTime() ??
+        0;
 
       return dateB - dateA;
     });
 
     return {
-      proximosEventos: proximos,
-      eventosRealizados: realizados,
+      proximosEventos:
+        proximos,
+      eventosRealizados:
+        realizados,
     };
-
   }, [eventos]);
 
   /* =======================================================
      ABRIR INSCRIPCIÓN
   ======================================================= */
 
-  const abrirInscricao = (evento) => {
-    setInscricaoModal(evento);
+  const abrirInscricao = (
+    evento
+  ) => {
+    setInscricaoModal(
+      evento
+    );
 
     setInscricaoForm({
       fullName: '',
@@ -999,100 +1324,166 @@ export default function Training() {
       message: '',
     });
 
-    setInscricaoSucesso(false);
-    setInscricaoError(null);
+    setInscricaoSucesso(
+      false
+    );
+
+    setInscricaoError(
+      null
+    );
   };
 
   /* =======================================================
      CERRAR MODAL INSCRIPCIÓN
   ======================================================= */
 
-  const fecharInscricao = useCallback(() => {
-    if (inscricaoLoading) return;
+  const fecharInscricao =
+    useCallback(() => {
+      if (
+        inscricaoLoading
+      ) {
+        return;
+      }
 
-    setInscricaoModal(null);
-    setInscricaoSucesso(false);
-    setInscricaoError(null);
-  }, [inscricaoLoading]);
+      setInscricaoModal(
+        null
+      );
+
+      setInscricaoSucesso(
+        false
+      );
+
+      setInscricaoError(
+        null
+      );
+    }, [
+      inscricaoLoading,
+    ]);
 
   /* =======================================================
      GALERÍA
   ======================================================= */
 
-  const abrirGaleria = useCallback(
-    (evento, index = 0) => {
-      const photos = getEventPhotos(evento);
+  const abrirGaleria =
+    useCallback(
+      (
+        evento,
+        index = 0
+      ) => {
+        const photos =
+          getEventPhotos(
+            evento
+          );
 
-      if (!photos.length) {
-        return;
-      }
+        if (
+          !photos.length
+        ) {
+          return;
+        }
 
-      setGalleryModal(evento);
+        setGalleryModal(
+          evento
+        );
+
+        setGalleryIndex(
+          Math.min(
+            Math.max(
+              index,
+              0
+            ),
+            photos.length - 1
+          )
+        );
+      },
+      []
+    );
+
+  const fecharGaleria =
+    useCallback(() => {
+      setGalleryModal(
+        null
+      );
 
       setGalleryIndex(
-        Math.min(
-          Math.max(index, 0),
-          photos.length - 1
-        )
+        0
       );
-    },
-    []
-  );
-
-  const fecharGaleria = useCallback(() => {
-    setGalleryModal(null);
-    setGalleryIndex(0);
-  }, []);
+    }, []);
 
   /* =======================================================
      ESC + TECLAS DE NAVEGACIÓN
   ======================================================= */
 
   useEffect(() => {
-    if (!inscricaoModal && !galleryModal) {
+    if (
+      !inscricaoModal &&
+      !galleryModal
+    ) {
       return;
     }
 
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        if (galleryModal) {
+    const handleKeyDown = (
+      event
+    ) => {
+      if (
+        event.key ===
+        'Escape'
+      ) {
+        if (
+          galleryModal
+        ) {
           fecharGaleria();
           return;
         }
 
-        if (inscricaoModal) {
+        if (
+          inscricaoModal
+        ) {
           fecharInscricao();
         }
       }
 
       if (
         galleryModal &&
-        event.key === 'ArrowLeft'
+        event.key ===
+          'ArrowLeft'
       ) {
         const photos =
-          getEventPhotos(galleryModal);
+          getEventPhotos(
+            galleryModal
+          );
 
-        if (photos.length > 1) {
-          setGalleryIndex((current) =>
-            current === 0
-              ? photos.length - 1
-              : current - 1
+        if (
+          photos.length > 1
+        ) {
+          setGalleryIndex(
+            (current) =>
+              current === 0
+                ? photos.length -
+                  1
+                : current - 1
           );
         }
       }
 
       if (
         galleryModal &&
-        event.key === 'ArrowRight'
+        event.key ===
+          'ArrowRight'
       ) {
         const photos =
-          getEventPhotos(galleryModal);
+          getEventPhotos(
+            galleryModal
+          );
 
-        if (photos.length > 1) {
-          setGalleryIndex((current) =>
-            current === photos.length - 1
-              ? 0
-              : current + 1
+        if (
+          photos.length > 1
+        ) {
+          setGalleryIndex(
+            (current) =>
+              current ===
+              photos.length - 1
+                ? 0
+                : current + 1
           );
         }
       }
@@ -1104,9 +1495,11 @@ export default function Training() {
     );
 
     const previousOverflow =
-      document.body.style.overflow;
+      document.body.style
+        .overflow;
 
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow =
+      'hidden';
 
     return () => {
       document.removeEventListener(
@@ -1128,16 +1521,27 @@ export default function Training() {
      FORM
   ======================================================= */
 
-  const handleFormChange = (event) => {
-    const { name, value } = event.target;
+  const handleFormChange = (
+    event
+  ) => {
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setInscricaoForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setInscricaoForm(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
 
-    if (inscricaoError) {
-      setInscricaoError(null);
+    if (
+      inscricaoError
+    ) {
+      setInscricaoError(
+        null
+      );
     }
   };
 
@@ -1145,92 +1549,116 @@ export default function Training() {
      ENVIAR INSCRIPCIÓN
   ======================================================= */
 
-  const enviarInscricao = async (event) => {
-    event.preventDefault();
+  const enviarInscricao =
+    async (event) => {
+      event.preventDefault();
 
-    if (!inscricaoModal?.id) {
-      setInscricaoError(
-        'No se ha podido identificar el evento.'
+      if (
+        !inscricaoModal?.id
+      ) {
+        setInscricaoError(
+          'No se ha podido identificar el evento.'
+        );
+
+        return;
+      }
+
+      setInscricaoLoading(
+        true
       );
 
-      return;
-    }
+      setInscricaoError(
+        null
+      );
 
-    setInscricaoLoading(true);
-    setInscricaoError(null);
+      try {
+        if (!API_URL) {
+          throw new Error(
+            'La configuración de la API no está disponible.'
+          );
+        }
 
-    try {
-      if (!API_URL) {
-        throw new Error(
-          'La configuración de la API no está disponible.'
+        const response =
+          await fetch(
+            `${API_URL}/api/inscricoes-eventos`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type':
+                  'application/json',
+                Accept:
+                  'application/json',
+              },
+
+              body: JSON.stringify(
+                {
+                  ...inscricaoForm,
+
+                  fullName:
+                    inscricaoForm.fullName.trim(),
+
+                  email:
+                    inscricaoForm.email.trim(),
+
+                  phone:
+                    inscricaoForm.phone.trim(),
+
+                  message:
+                    inscricaoForm.message.trim(),
+
+                  eventId:
+                    inscricaoModal.id,
+                }
+              ),
+            }
+          );
+
+        if (
+          !response.ok
+        ) {
+          let message =
+            'No se ha podido completar la inscripción.';
+
+          try {
+            const data =
+              await response.json();
+
+            if (
+              data?.message
+            ) {
+              message =
+                data.message;
+            }
+          } catch {
+            // Respuesta sin JSON
+          }
+
+          throw new Error(
+            message
+          );
+        }
+
+        setInscricaoSucesso(
+          true
+        );
+
+      } catch (error) {
+        console.error(
+          'Error al enviar inscripción:',
+          error
+        );
+
+        setInscricaoError(
+          error?.message ||
+            'Error al inscribirse. Inténtalo de nuevo.'
+        );
+
+      } finally {
+        setInscricaoLoading(
+          false
         );
       }
-
-      const response = await fetch(
-        `${API_URL}/api/inscricoes-eventos`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-
-          body: JSON.stringify({
-            ...inscricaoForm,
-
-            fullName:
-              inscricaoForm.fullName.trim(),
-
-            email:
-              inscricaoForm.email.trim(),
-
-            phone:
-              inscricaoForm.phone.trim(),
-
-            message:
-              inscricaoForm.message.trim(),
-
-            eventId:
-              inscricaoModal.id,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        let message =
-          'No se ha podido completar la inscripción.';
-
-        try {
-          const data =
-            await response.json();
-
-          if (data?.message) {
-            message = data.message;
-          }
-        } catch {
-          // Respuesta sin JSON
-        }
-
-        throw new Error(message);
-      }
-
-      setInscricaoSucesso(true);
-
-    } catch (error) {
-      console.error(
-        'Error al enviar inscripción:',
-        error
-      );
-
-      setInscricaoError(
-        error?.message ||
-          'Error al inscribirse. Inténtalo de nuevo.'
-      );
-
-    } finally {
-      setInscricaoLoading(false);
-    }
-  };
+    };
 
   /* =========================================================
      RENDER
@@ -1590,13 +2018,15 @@ export default function Training() {
 
             {!loadingEventos &&
               !errorEventos &&
-              proximosEventos.length > 0 && (
+              proximosEventos.length >
+                0 && (
 
                 <p className="text-zinc-600 text-[10px] uppercase tracking-[0.18em]">
 
                   {proximosEventos.length}{' '}
 
-                  {proximosEventos.length === 1
+                  {proximosEventos.length ===
+                  1
                     ? 'evento programado'
                     : 'eventos programados'}
 
@@ -1629,8 +2059,12 @@ export default function Training() {
 
                 <button
                   type="button"
-                  onClick={fetchEventos}
-                  disabled={loadingEventos}
+                  onClick={
+                    fetchEventos
+                  }
+                  disabled={
+                    loadingEventos
+                  }
                   className="inline-flex items-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-500 disabled:bg-red-600/40 disabled:cursor-not-allowed text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
                 >
                   <RefreshIcon className="w-4 h-4" />
@@ -1645,28 +2079,34 @@ export default function Training() {
 
           {!loadingEventos &&
             !errorEventos &&
-            proximosEventos.length > 0 && (
+            proximosEventos.length >
+              0 && (
 
               <div className="space-y-4">
 
-                {proximosEventos.map((evento) => (
-
-                  <EventCard
-                    key={evento.id}
-                    evento={evento}
-                    past={false}
-                    onRegister={abrirInscricao}
-                    onOpenGallery={abrirGaleria}
-                  />
-
-                ))}
+                {proximosEventos.map(
+                  (evento) => (
+                    <EventCard
+                      key={evento.id}
+                      evento={evento}
+                      past={false}
+                      onRegister={
+                        abrirInscricao
+                      }
+                      onOpenGallery={
+                        abrirGaleria
+                      }
+                    />
+                  )
+                )}
 
               </div>
             )}
 
           {!loadingEventos &&
             !errorEventos &&
-            proximosEventos.length === 0 && (
+            proximosEventos.length ===
+              0 && (
 
               <div className="border border-zinc-800 bg-zinc-950 p-12 md:p-16 text-center">
 
@@ -1696,7 +2136,8 @@ export default function Training() {
 
       {!loadingEventos &&
         !errorEventos &&
-        eventosRealizados.length > 0 && (
+        eventosRealizados.length >
+          0 && (
 
           <section className="py-16 md:py-24 bg-zinc-900 border-y border-zinc-800">
 
@@ -1734,17 +2175,21 @@ export default function Training() {
 
               <div className="space-y-4">
 
-                {eventosRealizados.map((evento) => (
-
-                  <EventCard
-                    key={evento.id}
-                    evento={evento}
-                    past
-                    onRegister={abrirInscricao}
-                    onOpenGallery={abrirGaleria}
-                  />
-
-                ))}
+                {eventosRealizados.map(
+                  (evento) => (
+                    <EventCard
+                      key={evento.id}
+                      evento={evento}
+                      past
+                      onRegister={
+                        abrirInscricao
+                      }
+                      onOpenGallery={
+                        abrirGaleria
+                      }
+                    />
+                  )
+                )}
 
               </div>
 
@@ -1880,7 +2325,9 @@ export default function Training() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="inscripcion-title"
-          onMouseDown={fecharInscricao}
+          onMouseDown={
+            fecharInscricao
+          }
         >
 
           <div
@@ -1896,8 +2343,12 @@ export default function Training() {
 
               <button
                 type="button"
-                onClick={fecharInscricao}
-                disabled={inscricaoLoading}
+                onClick={
+                  fecharInscricao
+                }
+                disabled={
+                  inscricaoLoading
+                }
                 aria-label="Cerrar inscripción"
                 className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors disabled:opacity-40"
               >
@@ -1959,7 +2410,9 @@ export default function Training() {
 
                 <button
                   type="button"
-                  onClick={fecharInscricao}
+                  onClick={
+                    fecharInscricao
+                  }
                   className="inline-flex items-center justify-center px-7 py-3.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
                 >
                   Cerrar
@@ -1970,7 +2423,9 @@ export default function Training() {
             ) : (
 
               <form
-                onSubmit={enviarInscricao}
+                onSubmit={
+                  enviarInscricao
+                }
                 className="p-6 sm:p-8"
               >
 
@@ -1989,8 +2444,12 @@ export default function Training() {
                       id="fullName"
                       name="fullName"
                       type="text"
-                      value={inscricaoForm.fullName}
-                      onChange={handleFormChange}
+                      value={
+                        inscricaoForm.fullName
+                      }
+                      onChange={
+                        handleFormChange
+                      }
                       required
                       autoComplete="name"
                       placeholder="Tu nombre completo"
@@ -2012,8 +2471,12 @@ export default function Training() {
                       id="email"
                       name="email"
                       type="email"
-                      value={inscricaoForm.email}
-                      onChange={handleFormChange}
+                      value={
+                        inscricaoForm.email
+                      }
+                      onChange={
+                        handleFormChange
+                      }
                       required
                       autoComplete="email"
                       placeholder="tu@email.com"
@@ -2035,8 +2498,12 @@ export default function Training() {
                       id="phone"
                       name="phone"
                       type="tel"
-                      value={inscricaoForm.phone}
-                      onChange={handleFormChange}
+                      value={
+                        inscricaoForm.phone
+                      }
+                      onChange={
+                        handleFormChange
+                      }
                       autoComplete="tel"
                       placeholder="+34 600 000 000"
                       className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 px-4 py-3.5 text-sm focus:outline-none focus:border-red-600 transition-colors"
@@ -2060,8 +2527,12 @@ export default function Training() {
                     <textarea
                       id="message"
                       name="message"
-                      value={inscricaoForm.message}
-                      onChange={handleFormChange}
+                      value={
+                        inscricaoForm.message
+                      }
+                      onChange={
+                        handleFormChange
+                      }
                       rows={4}
                       placeholder="¿Tienes alguna pregunta o necesidad especial?"
                       className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 px-4 py-3.5 text-sm focus:outline-none focus:border-red-600 transition-colors resize-none"
@@ -2087,7 +2558,9 @@ export default function Training() {
 
                 <button
                   type="submit"
-                  disabled={inscricaoLoading}
+                  disabled={
+                    inscricaoLoading
+                  }
                   className="w-full mt-6 py-4 bg-red-600 hover:bg-red-500 disabled:bg-red-600/40 disabled:cursor-not-allowed text-white font-bold text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center justify-center gap-3"
                 >
 
@@ -2126,10 +2599,18 @@ export default function Training() {
 
       {galleryModal && (
         <GalleryModal
-          evento={galleryModal}
-          currentIndex={galleryIndex}
-          setCurrentIndex={setGalleryIndex}
-          onClose={fecharGaleria}
+          evento={
+            galleryModal
+          }
+          currentIndex={
+            galleryIndex
+          }
+          setCurrentIndex={
+            setGalleryIndex
+          }
+          onClose={
+            fecharGaleria
+          }
         />
       )}
 
