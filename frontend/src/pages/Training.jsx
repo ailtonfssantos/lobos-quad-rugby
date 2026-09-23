@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config';
 
@@ -213,10 +219,54 @@ const getEventDate = (evento) => {
   return date;
 };
 
-const isPastEvent = (evento) => {
+/*
+ * Un evento puede considerarse realizado por:
+ *
+ * 1. isCompleted === true
+ * 2. status con valores de finalización conocidos
+ * 3. completedAt informado
+ * 4. su fecha ya ha pasado
+ *
+ * Esto permite que el frontend sea compatible con la
+ * estructura actual y con la nueva gestión desde el admin.
+ */
+const isEventCompleted = (evento) => {
+  if (!evento) return false;
+
+  if (evento.isCompleted === true) {
+    return true;
+  }
+
+  if (evento.completedAt) {
+    return true;
+  }
+
+  const status = String(
+    evento.status ||
+      evento.estado ||
+      ''
+  )
+    .trim()
+    .toUpperCase();
+
+  const completedStatuses = [
+    'COMPLETED',
+    'COMPLETADO',
+    'FINALIZADO',
+    'FINALIZADO',
+    'REALIZADO',
+    'PASADO',
+  ];
+
+  if (completedStatuses.includes(status)) {
+    return true;
+  }
+
   const date = getEventDate(evento);
 
-  if (!date) return false;
+  if (!date) {
+    return false;
+  }
 
   const today = new Date();
 
@@ -274,8 +324,8 @@ const getEventPhotos = (evento) => {
 
     return Boolean(
       photo?.url ||
-      photo?.secure_url ||
-      photo?.secureUrl
+        photo?.secure_url ||
+        photo?.secureUrl
     );
   });
 };
@@ -338,13 +388,11 @@ const EventCard = ({
       } transition-all duration-300 overflow-hidden`}
     >
       <div className="p-5 sm:p-6 md:p-7">
-
         <div className="flex flex-col md:flex-row gap-6">
 
           {/* DATE */}
 
           <div className="shrink-0">
-
             <div className="w-full md:w-28 h-24 md:h-28 bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden">
 
               <div
@@ -372,7 +420,6 @@ const EventCard = ({
               </span>
 
             </div>
-
           </div>
 
           {/* INFO */}
@@ -421,13 +468,11 @@ const EventCard = ({
 
             {evento?.location && (
               <div className="flex items-start gap-2 text-zinc-500 text-sm mb-3">
-
                 <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-zinc-700" />
 
                 <span>
                   {evento.location}
                 </span>
-
               </div>
             )}
 
@@ -443,13 +488,9 @@ const EventCard = ({
 
           {!past && (
             <div className="hidden md:flex items-start justify-end">
-
               <div className="w-10 h-10 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:text-red-500 group-hover:border-red-600/40 transition-all">
-
                 <ArrowUpRight className="w-4 h-4" />
-
               </div>
-
             </div>
           )}
 
@@ -531,7 +572,9 @@ const EventCard = ({
                   <button
                     key={`${evento.id}-photo-${index}`}
                     type="button"
-                    onClick={() => onOpenGallery(evento, index)}
+                    onClick={() =>
+                      onOpenGallery(evento, index)
+                    }
                     className="relative aspect-[4/3] overflow-hidden bg-zinc-900 group/photo"
                     aria-label={`Ver fotografía ${index + 1}`}
                   >
@@ -545,13 +588,14 @@ const EventCard = ({
 
                     <div className="absolute inset-0 bg-black/10 group-hover/photo:bg-transparent transition-colors" />
 
-                    {index === 3 && photos.length > 4 && (
-                      <div className="absolute inset-0 bg-black/65 flex items-center justify-center">
-                        <span className="text-white font-display text-xl">
-                          +{photos.length - 4}
-                        </span>
-                      </div>
-                    )}
+                    {index === 3 &&
+                      photos.length > 4 && (
+                        <div className="absolute inset-0 bg-black/65 flex items-center justify-center">
+                          <span className="text-white font-display text-xl">
+                            +{photos.length - 4}
+                          </span>
+                        </div>
+                      )}
                   </button>
                 );
               })}
@@ -738,6 +782,13 @@ export default function Training() {
   const [loadingEventos, setLoadingEventos] = useState(true);
   const [errorEventos, setErrorEventos] = useState(null);
 
+  /*
+   * Un único controlador para las peticiones de eventos.
+   * Permite cancelar la petición anterior antes de iniciar
+   * una nueva, incluido el botón "Reintentar".
+   */
+  const eventosAbortControllerRef = useRef(null);
+
   const [inscricaoModal, setInscricaoModal] =
     useState(null);
 
@@ -767,102 +818,121 @@ export default function Training() {
      FETCH EVENTOS
   ======================================================= */
 
-  const fetchEventos = useCallback(
-    async (signal) => {
-      setLoadingEventos(true);
-      setErrorEventos(null);
+  const fetchEventos = useCallback(async () => {
+    setLoadingEventos(true);
+    setErrorEventos(null);
 
-      try {
-        if (!API_URL) {
-          throw new Error(
-            'La configuración de la API no está disponible.'
-          );
-        }
+    /*
+     * Si ya existe una petición en curso, la cancelamos.
+     * Esto evita peticiones duplicadas al pulsar "Reintentar"
+     * o si se vuelve a solicitar la información.
+     */
+    if (eventosAbortControllerRef.current) {
+      eventosAbortControllerRef.current.abort();
+    }
 
-        const response = await fetch(
-          `${API_URL}/api/eventos`,
-          {
-            signal,
-            headers: {
-              Accept: 'application/json',
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            `Error HTTP: ${response.status}`
-          );
-        }
-
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-          throw new Error(
-            'El servidor devolvió datos inválidos.'
-          );
-        }
-
-        /*
-         * Mantenemos exactamente el criterio actual:
-         * solamente eventos activos.
-         *
-         * La diferencia es que ahora los eventos activos
-         * se separan posteriormente entre próximos y realizados.
-         */
-        const eventosActivos = data
-          .filter(
-            (evento) => evento?.isActive === true
-          )
-          .sort((a, b) => {
-            const dateA = a?.dateISO
-              ? new Date(a.dateISO).getTime()
-              : Number.MAX_SAFE_INTEGER;
-
-            const dateB = b?.dateISO
-              ? new Date(b.dateISO).getTime()
-              : Number.MAX_SAFE_INTEGER;
-
-            return dateA - dateB;
-          });
-
-        setEventos(eventosActivos);
-
-      } catch (error) {
-
-        if (error?.name === 'AbortError') {
-          return;
-        }
-
-        console.error(
-          'Error al cargar eventos:',
-          error
-        );
-
-        setErrorEventos(
-          'No hemos podido cargar los eventos.'
-        );
-
-        setEventos([]);
-
-      } finally {
-
-        if (!signal?.aborted) {
-          setLoadingEventos(false);
-        }
-
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
     const controller = new AbortController();
 
-    fetchEventos(controller.signal);
+    eventosAbortControllerRef.current =
+      controller;
+
+    try {
+      if (!API_URL) {
+        throw new Error(
+          'La configuración de la API no está disponible.'
+        );
+      }
+
+      const response = await fetch(
+        `${API_URL}/api/eventos`,
+        {
+          signal: controller.signal,
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error HTTP: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error(
+          'El servidor devolvió datos inválidos.'
+        );
+      }
+
+      /*
+       * Mantenemos la lógica actual:
+       * solamente se muestran públicamente los eventos
+       * marcados como activos.
+       *
+       * Los eventos realizados siguen siendo activos porque
+       * ahora forman parte del historial público.
+       */
+      const eventosActivos = data
+        .filter(
+          (evento) =>
+            evento?.isActive === true
+        )
+        .sort((a, b) => {
+          const dateA = a?.dateISO
+            ? new Date(a.dateISO).getTime()
+            : Number.MAX_SAFE_INTEGER;
+
+          const dateB = b?.dateISO
+            ? new Date(b.dateISO).getTime()
+            : Number.MAX_SAFE_INTEGER;
+
+          return dateA - dateB;
+        });
+
+      setEventos(eventosActivos);
+
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        return;
+      }
+
+      console.error(
+        'Error al cargar eventos:',
+        error
+      );
+
+      setErrorEventos(
+        'No hemos podido cargar los eventos.'
+      );
+
+      setEventos([]);
+
+    } finally {
+      /*
+       * Solo la petición que sigue siendo activa puede
+       * modificar el estado de carga.
+       */
+      if (
+        eventosAbortControllerRef.current ===
+        controller
+      ) {
+        setLoadingEventos(false);
+        eventosAbortControllerRef.current = null;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEventos();
 
     return () => {
-      controller.abort();
+      if (eventosAbortControllerRef.current) {
+        eventosAbortControllerRef.current.abort();
+        eventosAbortControllerRef.current = null;
+      }
     };
   }, [fetchEventos]);
 
@@ -879,13 +949,11 @@ export default function Training() {
     const realizados = [];
 
     eventos.forEach((evento) => {
-
-      if (isPastEvent(evento)) {
+      if (isEventCompleted(evento)) {
         realizados.push(evento);
       } else {
         proximos.push(evento);
       }
-
     });
 
     proximos.sort((a, b) => {
@@ -902,12 +970,10 @@ export default function Training() {
 
     realizados.sort((a, b) => {
       const dateA =
-        getEventDate(a)?.getTime() ??
-        0;
+        getEventDate(a)?.getTime() ?? 0;
 
       const dateB =
-        getEventDate(b)?.getTime() ??
-        0;
+        getEventDate(b)?.getTime() ?? 0;
 
       return dateB - dateA;
     });
@@ -924,7 +990,6 @@ export default function Training() {
   ======================================================= */
 
   const abrirInscricao = (evento) => {
-
     setInscricaoModal(evento);
 
     setInscricaoForm({
@@ -939,17 +1004,15 @@ export default function Training() {
   };
 
   /* =======================================================
-     FECHAR MODAL INSCRIPCIÓN
+     CERRAR MODAL INSCRIPCIÓN
   ======================================================= */
 
   const fecharInscricao = useCallback(() => {
-
     if (inscricaoLoading) return;
 
     setInscricaoModal(null);
     setInscricaoSucesso(false);
     setInscricaoError(null);
-
   }, [inscricaoLoading]);
 
   /* =======================================================
@@ -958,7 +1021,6 @@ export default function Training() {
 
   const abrirGaleria = useCallback(
     (evento, index = 0) => {
-
       const photos = getEventPhotos(evento);
 
       if (!photos.length) {
@@ -983,19 +1045,16 @@ export default function Training() {
   }, []);
 
   /* =======================================================
-     ESC PARA MODALES
+     ESC + TECLAS DE NAVEGACIÓN
   ======================================================= */
 
   useEffect(() => {
-
     if (!inscricaoModal && !galleryModal) {
       return;
     }
 
     const handleKeyDown = (event) => {
-
       if (event.key === 'Escape') {
-
         if (galleryModal) {
           fecharGaleria();
           return;
@@ -1010,7 +1069,6 @@ export default function Training() {
         galleryModal &&
         event.key === 'ArrowLeft'
       ) {
-
         const photos =
           getEventPhotos(galleryModal);
 
@@ -1027,7 +1085,6 @@ export default function Training() {
         galleryModal &&
         event.key === 'ArrowRight'
       ) {
-
         const photos =
           getEventPhotos(galleryModal);
 
@@ -1052,7 +1109,6 @@ export default function Training() {
     document.body.style.overflow = 'hidden';
 
     return () => {
-
       document.removeEventListener(
         'keydown',
         handleKeyDown
@@ -1061,7 +1117,6 @@ export default function Training() {
       document.body.style.overflow =
         previousOverflow;
     };
-
   }, [
     inscricaoModal,
     galleryModal,
@@ -1074,7 +1129,6 @@ export default function Training() {
   ======================================================= */
 
   const handleFormChange = (event) => {
-
     const { name, value } = event.target;
 
     setInscricaoForm((previous) => ({
@@ -1092,11 +1146,9 @@ export default function Training() {
   ======================================================= */
 
   const enviarInscricao = async (event) => {
-
     event.preventDefault();
 
     if (!inscricaoModal?.id) {
-
       setInscricaoError(
         'No se ha podido identificar el evento.'
       );
@@ -1108,7 +1160,6 @@ export default function Training() {
     setInscricaoError(null);
 
     try {
-
       if (!API_URL) {
         throw new Error(
           'La configuración de la API no está disponible.'
@@ -1146,19 +1197,16 @@ export default function Training() {
       );
 
       if (!response.ok) {
-
         let message =
           'No se ha podido completar la inscripción.';
 
         try {
-
           const data =
             await response.json();
 
           if (data?.message) {
             message = data.message;
           }
-
         } catch {
           // Respuesta sin JSON
         }
@@ -1169,7 +1217,6 @@ export default function Training() {
       setInscricaoSucesso(true);
 
     } catch (error) {
-
       console.error(
         'Error al enviar inscripción:',
         error
@@ -1181,7 +1228,6 @@ export default function Training() {
       );
 
     } finally {
-
       setInscricaoLoading(false);
     }
   };
@@ -1566,37 +1612,36 @@ export default function Training() {
             </div>
           )}
 
-          {!loadingEventos && errorEventos && (
+          {!loadingEventos &&
+            errorEventos && (
 
-            <div className="border border-zinc-800 bg-zinc-950 p-10 md:p-14 text-center">
+              <div className="border border-zinc-800 bg-zinc-950 p-10 md:p-14 text-center">
 
-              <RefreshIcon className="w-8 h-8 text-red-500 mx-auto mb-5" />
+                <RefreshIcon className="w-8 h-8 text-red-500 mx-auto mb-5" />
 
-              <h3 className="font-display text-2xl text-white mb-3">
-                No hemos podido cargar los eventos
-              </h3>
+                <h3 className="font-display text-2xl text-white mb-3">
+                  No hemos podido cargar los eventos
+                </h3>
 
-              <p className="text-zinc-500 text-sm mb-7">
-                {errorEventos}
-              </p>
+                <p className="text-zinc-500 text-sm mb-7">
+                  {errorEventos}
+                </p>
 
-              <button
-                type="button"
-                onClick={() => {
+                <button
+                  type="button"
+                  onClick={fetchEventos}
+                  disabled={loadingEventos}
+                  className="inline-flex items-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-500 disabled:bg-red-600/40 disabled:cursor-not-allowed text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
+                >
+                  <RefreshIcon className="w-4 h-4" />
 
-                  const controller =
-                    new AbortController();
+                  {loadingEventos
+                    ? 'Cargando...'
+                    : 'Reintentar'}
+                </button>
 
-                  fetchEventos(controller.signal);
-                }}
-                className="inline-flex items-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
-              >
-                <RefreshIcon className="w-4 h-4" />
-                Reintentar
-              </button>
-
-            </div>
-          )}
+              </div>
+            )}
 
           {!loadingEventos &&
             !errorEventos &&
@@ -1872,7 +1917,6 @@ export default function Training() {
               </h2>
 
               {inscricaoModal.date && (
-
                 <p className="relative text-zinc-500 text-sm mt-3">
 
                   {inscricaoModal.date}
@@ -2007,6 +2051,7 @@ export default function Training() {
                       className="block text-zinc-400 text-[10px] font-bold uppercase tracking-[0.18em] mb-2"
                     >
                       Mensaje
+
                       <span className="text-zinc-700 ml-2">
                         Opcional
                       </span>
@@ -2049,11 +2094,13 @@ export default function Training() {
                   {inscricaoLoading ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+
                       Enviando...
                     </>
                   ) : (
                     <>
                       Confirmar inscripción
+
                       <ArrowUpRight className="w-4 h-4" />
                     </>
                   )}
@@ -2078,14 +2125,12 @@ export default function Training() {
       ===================================================== */}
 
       {galleryModal && (
-
         <GalleryModal
           evento={galleryModal}
           currentIndex={galleryIndex}
           setCurrentIndex={setGalleryIndex}
           onClose={fecharGaleria}
         />
-
       )}
 
     </div>
