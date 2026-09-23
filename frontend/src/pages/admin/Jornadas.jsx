@@ -621,10 +621,11 @@ export default function Jornadas() {
 
   if (loading) {
     return (
-      <div className="min-h-[300px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-zinc-700 border-t-red-600 rounded-full animate-spin" />
-          <p className="text-zinc-500 text-xs uppercase tracking-[0.2em]">
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-9 h-9 border-2 border-zinc-800 border-t-red-600 rounded-full animate-spin" />
+
+          <p className="text-zinc-600 text-[10px] uppercase tracking-[0.25em] mt-5">
             Cargando jornadas...
           </p>
         </div>
@@ -633,21 +634,25 @@ export default function Jornadas() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* =====================================================
           HEADER
       ====================================================== */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
         <div>
-          <p className="text-red-500 text-[10px] uppercase tracking-[0.22em] font-bold mb-2">
-            Gestión de Calendario
-          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="w-8 h-px bg-red-600" />
 
-          <h1 className="font-display text-3xl text-white tracking-tight mb-2">
+            <p className="text-red-500 text-[10px] uppercase tracking-[0.25em] font-bold">
+              Gestión de Calendario
+            </p>
+          </div>
+
+          <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">
             Jornadas
           </h1>
 
-          <p className="text-zinc-500 text-sm max-w-2xl">
+          <p className="text-zinc-500 text-sm mt-2 max-w-2xl leading-relaxed">
             Administre jornadas, partidos, equipos,
             logos, horarios y retransmisiones.
           </p>
@@ -656,11 +661,11 @@ export default function Jornadas() {
         <button
           type="button"
           onClick={() => openModal()}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 text-white text-xs font-bold uppercase tracking-[0.14em] hover:bg-red-500 transition-all duration-200 rounded-sm shadow-lg shadow-red-950/20"
+          className="group inline-flex items-center justify-center gap-2.5 px-5 py-3.5 bg-red-600 text-white text-[10px] font-bold uppercase tracking-[0.16em] hover:bg-red-500 transition-all duration-200 rounded-sm shadow-lg shadow-red-950/20"
         >
           <Icon
             path="M12 4.5v15m7.5-7.5h-15"
-            className="w-4 h-4"
+            className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200"
           />
           Nueva Jornada
         </button>
@@ -669,26 +674,29 @@ export default function Jornadas() {
       {/* =====================================================
           FILTER
       ====================================================== */}
-      <div className="bg-zinc-900/80 border border-zinc-800 rounded-sm p-4 md:p-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-950/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-zinc-950 border border-zinc-800 rounded-sm flex items-center justify-center">
+            <div className="w-8 h-8 bg-zinc-950 border border-zinc-800 rounded-sm flex items-center justify-center">
               <Icon
                 path="M12 6v6l4 2"
-                className="w-4 h-4 text-zinc-500"
+                className="w-4 h-4 text-red-500"
               />
             </div>
 
             <div>
-              <p className="text-white text-xs font-bold uppercase tracking-wider">
-                Temporada
+              <p className="text-zinc-300 text-[10px] uppercase tracking-[0.18em] font-bold">
+                Filtrar por temporada
               </p>
+
               <p className="text-zinc-600 text-[10px] mt-0.5">
-                Filtre las jornadas por temporada
+                Seleccione una temporada para filtrar las jornadas
               </p>
             </div>
           </div>
+        </div>
 
+        <div className="p-4">
           <select
             value={filtroTemporada}
             onChange={(e) =>
@@ -696,7 +704,7 @@ export default function Jornadas() {
                 e.target.value
               )
             }
-            className="appearance-none bg-zinc-950 border border-zinc-700 text-white px-4 py-3 pr-10 rounded-sm text-xs font-bold uppercase tracking-wider focus:border-red-600 outline-none cursor-pointer hover:border-zinc-500 transition-colors w-full md:w-72"
+            className="appearance-none bg-zinc-950 border border-zinc-800 text-white px-4 py-3 pr-10 rounded-sm text-[10px] font-bold uppercase tracking-[0.12em] focus:border-red-600 outline-none cursor-pointer hover:border-zinc-600 transition-colors w-full md:w-80"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
               backgroundPosition:
@@ -726,19 +734,29 @@ export default function Jornadas() {
           TABS
       ====================================================== */}
       <div className="border-b border-zinc-800">
-        <div className="flex">
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() =>
               setActiveTab("activas")
             }
-            className={`relative px-6 py-3.5 text-xs font-bold uppercase tracking-[0.14em] transition-colors ${
+            className={`relative px-5 md:px-6 py-3.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors ${
               activeTab === "activas"
-                ? "text-red-500"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "text-white"
+                : "text-zinc-600 hover:text-zinc-300"
             }`}
           >
-            Jornadas Activas
+            <span className="flex items-center gap-2">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  activeTab === "activas"
+                    ? "bg-red-500"
+                    : "bg-zinc-700"
+                }`}
+              />
+
+              Jornadas Activas
+            </span>
 
             {activeTab === "activas" && (
               <span className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-red-600" />
@@ -750,13 +768,23 @@ export default function Jornadas() {
             onClick={() =>
               setActiveTab("historico")
             }
-            className={`relative px-6 py-3.5 text-xs font-bold uppercase tracking-[0.14em] transition-colors ${
+            className={`relative px-5 md:px-6 py-3.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors ${
               activeTab === "historico"
-                ? "text-red-500"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "text-white"
+                : "text-zinc-600 hover:text-zinc-300"
             }`}
           >
-            Histórico
+            <span className="flex items-center gap-2">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  activeTab === "historico"
+                    ? "bg-red-500"
+                    : "bg-zinc-700"
+                }`}
+              />
+
+              Histórico
+            </span>
 
             {activeTab === "historico" && (
               <span className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-red-600" />
@@ -769,67 +797,92 @@ export default function Jornadas() {
           EMPTY STATE
       ====================================================== */}
       {displayedJornadas.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-14 text-center">
-          <div className="w-14 h-14 mx-auto mb-5 bg-zinc-950 border border-zinc-800 rounded-sm flex items-center justify-center">
-            <Icon
-              path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
-              className="w-6 h-6 text-zinc-600"
-            />
+        <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+          <div className="p-14 md:p-20 text-center">
+            <div className="relative w-16 h-16 mx-auto mb-6">
+              <div className="absolute inset-0 bg-red-600/5 border border-zinc-800 rounded-sm" />
+
+              <div className="absolute inset-2 bg-zinc-950 border border-zinc-800 rounded-sm flex items-center justify-center">
+                <Icon
+                  path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
+                  className="w-5 h-5 text-zinc-600"
+                />
+              </div>
+            </div>
+
+            <p className="text-white font-medium mb-2">
+              No hay jornadas disponibles
+            </p>
+
+            <p className="text-zinc-600 text-sm mb-7 max-w-md mx-auto leading-relaxed">
+              No hay jornadas que coincidan con los
+              filtros seleccionados.
+            </p>
+
+            {activeTab === "activas" && (
+              <button
+                type="button"
+                onClick={() => openModal()}
+                className="inline-flex items-center gap-2 px-5 py-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-red-500 transition-colors rounded-sm shadow-lg shadow-red-950/20"
+              >
+                <Icon
+                  path="M12 4.5v15m7.5-7.5h-15"
+                  className="w-4 h-4"
+                />
+                Crear Primera Jornada
+              </button>
+            )}
           </div>
-
-          <p className="text-white font-medium mb-2">
-            No hay jornadas disponibles
-          </p>
-
-          <p className="text-zinc-600 text-sm mb-6">
-            No hay jornadas que coincidan con los
-            filtros seleccionados.
-          </p>
-
-          {activeTab === "activas" && (
-            <button
-              type="button"
-              onClick={() => openModal()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-500 transition-colors rounded-sm"
-            >
-              <Icon
-                path="M12 4.5v15m7.5-7.5h-15"
-                className="w-4 h-4"
-              />
-              Crear Primera Jornada
-            </button>
-          )}
         </div>
       ) : (
         /* =====================================================
            TABLE
         ====================================================== */
         <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+          <div className="px-5 py-3.5 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="w-1.5 h-1.5 bg-red-600 rounded-full" />
+
+              <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.18em]">
+                {activeTab === "activas"
+                  ? "Jornadas Activas"
+                  : "Histórico de Jornadas"}
+              </span>
+            </div>
+
+            <span className="text-zinc-600 text-[9px] uppercase tracking-wider">
+              {displayedJornadas.length}{" "}
+              {displayedJornadas.length === 1
+                ? "jornada"
+                : "jornadas"}
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[1150px]">
-              <thead className="bg-zinc-950 border-b border-zinc-800">
+              <thead className="bg-zinc-950/70 border-b border-zinc-800">
                 <tr>
-                  <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.16em] font-bold">
+                  <th className="px-5 py-3.5 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
                     Jornada
                   </th>
 
-                  <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.16em] font-bold">
+                  <th className="px-5 py-3.5 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
                     Temporada
                   </th>
 
-                  <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.16em] font-bold">
+                  <th className="px-5 py-3.5 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
                     Ubicación
                   </th>
 
-                  <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.16em] font-bold">
+                  <th className="px-5 py-3.5 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
                     Partidos
                   </th>
 
-                  <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.16em] font-bold">
+                  <th className="px-5 py-3.5 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
                     Estado
                   </th>
 
-                  <th className="px-6 py-4 text-zinc-500 text-[10px] uppercase tracking-[0.16em] font-bold text-right">
+                  <th className="px-5 py-3.5 text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold text-right">
                     Acciones
                   </th>
                 </tr>
@@ -848,19 +901,21 @@ export default function Jornadas() {
                   return (
                     <tr
                       key={j.id}
-                      className="group hover:bg-zinc-800/25 transition-colors"
+                      className="group hover:bg-zinc-800/20 transition-colors"
                     >
                       {/* JORNADA */}
-                      <td className="px-6 py-5 align-top">
+                      <td className="px-5 py-5 align-top">
                         <div className="flex items-start gap-3">
-                          <div className="w-1 h-10 bg-red-600/80 rounded-full mt-0.5" />
+                          <div className="relative mt-0.5 w-1 h-10 bg-red-600 rounded-full shrink-0 overflow-hidden">
+                            <div className="absolute top-0 left-0 right-0 h-3 bg-red-400/60" />
+                          </div>
 
                           <div>
-                            <p className="text-white font-bold text-base leading-tight">
+                            <p className="text-white font-bold text-sm leading-tight">
                               {getAdminJornadaTitle(j)}
                             </p>
 
-                            <p className="text-zinc-600 text-[10px] uppercase tracking-wider mt-1.5">
+                            <p className="text-zinc-600 text-[9px] uppercase tracking-[0.14em] mt-1.5">
                               {j.competicion}
                             </p>
                           </div>
@@ -868,35 +923,35 @@ export default function Jornadas() {
                       </td>
 
                       {/* TEMPORADA */}
-                      <td className="px-6 py-5 align-top">
-                        <span className="inline-flex items-center px-3 py-1.5 bg-zinc-800/80 border border-zinc-700 text-zinc-300 text-[10px] font-bold uppercase tracking-wider rounded-sm">
+                      <td className="px-5 py-5 align-top">
+                        <span className="inline-flex items-center px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 text-zinc-400 text-[9px] font-bold uppercase tracking-[0.12em] rounded-sm">
                           {temporadaNombre}
                         </span>
                       </td>
 
                       {/* UBICACIÓN */}
-                      <td className="px-6 py-5 align-top">
-                        <div className="space-y-1">
+                      <td className="px-5 py-5 align-top">
+                        <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
                             <Icon
                               path="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"
-                              className="w-3.5 h-3.5 text-zinc-600"
+                              className="w-3.5 h-3.5 text-red-500/70"
                             />
 
-                            <p className="text-zinc-300 text-sm">
+                            <p className="text-zinc-300 text-xs">
                               {j.ciudad || "—"}
                             </p>
                           </div>
 
-                          <p className="text-zinc-600 text-xs pl-5">
+                          <p className="text-zinc-600 text-[10px] pl-5">
                             {j.pabellon || "—"}
                           </p>
                         </div>
                       </td>
 
                       {/* PARTIDOS */}
-                      <td className="px-6 py-5 align-top">
-                        <div className="space-y-3">
+                      <td className="px-5 py-5 align-top">
+                        <div className="space-y-3.5">
                           {(j.partidos || []).map(
                             (p, idx) => {
                               const local =
@@ -915,30 +970,37 @@ export default function Jornadas() {
                               return (
                                 <div
                                   key={idx}
-                                  className="min-w-[300px]"
+                                  className="min-w-[300px] border-l border-zinc-800 pl-3 group/match"
                                 >
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-zinc-600 text-[9px] font-bold uppercase">
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-zinc-700 text-[8px] font-bold uppercase tracking-wider">
                                       Partido{" "}
-                                      {idx + 1}
+                                      {String(
+                                        idx + 1
+                                      ).padStart(
+                                        2,
+                                        "0"
+                                      )}
                                     </span>
 
                                     {p.status ===
                                       "FINALIZADO" && (
-                                      <span className="text-green-500 text-[9px] font-bold uppercase">
+                                      <span className="inline-flex items-center gap-1 text-green-500 text-[8px] font-bold uppercase tracking-wider">
+                                        <span className="w-1 h-1 rounded-full bg-green-500" />
                                         Finalizado
                                       </span>
                                     )}
 
                                     {p.status ===
                                       "CANCELADO" && (
-                                      <span className="text-red-500 text-[9px] font-bold uppercase">
+                                      <span className="inline-flex items-center gap-1 text-red-500 text-[8px] font-bold uppercase tracking-wider">
+                                        <span className="w-1 h-1 rounded-full bg-red-500" />
                                         Cancelado
                                       </span>
                                     )}
                                   </div>
 
-                                  <div className="text-zinc-500 text-[10px] mb-1">
+                                  <div className="text-zinc-600 text-[9px] mb-1">
                                     {p.fecha && (
                                       <>
                                         {p.fecha}{" "}
@@ -955,7 +1017,7 @@ export default function Jornadas() {
                                     )}
                                   </div>
 
-                                  <div className="text-zinc-200 text-xs">
+                                  <div className="text-zinc-300 text-[11px]">
                                     {local}
 
                                     <span className="text-zinc-700 mx-2">
@@ -967,7 +1029,11 @@ export default function Jornadas() {
 
                                   {p.status ===
                                     "FINALIZADO" && (
-                                    <div className="mt-1 text-green-500 font-bold text-xs">
+                                    <div className="mt-1.5 inline-flex items-center gap-1.5 text-green-500 font-bold text-[11px]">
+                                      <span className="text-zinc-700">
+                                        Resultado
+                                      </span>
+
                                       {p.lobosScore}{" "}
                                       -{" "}
                                       {p.rivalScore}
@@ -981,13 +1047,13 @@ export default function Jornadas() {
                       </td>
 
                       {/* ESTADO */}
-                      <td className="px-6 py-5 align-top">
+                      <td className="px-5 py-5 align-top">
                         <span
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
+                          className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] rounded-full border ${
                             estadoTemporada ===
                             "ACTIVA"
                               ? "bg-green-500/10 text-green-500 border-green-500/20"
-                              : "bg-zinc-800 text-zinc-500 border-zinc-700"
+                              : "bg-zinc-950 text-zinc-600 border-zinc-800"
                           }`}
                         >
                           <span
@@ -995,7 +1061,7 @@ export default function Jornadas() {
                               estadoTemporada ===
                               "ACTIVA"
                                 ? "bg-green-500"
-                                : "bg-zinc-600"
+                                : "bg-zinc-700"
                             }`}
                           />
 
@@ -1007,14 +1073,14 @@ export default function Jornadas() {
                       </td>
 
                       {/* ACCIONES */}
-                      <td className="px-6 py-5 align-top">
-                        <div className="flex items-center justify-end gap-1">
+                      <td className="px-5 py-5 align-top">
+                        <div className="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                           <button
                             type="button"
                             onClick={() =>
                               openModal(j)
                             }
-                            className="p-2.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
+                            className="w-9 h-9 flex items-center justify-center text-zinc-600 hover:text-white hover:bg-zinc-800 border border-transparent hover:border-zinc-700 rounded-sm transition-all"
                             title="Editar"
                           >
                             <Icon
@@ -1031,10 +1097,10 @@ export default function Jornadas() {
                                 j.isActive
                               )
                             }
-                            className={`p-2.5 rounded-sm transition-colors ${
+                            className={`w-9 h-9 flex items-center justify-center rounded-sm border border-transparent transition-all ${
                               j.isActive
-                                ? "text-yellow-500 hover:bg-yellow-500/10"
-                                : "text-green-500 hover:bg-green-500/10"
+                                ? "text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/10"
+                                : "text-green-500 hover:bg-green-500/10 hover:border-green-500/10"
                             }`}
                             title={
                               j.isActive
@@ -1059,7 +1125,7 @@ export default function Jornadas() {
                                 j.id
                               )
                             }
-                            className="p-2.5 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
+                            className="w-9 h-9 flex items-center justify-center text-zinc-700 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/10 rounded-sm transition-all"
                             title="Eliminar"
                           >
                             <Icon
@@ -1082,16 +1148,20 @@ export default function Jornadas() {
           MODAL — CREAR / EDITAR
       ====================================================== */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full my-8 shadow-2xl">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-5 overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full my-4 md:my-8 shadow-2xl shadow-black/50 overflow-hidden">
             {/* HEADER MODAL */}
-            <div className="p-6 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900 z-20">
+            <div className="px-5 md:px-7 py-5 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-zinc-900/95 backdrop-blur-md z-20">
               <div>
-                <p className="text-red-500 text-[9px] uppercase tracking-[0.22em] font-bold mb-1">
-                  Gestión de Calendario
-                </p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-5 h-px bg-red-600" />
 
-                <h2 className="font-display text-2xl text-white">
+                  <p className="text-red-500 text-[9px] uppercase tracking-[0.25em] font-bold">
+                    Gestión de Calendario
+                  </p>
+                </div>
+
+                <h2 className="font-display text-2xl md:text-3xl text-white tracking-tight">
                   {editingId
                     ? "Editar Jornada"
                     : "Nueva Jornada"}
@@ -1101,264 +1171,283 @@ export default function Jornadas() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
+                className="w-9 h-9 flex items-center justify-center text-zinc-600 hover:text-white hover:bg-zinc-800 border border-transparent hover:border-zinc-700 rounded-sm transition-all"
                 title="Cerrar"
               >
-                <Icon path="M6 18L18 6M6 6l12 12" />
+                <Icon
+                  path="M6 18L18 6M6 6l12 12"
+                  className="w-5 h-5"
+                />
               </button>
             </div>
 
             <form
               onSubmit={handleSubmit}
-              className="p-6 space-y-10 max-h-[78vh] overflow-y-auto"
+              className="p-5 md:p-7 space-y-10 max-h-[78vh] overflow-y-auto"
             >
               {/* =================================================
                   INFORMACIÓN GENERAL
               ================================================== */}
               <section>
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="w-10 h-10 bg-red-600/10 border border-red-600/20 rounded-sm flex items-center justify-center shrink-0">
-                    <Icon
-                      path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
-                      className="w-5 h-5 text-red-500"
-                    />
-                  </div>
-
-                  <div>
-                    <p className="text-red-500 text-[10px] uppercase tracking-[0.2em] font-bold">
-                      Información general
-                    </p>
-
-                    <h3 className="font-display text-xl text-white mt-1">
-                      Datos de la Jornada
-                    </h3>
-
-                    <p className="text-zinc-600 text-xs mt-1">
-                      Información principal de la jornada y
-                      competición.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-zinc-950/50 border border-zinc-800 rounded-sm p-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-2">
-                        Número de Jornada / Identificador *
-                      </label>
-
-                      <input
-                        type="text"
-                        value={formData.numero}
-                        onChange={(e) =>
-                          updateJornada(
-                            "numero",
-                            e.target.value
-                          )
-                        }
-                        required
-                        placeholder="Ej: 1, 2, 3 o Campeonato de España"
-                        className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 hover:border-zinc-600 outline-none transition-colors"
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-9 h-9 bg-red-600/10 border border-red-600/20 rounded-sm flex items-center justify-center shrink-0">
+                      <Icon
+                        path="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
+                        className="w-4 h-4 text-red-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-2">
-                        Temporada *
-                      </label>
+                      <p className="text-red-500 text-[9px] uppercase tracking-[0.22em] font-bold">
+                        Información general
+                      </p>
 
-                      <select
-                        value={formData.temporadaId}
-                        onChange={(e) =>
-                          updateJornada(
-                            "temporadaId",
-                            e.target.value
-                          )
-                        }
-                        required
-                        className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 hover:border-zinc-600 outline-none transition-colors"
-                      >
-                        <option value="">
-                          Seleccionar temporada
-                        </option>
+                      <h3 className="font-display text-xl text-white mt-1">
+                        Datos de la Jornada
+                      </h3>
 
-                        {temporadas.map(
-                          (temporada) => (
-                            <option
-                              key={temporada.id}
-                              value={temporada.id}
-                            >
-                              {temporada.nome}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-2">
-                        Competición *
-                      </label>
-
-                      <select
-                        value={formData.competicion}
-                        onChange={(e) =>
-                          updateJornada(
-                            "competicion",
-                            e.target.value
-                          )
-                        }
-                        required
-                        className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 hover:border-zinc-600 outline-none transition-colors"
-                      >
-                        <option
-                          value={`Liga Nacional${compSuffix}`}
-                        >
-                          Liga Nacional
-                          {compSuffix}
-                        </option>
-
-                        <option
-                          value={`Competición Autonómica${compSuffix}`}
-                        >
-                          Competición Autonómica
-                          {compSuffix}
-                        </option>
-
-                        <option
-                          value={`Copa${compSuffix}`}
-                        >
-                          Copa{compSuffix}
-                        </option>
-
-                        <option
-                          value={`Amistoso${compSuffix}`}
-                        >
-                          Amistoso{compSuffix}
-                        </option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-2">
-                        Ciudad *
-                      </label>
-
-                      <input
-                        type="text"
-                        value={formData.ciudad}
-                        onChange={(e) =>
-                          updateJornada(
-                            "ciudad",
-                            e.target.value
-                          )
-                        }
-                        required
-                        placeholder="Valencia"
-                        className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 hover:border-zinc-600 outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-2">
-                        Pabellón *
-                      </label>
-
-                      <input
-                        type="text"
-                        value={formData.pabellon}
-                        onChange={(e) =>
-                          updateJornada(
-                            "pabellon",
-                            e.target.value
-                          )
-                        }
-                        required
-                        placeholder="Pabellón Municipal..."
-                        className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 hover:border-zinc-600 outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-2">
-                        Fechas de la Jornada *
-                      </label>
-
-                      <input
-                        type="text"
-                        value={formData.fechas}
-                        onChange={(e) =>
-                          updateJornada(
-                            "fechas",
-                            e.target.value
-                          )
-                        }
-                        required
-                        placeholder="10 y 11 de octubre de 2026"
-                        className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 hover:border-zinc-600 outline-none transition-colors"
-                      />
-
-                      <p className="mt-2 text-[10px] text-zinc-600">
-                        Ejemplo: 10 y 11 de octubre de 2026
+                      <p className="text-zinc-600 text-xs mt-1">
+                        Información principal de la jornada y competición.
                       </p>
                     </div>
+                  </div>
 
-                    {/* BANNER */}
-                    <div className="md:col-span-2 pt-2">
-                      <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.14em] mb-3">
-                        Banner de la Jornada
-                      </label>
+                  <span className="hidden md:inline-flex px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 text-zinc-600 text-[8px] uppercase tracking-[0.16em] font-bold rounded-sm">
+                    Información
+                  </span>
+                </div>
 
-                      <div className="bg-zinc-950 border border-zinc-800 rounded-sm p-4">
-                        <div className="flex flex-col md:flex-row md:items-center gap-5">
-                          {formData.bannerUrl ? (
-                            <div className="relative w-full md:w-72 h-28 bg-black border border-zinc-700 rounded-sm overflow-hidden">
-                              <img
-                                src={getImageUrl(
-                                  formData.bannerUrl
-                                )}
-                                alt="Banner"
-                                className="w-full h-full object-cover"
+                <div className="bg-zinc-950 border border-zinc-800 rounded-sm overflow-hidden">
+                  <div className="h-px bg-gradient-to-r from-red-600/70 via-red-600/10 to-transparent" />
+
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-2">
+                          Número de Jornada / Identificador *
+                        </label>
+
+                        <input
+                          type="text"
+                          value={formData.numero}
+                          onChange={(e) =>
+                            updateJornada(
+                              "numero",
+                              e.target.value
+                            )
+                          }
+                          required
+                          placeholder="Ej: 1, 2, 3 o Campeonato de España"
+                          className="w-full bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-sm text-sm focus:border-red-600 hover:border-zinc-700 outline-none transition-colors placeholder:text-zinc-700"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-2">
+                          Temporada *
+                        </label>
+
+                        <select
+                          value={formData.temporadaId}
+                          onChange={(e) =>
+                            updateJornada(
+                              "temporadaId",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="w-full bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-sm text-sm focus:border-red-600 hover:border-zinc-700 outline-none transition-colors"
+                        >
+                          <option value="">
+                            Seleccionar temporada
+                          </option>
+
+                          {temporadas.map(
+                            (temporada) => (
+                              <option
+                                key={temporada.id}
+                                value={temporada.id}
+                              >
+                                {temporada.nome}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-2">
+                          Competición *
+                        </label>
+
+                        <select
+                          value={formData.competicion}
+                          onChange={(e) =>
+                            updateJornada(
+                              "competicion",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="w-full bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-sm text-sm focus:border-red-600 hover:border-zinc-700 outline-none transition-colors"
+                        >
+                          <option
+                            value={`Liga Nacional${compSuffix}`}
+                          >
+                            Liga Nacional
+                            {compSuffix}
+                          </option>
+
+                          <option
+                            value={`Competición Autonómica${compSuffix}`}
+                          >
+                            Competición Autonómica
+                            {compSuffix}
+                          </option>
+
+                          <option
+                            value={`Copa${compSuffix}`}
+                          >
+                            Copa{compSuffix}
+                          </option>
+
+                          <option
+                            value={`Amistoso${compSuffix}`}
+                          >
+                            Amistoso{compSuffix}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-2">
+                          Ciudad *
+                        </label>
+
+                        <input
+                          type="text"
+                          value={formData.ciudad}
+                          onChange={(e) =>
+                            updateJornada(
+                              "ciudad",
+                              e.target.value
+                            )
+                          }
+                          required
+                          placeholder="Valencia"
+                          className="w-full bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-sm text-sm focus:border-red-600 hover:border-zinc-700 outline-none transition-colors placeholder:text-zinc-700"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-2">
+                          Pabellón *
+                        </label>
+
+                        <input
+                          type="text"
+                          value={formData.pabellon}
+                          onChange={(e) =>
+                            updateJornada(
+                              "pabellon",
+                              e.target.value
+                            )
+                          }
+                          required
+                          placeholder="Pabellón Municipal..."
+                          className="w-full bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-sm text-sm focus:border-red-600 hover:border-zinc-700 outline-none transition-colors placeholder:text-zinc-700"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-2">
+                          Fechas de la Jornada *
+                        </label>
+
+                        <input
+                          type="text"
+                          value={formData.fechas}
+                          onChange={(e) =>
+                            updateJornada(
+                              "fechas",
+                              e.target.value
+                            )
+                          }
+                          required
+                          placeholder="10 y 11 de octubre de 2026"
+                          className="w-full bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-sm text-sm focus:border-red-600 hover:border-zinc-700 outline-none transition-colors placeholder:text-zinc-700"
+                        />
+
+                        <p className="mt-2 text-[9px] text-zinc-700">
+                          Ejemplo: 10 y 11 de octubre de 2026
+                        </p>
+                      </div>
+
+                      {/* BANNER */}
+                      <div className="md:col-span-2 pt-1">
+                        <label className="block text-zinc-500 text-[9px] uppercase tracking-[0.16em] font-bold mb-3">
+                          Banner de la Jornada
+                        </label>
+
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-4">
+                          <div className="flex flex-col md:flex-row md:items-center gap-5">
+                            {formData.bannerUrl ? (
+                              <div className="relative w-full md:w-72 h-28 bg-black border border-zinc-800 rounded-sm overflow-hidden">
+                                <img
+                                  src={getImageUrl(
+                                    formData.bannerUrl
+                                  )}
+                                  alt="Banner"
+                                  className="w-full h-full object-cover"
+                                />
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+                                <div className="absolute left-3 bottom-2">
+                                  <span className="text-white/70 text-[8px] uppercase tracking-[0.18em]">
+                                    Banner
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-full md:w-72 h-28 bg-black border border-dashed border-zinc-800 rounded-sm flex items-center justify-center">
+                                <div className="text-center">
+                                  <Icon
+                                    path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    className="w-6 h-6 text-zinc-700 mx-auto mb-2"
+                                  />
+
+                                  <span className="text-zinc-700 text-[8px] uppercase tracking-[0.16em]">
+                                    Sin banner
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            <label className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-zinc-950 border border-zinc-800 hover:border-red-600 hover:text-white text-zinc-500 cursor-pointer rounded-sm text-[10px] font-bold uppercase tracking-[0.14em] transition-all">
+                              <Icon
+                                path="M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"
+                                className="w-4 h-4"
                               />
 
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
-                            </div>
-                          ) : (
-                            <div className="w-full md:w-72 h-28 bg-black border border-dashed border-zinc-800 rounded-sm flex items-center justify-center">
-                              <div className="text-center">
-                                <Icon
-                                  path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  className="w-6 h-6 text-zinc-700 mx-auto mb-2"
-                                />
-                                <span className="text-zinc-700 text-[9px] uppercase tracking-wider">
-                                  Sin banner
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                              {uploadingBanner
+                                ? "Subiendo..."
+                                : "Elegir Imagen"}
 
-                          <label className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-700 hover:border-red-600 hover:text-white text-zinc-400 cursor-pointer rounded-sm text-xs font-bold uppercase tracking-wider transition-colors">
-                            <Icon
-                              path="M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"
-                              className="w-4 h-4"
-                            />
-
-                            {uploadingBanner
-                              ? "Subiendo..."
-                              : "Elegir Imagen"}
-
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={
-                                handleBannerUpload
-                              }
-                              className="hidden"
-                              disabled={
-                                uploadingBanner
-                              }
-                            />
-                          </label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={
+                                  handleBannerUpload
+                                }
+                                className="hidden"
+                                disabled={
+                                  uploadingBanner
+                                }
+                              />
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1370,17 +1459,17 @@ export default function Jornadas() {
                   PARTIDOS
               ================================================== */}
               <section>
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-sm flex items-center justify-center shrink-0">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-5">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-9 h-9 bg-zinc-950 border border-zinc-800 rounded-sm flex items-center justify-center shrink-0">
                       <Icon
                         path="M15 7a3 3 0 11-6 0 3 3 0 016 0zM4 21a8 8 0 0116 0"
-                        className="w-5 h-5 text-zinc-500"
+                        className="w-4 h-4 text-red-500"
                       />
                     </div>
 
                     <div>
-                      <p className="text-red-500 text-[10px] uppercase tracking-[0.2em] font-bold">
+                      <p className="text-red-500 text-[9px] uppercase tracking-[0.22em] font-bold">
                         Calendario
                       </p>
 
@@ -1398,7 +1487,7 @@ export default function Jornadas() {
                   <button
                     type="button"
                     onClick={addPartido}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-500 transition-colors rounded-sm"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-950 border border-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-[0.14em] hover:border-red-600 hover:text-white transition-all rounded-sm"
                   >
                     <Icon
                       path="M12 4.5v15m7.5-7.5h-15"
@@ -1416,10 +1505,12 @@ export default function Jornadas() {
                         className="bg-zinc-950 border border-zinc-800 rounded-sm overflow-hidden"
                       >
                         {/* PARTIDO HEADER */}
-                        <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-900/40 flex items-center justify-between">
+                        <div className="relative px-5 py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-600" />
+
                           <div className="flex items-center gap-3">
-                            <div className="w-7 h-7 bg-red-600/10 border border-red-600/20 rounded-sm flex items-center justify-center">
-                              <span className="text-red-500 text-[10px] font-bold">
+                            <div className="w-8 h-8 bg-red-600/10 border border-red-600/20 rounded-sm flex items-center justify-center">
+                              <span className="text-red-500 text-[9px] font-bold tracking-wider">
                                 {String(
                                   idx + 1
                                 ).padStart(
@@ -1430,11 +1521,11 @@ export default function Jornadas() {
                             </div>
 
                             <div>
-                              <p className="text-white text-xs font-bold uppercase tracking-wider">
+                              <p className="text-white text-[10px] font-bold uppercase tracking-[0.14em]">
                                 Partido {idx + 1}
                               </p>
 
-                              <p className="text-zinc-600 text-[9px] uppercase tracking-wider mt-0.5">
+                              <p className="text-zinc-700 text-[8px] uppercase tracking-[0.14em] mt-1">
                                 Configuración del encuentro
                               </p>
                             </div>
@@ -1449,7 +1540,7 @@ export default function Jornadas() {
                                 )
                               }
                               disabled={idx === 0}
-                              className="p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 disabled:opacity-20 disabled:hover:bg-transparent rounded-sm transition-colors"
+                              className="w-8 h-8 flex items-center justify-center text-zinc-700 hover:text-white hover:bg-zinc-800 disabled:opacity-20 disabled:hover:bg-transparent rounded-sm transition-colors"
                               title="Mover arriba"
                             >
                               <Icon
@@ -1472,7 +1563,7 @@ export default function Jornadas() {
                                   .length -
                                   1
                               }
-                              className="p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 disabled:opacity-20 disabled:hover:bg-transparent rounded-sm transition-colors"
+                              className="w-8 h-8 flex items-center justify-center text-zinc-700 hover:text-white hover:bg-zinc-800 disabled:opacity-20 disabled:hover:bg-transparent rounded-sm transition-colors"
                               title="Mover abajo"
                             >
                               <Icon
@@ -1490,7 +1581,7 @@ export default function Jornadas() {
                                   idx
                                 )
                               }
-                              className="p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
+                              className="w-8 h-8 flex items-center justify-center text-zinc-700 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
                               title="Eliminar partido"
                             >
                               <Icon
@@ -1501,16 +1592,20 @@ export default function Jornadas() {
                           </div>
                         </div>
 
-                        <div className="p-5 space-y-7">
+                        <div className="p-5 space-y-8">
                           {/* FECHA / HORA */}
                           <div>
-                            <p className="text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold mb-3">
-                              Fecha y horario
-                            </p>
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="w-1 h-1 bg-red-600 rounded-full" />
+
+                              <p className="text-zinc-500 text-[9px] uppercase tracking-[0.18em] font-bold">
+                                Fecha y horario
+                              </p>
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div>
-                                <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
+                                <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
                                   Fecha del partido *
                                 </label>
 
@@ -1529,12 +1624,12 @@ export default function Jornadas() {
                                         .value
                                     )
                                   }
-                                  className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors"
                                 />
                               </div>
 
                               <div>
-                                <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
+                                <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
                                   Día de la semana
                                 </label>
 
@@ -1552,7 +1647,7 @@ export default function Jornadas() {
                                         .value
                                     )
                                   }
-                                  className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors"
                                 >
                                   <option>
                                     Sábado
@@ -1579,7 +1674,7 @@ export default function Jornadas() {
                               </div>
 
                               <div>
-                                <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
+                                <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
                                   Hora *
                                 </label>
 
@@ -1598,7 +1693,7 @@ export default function Jornadas() {
                                         .value
                                     )
                                   }
-                                  className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors"
                                 />
                               </div>
                             </div>
@@ -1606,23 +1701,27 @@ export default function Jornadas() {
 
                           {/* EQUIPOS */}
                           <div>
-                            <p className="text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold mb-3">
-                              Equipos
-                            </p>
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="w-1 h-1 bg-red-600 rounded-full" />
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                              <p className="text-zinc-500 text-[9px] uppercase tracking-[0.18em] font-bold">
+                                Equipos
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {/* LOCAL */}
                               <div className="border border-zinc-800 bg-zinc-900/60 rounded-sm overflow-hidden">
-                                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+                                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/30">
                                   <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-red-500 rounded-full" />
+                                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
 
-                                    <p className="text-zinc-300 text-[10px] font-bold uppercase tracking-wider">
+                                    <p className="text-zinc-300 text-[9px] font-bold uppercase tracking-[0.14em]">
                                       Equipo Local
                                     </p>
                                   </div>
 
-                                  <span className="text-red-500/70 text-[9px] uppercase font-bold">
+                                  <span className="text-red-500/70 text-[8px] uppercase font-bold tracking-wider">
                                     Local
                                   </span>
                                 </div>
@@ -1644,7 +1743,7 @@ export default function Jornadas() {
                                           .value
                                       )
                                     }
-                                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
+                                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors placeholder:text-zinc-700"
                                   />
 
                                   <div className="flex items-center gap-4">
@@ -1658,14 +1757,14 @@ export default function Jornadas() {
                                           className="w-full h-full object-contain p-2"
                                         />
                                       ) : (
-                                        <span className="text-zinc-700 text-[9px] uppercase text-center">
+                                        <span className="text-zinc-700 text-[8px] uppercase text-center tracking-wider">
                                           Sin logo
                                         </span>
                                       )}
                                     </div>
 
                                     <label className="flex-1 cursor-pointer">
-                                      <div className="px-4 py-3 bg-zinc-950 border border-zinc-700 hover:border-red-600 hover:text-white text-zinc-400 rounded-sm text-xs font-bold uppercase tracking-wider text-center transition-colors">
+                                      <div className="px-4 py-3 bg-zinc-950 border border-zinc-800 hover:border-red-600 hover:text-white text-zinc-500 rounded-sm text-[9px] font-bold uppercase tracking-[0.14em] text-center transition-all">
                                         {uploadingLogo ===
                                         `equipoLocalLogo-${idx}`
                                           ? "Subiendo..."
@@ -1698,16 +1797,16 @@ export default function Jornadas() {
 
                               {/* VISITANTE */}
                               <div className="border border-zinc-800 bg-zinc-900/60 rounded-sm overflow-hidden">
-                                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+                                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/30">
                                   <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-zinc-500 rounded-full" />
+                                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full" />
 
-                                    <p className="text-zinc-300 text-[10px] font-bold uppercase tracking-wider">
+                                    <p className="text-zinc-300 text-[9px] font-bold uppercase tracking-[0.14em]">
                                       Equipo Visitante
                                     </p>
                                   </div>
 
-                                  <span className="text-zinc-600 text-[9px] uppercase font-bold">
+                                  <span className="text-zinc-600 text-[8px] uppercase font-bold tracking-wider">
                                     Visitante
                                   </span>
                                 </div>
@@ -1729,7 +1828,7 @@ export default function Jornadas() {
                                           .value
                                       )
                                     }
-                                    className="w-full bg-zinc-950 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
+                                    className="w-full bg-zinc-950 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors placeholder:text-zinc-700"
                                   />
 
                                   <div className="flex items-center gap-4">
@@ -1743,14 +1842,14 @@ export default function Jornadas() {
                                           className="w-full h-full object-contain p-2"
                                         />
                                       ) : (
-                                        <span className="text-zinc-700 text-[9px] uppercase text-center">
+                                        <span className="text-zinc-700 text-[8px] uppercase text-center tracking-wider">
                                           Sin logo
                                         </span>
                                       )}
                                     </div>
 
                                     <label className="flex-1 cursor-pointer">
-                                      <div className="px-4 py-3 bg-zinc-950 border border-zinc-700 hover:border-red-600 hover:text-white text-zinc-400 rounded-sm text-xs font-bold uppercase tracking-wider text-center transition-colors">
+                                      <div className="px-4 py-3 bg-zinc-950 border border-zinc-800 hover:border-red-600 hover:text-white text-zinc-500 rounded-sm text-[9px] font-bold uppercase tracking-[0.14em] text-center transition-all">
                                         {uploadingLogo ===
                                         `equipoVisitanteLogo-${idx}`
                                           ? "Subiendo..."
@@ -1785,13 +1884,17 @@ export default function Jornadas() {
 
                           {/* ESTADO / YOUTUBE */}
                           <div>
-                            <p className="text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold mb-3">
-                              Estado y retransmisión
-                            </p>
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="w-1 h-1 bg-red-600 rounded-full" />
+
+                              <p className="text-zinc-500 text-[9px] uppercase tracking-[0.18em] font-bold">
+                                Estado y retransmisión
+                              </p>
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
+                                <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
                                   Estado
                                 </label>
 
@@ -1809,7 +1912,7 @@ export default function Jornadas() {
                                         .value
                                     )
                                   }
-                                  className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors"
                                 >
                                   <option value="PROGRAMADO">
                                     Programado
@@ -1826,30 +1929,28 @@ export default function Jornadas() {
                               </div>
 
                               <div>
-                                <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
+                                <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
                                   YouTube
                                 </label>
 
-                                <div className="relative">
-                                  <input
-                                    type="url"
-                                    placeholder="https://youtube.com/..."
-                                    value={
-                                      p.youtubeLink
-                                    }
-                                    onChange={(
-                                      e
-                                    ) =>
-                                      updatePartido(
-                                        idx,
-                                        "youtubeLink",
-                                        e.target
-                                          .value
-                                      )
-                                    }
-                                    className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-600 transition-colors"
-                                  />
-                                </div>
+                                <input
+                                  type="url"
+                                  placeholder="https://youtube.com/..."
+                                  value={
+                                    p.youtubeLink
+                                  }
+                                  onChange={(
+                                    e
+                                  ) =>
+                                    updatePartido(
+                                      idx,
+                                      "youtubeLink",
+                                      e.target
+                                        .value
+                                    )
+                                  }
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-sm outline-none focus:border-red-600 hover:border-zinc-700 transition-colors placeholder:text-zinc-700"
+                                />
                               </div>
                             </div>
                           </div>
@@ -1857,66 +1958,68 @@ export default function Jornadas() {
                           {/* RESULTADO */}
                           {p.status ===
                             "FINALIZADO" && (
-                            <div className="border border-green-500/20 bg-green-500/[0.03] rounded-sm p-5">
-                              <div className="flex items-center gap-2 mb-4">
-                                <span className="w-2 h-2 bg-green-500 rounded-full" />
+                            <div className="border border-green-500/20 bg-green-500/[0.025] rounded-sm overflow-hidden">
+                              <div className="px-4 py-3 border-b border-green-500/10 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
 
-                                <p className="text-green-500 text-[10px] font-bold uppercase tracking-wider">
+                                <p className="text-green-500 text-[9px] font-bold uppercase tracking-[0.16em]">
                                   Resultado Final
                                 </p>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
-                                    Puntos Equipo Local
-                                  </label>
+                              <div className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
+                                      Puntos Equipo Local
+                                    </label>
 
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={
-                                      p.lobosScore
-                                    }
-                                    onChange={(
-                                      e
-                                    ) =>
-                                      updatePartido(
-                                        idx,
-                                        "lobosScore",
-                                        e.target
-                                          .value
-                                      )
-                                    }
-                                    placeholder="54"
-                                    className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-xl font-bold outline-none focus:border-green-500"
-                                  />
-                                </div>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={
+                                        p.lobosScore
+                                      }
+                                      onChange={(
+                                        e
+                                      ) =>
+                                        updatePartido(
+                                          idx,
+                                          "lobosScore",
+                                          e.target
+                                            .value
+                                        )
+                                      }
+                                      placeholder="54"
+                                      className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-xl font-bold outline-none focus:border-green-500 placeholder:text-zinc-800"
+                                    />
+                                  </div>
 
-                                <div>
-                                  <label className="block text-zinc-500 text-[10px] uppercase tracking-wider mb-2">
-                                    Puntos Equipo Visitante
-                                  </label>
+                                  <div>
+                                    <label className="block text-zinc-600 text-[9px] uppercase tracking-[0.14em] mb-2">
+                                      Puntos Equipo Visitante
+                                    </label>
 
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={
-                                      p.rivalScore
-                                    }
-                                    onChange={(
-                                      e
-                                    ) =>
-                                      updatePartido(
-                                        idx,
-                                        "rivalScore",
-                                        e.target
-                                          .value
-                                      )
-                                    }
-                                    placeholder="48"
-                                    className="w-full bg-zinc-900 border border-zinc-700 text-white px-3 py-3 rounded-sm text-xl font-bold outline-none focus:border-green-500"
-                                  />
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={
+                                        p.rivalScore
+                                      }
+                                      onChange={(
+                                        e
+                                      ) =>
+                                        updatePartido(
+                                          idx,
+                                          "rivalScore",
+                                          e.target
+                                            .value
+                                        )
+                                      }
+                                      placeholder="48"
+                                      className="w-full bg-zinc-900 border border-zinc-800 text-white px-3 py-3 rounded-sm text-xl font-bold outline-none focus:border-green-500 placeholder:text-zinc-800"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1925,23 +2028,29 @@ export default function Jornadas() {
                           {/* PREVIEW */}
                           <div className="border-t border-zinc-800 pt-6">
                             <div className="flex items-center justify-between mb-3">
-                              <p className="text-zinc-600 text-[9px] uppercase tracking-[0.18em] font-bold">
-                                Vista previa
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="w-1 h-1 bg-red-600 rounded-full" />
 
-                              <span className="text-zinc-700 text-[9px] uppercase tracking-wider">
+                                <p className="text-zinc-500 text-[9px] uppercase tracking-[0.18em] font-bold">
+                                  Vista previa
+                                </p>
+                              </div>
+
+                              <span className="text-zinc-700 text-[8px] uppercase tracking-[0.16em]">
                                 Preview
                               </span>
                             </div>
 
-                            <div className="bg-black border border-zinc-800 rounded-sm overflow-hidden">
+                            <div className="relative bg-black border border-zinc-800 rounded-sm overflow-hidden">
+                              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-600/60 to-transparent" />
+
                               <div className="px-5 py-4 border-b border-zinc-900 text-center">
-                                <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+                                <span className="text-zinc-500 text-[9px] uppercase tracking-[0.14em]">
                                   {p.diaSemana}
                                 </span>
 
                                 {p.fecha && (
-                                  <span className="text-zinc-600 text-[10px] ml-2">
+                                  <span className="text-zinc-600 text-[9px] ml-2">
                                     {p.fecha}
                                   </span>
                                 )}
@@ -1955,7 +2064,7 @@ export default function Jornadas() {
                               </div>
 
                               <div className="p-6">
-                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-5">
+                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
                                   {/* LOCAL */}
                                   <div className="text-center min-w-0">
                                     <div className="w-16 h-16 mx-auto bg-white flex items-center justify-center rounded-sm overflow-hidden border border-zinc-700">
@@ -1979,14 +2088,14 @@ export default function Jornadas() {
                                         "Lobos Quad Rugby"}
                                     </p>
 
-                                    <p className="text-zinc-700 text-[8px] uppercase tracking-wider mt-1">
+                                    <p className="text-red-500/60 text-[8px] uppercase tracking-[0.14em] mt-1">
                                       Local
                                     </p>
                                   </div>
 
                                   {/* VS / SCORE */}
                                   <div className="text-center">
-                                    <div className="text-zinc-700 font-display text-xl">
+                                    <div className="text-zinc-500 font-display text-xl md:text-2xl whitespace-nowrap">
                                       {p.status ===
                                         "FINALIZADO" &&
                                       p.lobosScore !==
@@ -1999,7 +2108,7 @@ export default function Jornadas() {
 
                                     {p.status ===
                                       "FINALIZADO" && (
-                                      <span className="text-green-500 text-[8px] uppercase tracking-wider">
+                                      <span className="text-green-500 text-[8px] uppercase tracking-[0.14em]">
                                         Finalizado
                                       </span>
                                     )}
@@ -2028,7 +2137,7 @@ export default function Jornadas() {
                                         "Equipo visitante"}
                                     </p>
 
-                                    <p className="text-zinc-700 text-[8px] uppercase tracking-wider mt-1">
+                                    <p className="text-zinc-700 text-[8px] uppercase tracking-[0.14em] mt-1">
                                       Visitante
                                     </p>
                                   </div>
@@ -2046,10 +2155,10 @@ export default function Jornadas() {
               {/* =================================================
                   FOOTER
               ================================================== */}
-              <div className="flex flex-col md:flex-row gap-3 pt-6 border-t border-zinc-800 sticky bottom-0 bg-zinc-900">
+              <div className="flex flex-col md:flex-row gap-3 pt-5 border-t border-zinc-800 sticky bottom-0 bg-zinc-900/95 backdrop-blur-md">
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 bg-red-600 text-white font-bold uppercase tracking-[0.14em] text-xs hover:bg-red-500 transition-colors rounded-sm shadow-lg shadow-red-950/20"
+                  className="flex-1 py-3.5 bg-red-600 text-white font-bold uppercase tracking-[0.14em] text-[10px] hover:bg-red-500 transition-all rounded-sm shadow-lg shadow-red-950/20"
                 >
                   {editingId
                     ? "Guardar Cambios"
@@ -2059,7 +2168,7 @@ export default function Jornadas() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 py-3.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase tracking-[0.14em] text-xs hover:bg-zinc-700 hover:text-white transition-colors rounded-sm"
+                  className="flex-1 py-3.5 bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold uppercase tracking-[0.14em] text-[10px] hover:bg-zinc-800 hover:text-white hover:border-zinc-700 transition-all rounded-sm"
                 >
                   Cancelar
                 </button>
@@ -2074,56 +2183,62 @@ export default function Jornadas() {
       ====================================================== */}
       {itemToDelete && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4"
           onClick={() =>
             setItemToDelete(null)
           }
         >
           <div
-            className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-6 shadow-2xl"
+            className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full shadow-2xl shadow-black/50 overflow-hidden"
             onClick={(e) =>
               e.stopPropagation()
             }
           >
-            <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 rounded-full mx-auto">
-              <Icon
-                path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                className="w-6 h-6 text-red-500"
-              />
-            </div>
+            <div className="h-0.5 bg-red-600" />
 
-            <p className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold text-center mb-2">
-              Acción irreversible
-            </p>
+            <div className="p-6 md:p-7">
+              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 rounded-sm mx-auto">
+                <Icon
+                  path="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                  className="w-6 h-6 text-red-500"
+                />
+              </div>
 
-            <h3 className="font-display text-xl text-white text-center mb-2">
-              Confirmar Eliminación
-            </h3>
+              <div className="text-center">
+                <p className="text-red-500 text-[9px] uppercase tracking-[0.22em] font-bold mb-2">
+                  Acción irreversible
+                </p>
 
-            <p className="text-zinc-400 text-sm text-center mb-7 leading-relaxed">
-              ¿Está seguro de que desea eliminar
-              esta jornada? También se eliminarán
-              todos los partidos asociados.
-            </p>
+                <h3 className="font-display text-xl text-white mb-2">
+                  Confirmar Eliminación
+                </h3>
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  setItemToDelete(null)
-                }
-                className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase text-xs tracking-wider rounded-sm hover:bg-zinc-700 hover:text-white transition-colors"
-              >
-                Cancelar
-              </button>
+                <p className="text-zinc-500 text-sm text-center mb-7 leading-relaxed">
+                  ¿Está seguro de que desea eliminar
+                  esta jornada? También se eliminarán
+                  todos los partidos asociados.
+                </p>
+              </div>
 
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-xs tracking-wider rounded-sm hover:bg-red-500 transition-colors"
-              >
-                Sí, Eliminar
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setItemToDelete(null)
+                  }
+                  className="flex-1 py-3 bg-zinc-950 border border-zinc-800 text-zinc-400 font-bold uppercase text-[10px] tracking-[0.14em] rounded-sm hover:bg-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="flex-1 py-3 bg-red-600 text-white font-bold uppercase text-[10px] tracking-[0.14em] rounded-sm hover:bg-red-500 transition-all"
+                >
+                  Sí, Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>
