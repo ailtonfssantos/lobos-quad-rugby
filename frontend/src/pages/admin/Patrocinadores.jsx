@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 /* =========================================================
    ICON
@@ -11,8 +11,13 @@ const Icon = ({ path, className = 'w-6 h-6' }) => (
     stroke="currentColor"
     viewBox="0 0 24 24"
     strokeWidth={1.5}
+    aria-hidden="true"
   >
-    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d={path}
+    />
   </svg>
 );
 
@@ -50,14 +55,19 @@ const parseEuropeanNumber = (value) => {
 
   const numericValue = parseFloat(normalized);
 
-  return Number.isNaN(numericValue) ? 0 : numericValue;
+  return Number.isNaN(numericValue)
+    ? 0
+    : numericValue;
 };
 
 /* =========================================================
    TRANSPARENCY SUMMARIES
 ========================================================= */
 
-const calculateTransparencySummaries = (subvenciones, premios) => {
+const calculateTransparencySummaries = (
+  subvenciones,
+  premios
+) => {
   const years = new Set([
     ...subvenciones.map((item) => String(item.ano)),
     ...premios.map((item) => String(item.ano)),
@@ -72,21 +82,27 @@ const calculateTransparencySummaries = (subvenciones, premios) => {
     )
     .sort((a, b) => Number(b) - Number(a))
     .map((year) => {
-      const subvencionesYear = subvenciones.filter(
-        (item) => String(item.ano) === year
-      );
+      const subvencionesYear =
+        subvenciones.filter(
+          (item) => String(item.ano) === year
+        );
 
       const premiosYear = premios.filter(
         (item) => String(item.ano) === year
       );
 
-      const subvencionesTotal = subvencionesYear.reduce(
-        (sum, item) => sum + parseEuropeanNumber(item.valor),
-        0
-      );
+      const subvencionesTotal =
+        subvencionesYear.reduce(
+          (sum, item) =>
+            sum +
+            parseEuropeanNumber(item.valor),
+          0
+        );
 
       const premiosTotal = premiosYear.reduce(
-        (sum, item) => sum + parseEuropeanNumber(item.valor),
+        (sum, item) =>
+          sum +
+          parseEuropeanNumber(item.valor),
         0
       );
 
@@ -94,8 +110,10 @@ const calculateTransparencySummaries = (subvenciones, premios) => {
         year,
         subvencionesTotal,
         premiosTotal,
-        total: subvencionesTotal + premiosTotal,
-        subvencionesCount: subvencionesYear.length,
+        total:
+          subvencionesTotal + premiosTotal,
+        subvencionesCount:
+          subvencionesYear.length,
         premiosCount: premiosYear.length,
       };
     });
@@ -137,7 +155,8 @@ export default function Patrocinadores() {
      AUTH
   ======================================================= */
 
-  const getToken = () => localStorage.getItem('token');
+  const getToken = () =>
+    localStorage.getItem('token');
 
   const getAuthHeaders = () => {
     const token = getToken();
@@ -156,36 +175,51 @@ export default function Patrocinadores() {
      GENERAL
   ======================================================= */
 
-  const [activeTab, setActiveTab] = useState('solicitudes');
+  const [activeTab, setActiveTab] =
+    useState('solicitudes');
 
   /* =======================================================
      SOLICITUDES
   ======================================================= */
 
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
+  const [solicitudes, setSolicitudes] =
+    useState([]);
+
+  const [selectedSolicitud, setSelectedSolicitud] =
+    useState(null);
 
   /* =======================================================
      SUBVENCIONES
   ======================================================= */
 
-  const [subvenciones, setSubvenciones] = useState([]);
-  const [modalSubvencionOpen, setModalSubvencionOpen] =
-    useState(false);
-  const [editingSubId, setEditingSubId] = useState(null);
-  const [formDataSub, setFormDataSub] = useState(
-    initialSubvencionForm
-  );
+  const [subvenciones, setSubvenciones] =
+    useState([]);
+
+  const [
+    modalSubvencionOpen,
+    setModalSubvencionOpen,
+  ] = useState(false);
+
+  const [editingSubId, setEditingSubId] =
+    useState(null);
+
+  const [formDataSub, setFormDataSub] =
+    useState(initialSubvencionForm);
 
   /* =======================================================
      PREMIOS
   ======================================================= */
 
   const [premios, setPremios] = useState([]);
-  const [modalPremioOpen, setModalPremioOpen] =
-    useState(false);
+
+  const [
+    modalPremioOpen,
+    setModalPremioOpen,
+  ] = useState(false);
+
   const [editingPremioId, setEditingPremioId] =
     useState(null);
+
   const [formDataPremio, setFormDataPremio] =
     useState(initialPremioForm);
 
@@ -193,7 +227,9 @@ export default function Patrocinadores() {
      LOGO UPLOAD
   ======================================================= */
 
-  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingLogo, setUploadingLogo] =
+    useState(false);
+
   const [logoUploadError, setLogoUploadError] =
     useState('');
 
@@ -201,7 +237,8 @@ export default function Patrocinadores() {
      DELETE
   ======================================================= */
 
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] =
+    useState(null);
 
   /* =======================================================
      LOAD DATA
@@ -222,13 +259,19 @@ export default function Patrocinadores() {
         subvencionesResponse,
         premiosResponse,
       ] = await Promise.all([
-        fetch(`${API_URL}/api/patrocinadores`, {
-          headers,
-        }),
+        fetch(
+          `${API_URL}/api/patrocinadores`,
+          {
+            headers,
+          }
+        ),
 
-        fetch(`${API_URL}/api/subvenciones`, {
-          headers,
-        }),
+        fetch(
+          `${API_URL}/api/subvenciones`,
+          {
+            headers,
+          }
+        ),
 
         fetch(`${API_URL}/api/premios`, {
           headers,
@@ -236,21 +279,36 @@ export default function Patrocinadores() {
       ]);
 
       if (solicitudesResponse.ok) {
-        const data = await solicitudesResponse.json();
-        setSolicitudes(Array.isArray(data) ? data : []);
+        const data =
+          await solicitudesResponse.json();
+
+        setSolicitudes(
+          Array.isArray(data) ? data : []
+        );
       }
 
       if (subvencionesResponse.ok) {
-        const data = await subvencionesResponse.json();
-        setSubvenciones(Array.isArray(data) ? data : []);
+        const data =
+          await subvencionesResponse.json();
+
+        setSubvenciones(
+          Array.isArray(data) ? data : []
+        );
       }
 
       if (premiosResponse.ok) {
-        const data = await premiosResponse.json();
-        setPremios(Array.isArray(data) ? data : []);
+        const data =
+          await premiosResponse.json();
+
+        setPremios(
+          Array.isArray(data) ? data : []
+        );
       }
     } catch (error) {
-      console.error('Error al cargar datos:', error);
+      console.error(
+        'Error al cargar datos:',
+        error
+      );
     }
   };
 
@@ -264,7 +322,9 @@ export default function Patrocinadores() {
 
   const abrirNuevaSubvencion = () => {
     setEditingSubId(null);
-    setFormDataSub(initialSubvencionForm);
+    setFormDataSub({
+      ...initialSubvencionForm,
+    });
     setModalSubvencionOpen(true);
   };
 
@@ -281,11 +341,17 @@ export default function Patrocinadores() {
       entidad: subvencion.entidad || '',
       fechaConcesion:
         subvencion.fechaConcesion || '',
-      tipo: subvencion.tipo || 'Administración',
-      ambito: subvencion.ambito || 'Local',
-      departamento: subvencion.departamento || '',
-      convocatoria: subvencion.convocatoria || '',
-      basesLink: subvencion.basesLink || '',
+      tipo:
+        subvencion.tipo ||
+        'Administración',
+      ambito:
+        subvencion.ambito || 'Local',
+      departamento:
+        subvencion.departamento || '',
+      convocatoria:
+        subvencion.convocatoria || '',
+      basesLink:
+        subvencion.basesLink || '',
     });
 
     setModalSubvencionOpen(true);
@@ -305,7 +371,9 @@ export default function Patrocinadores() {
         ? `${API_URL}/api/subvenciones/${editingSubId}`
         : `${API_URL}/api/subvenciones`;
 
-      const method = editingSubId ? 'PUT' : 'POST';
+      const method = editingSubId
+        ? 'PUT'
+        : 'POST';
 
       const response = await fetch(url, {
         method,
@@ -324,13 +392,16 @@ export default function Patrocinadores() {
 
       if (!response.ok) {
         throw new Error(
-          data.error || 'No se pudo guardar la subvención.'
+          data.error ||
+            'No se pudo guardar la subvención.'
         );
       }
 
       setModalSubvencionOpen(false);
       setEditingSubId(null);
-      setFormDataSub(initialSubvencionForm);
+      setFormDataSub({
+        ...initialSubvencionForm,
+      });
 
       await cargarDatos();
     } catch (error) {
@@ -352,7 +423,10 @@ export default function Patrocinadores() {
 
   const abrirNuevoPremio = () => {
     setEditingPremioId(null);
-    setFormDataPremio(initialPremioForm);
+    setFormDataPremio({
+      ...initialPremioForm,
+    });
+
     setLogoUploadError('');
     setModalPremioOpen(true);
   };
@@ -369,7 +443,8 @@ export default function Patrocinadores() {
       valor: premio.valor || '',
       entidad: premio.entidad || '',
       premio: premio.premio || '',
-      descripcion: premio.descripcion || '',
+      descripcion:
+        premio.descripcion || '',
       logo: premio.logo || '',
     });
 
@@ -422,7 +497,6 @@ export default function Patrocinadores() {
       const formData = new FormData();
 
       /*
-       * IMPORTANTE:
        * upload.js utiliza upload.single('image')
        */
       formData.append('image', file);
@@ -513,7 +587,9 @@ export default function Patrocinadores() {
               }
             : {}),
         },
-        body: JSON.stringify(formDataPremio),
+        body: JSON.stringify(
+          formDataPremio
+        ),
       });
 
       const data = await response.json();
@@ -527,7 +603,9 @@ export default function Patrocinadores() {
 
       setModalPremioOpen(false);
       setEditingPremioId(null);
-      setFormDataPremio(initialPremioForm);
+      setFormDataPremio({
+        ...initialPremioForm,
+      });
       setLogoUploadError('');
 
       await cargarDatos();
@@ -588,29 +666,38 @@ export default function Patrocinadores() {
         );
       }
 
-      if (deleteTarget.type === 'solicitud') {
+      if (
+        deleteTarget.type === 'solicitud'
+      ) {
         setSolicitudes((prev) =>
           prev.filter(
             (item) =>
-              item.id !== deleteTarget.id
+              item.id !==
+              deleteTarget.id
           )
         );
       }
 
-      if (deleteTarget.type === 'subvencion') {
+      if (
+        deleteTarget.type === 'subvencion'
+      ) {
         setSubvenciones((prev) =>
           prev.filter(
             (item) =>
-              item.id !== deleteTarget.id
+              item.id !==
+              deleteTarget.id
           )
         );
       }
 
-      if (deleteTarget.type === 'premio') {
+      if (
+        deleteTarget.type === 'premio'
+      ) {
         setPremios((prev) =>
           prev.filter(
             (item) =>
-              item.id !== deleteTarget.id
+              item.id !==
+              deleteTarget.id
           )
         );
       }
@@ -633,11 +720,46 @@ export default function Patrocinadores() {
      SUMMARY
   ======================================================= */
 
-  const summaries =
-    calculateTransparencySummaries(
-      subvenciones,
-      premios
-    );
+  const summaries = useMemo(
+    () =>
+      calculateTransparencySummaries(
+        subvenciones,
+        premios
+      ),
+    [subvenciones, premios]
+  );
+
+  const totalSubvenciones = useMemo(
+    () =>
+      subvenciones.reduce(
+        (sum, item) =>
+          sum +
+          parseEuropeanNumber(item.valor),
+        0
+      ),
+    [subvenciones]
+  );
+
+  const totalPremios = useMemo(
+    () =>
+      premios.reduce(
+        (sum, item) =>
+          sum +
+          parseEuropeanNumber(item.valor),
+        0
+      ),
+    [premios]
+  );
+
+  /* =======================================================
+     INPUT STYLE
+  ======================================================= */
+
+  const inputClass =
+    'w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/20 hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05] focus:ring-1 focus:ring-white/10';
+
+  const selectClass =
+    'w-full rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm text-white outline-none transition hover:border-white/15 focus:border-white/30 focus:ring-1 focus:ring-white/10';
 
   /* =======================================================
      RENDER
@@ -649,23 +771,105 @@ export default function Patrocinadores() {
           HEADER
       =================================================== */}
 
-      <section className="border-b border-white/10 bg-[#080808]">
-        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-white/40">
-                Administración
-              </p>
+      <section className="relative overflow-hidden border-b border-white/10 bg-[#080808]">
+        {/* Ambient background */}
 
-              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                Patrocinadores y transparencia
+        <div className="pointer-events-none absolute -right-32 -top-40 h-96 w-96 rounded-full bg-emerald-500/[0.06] blur-3xl" />
+
+        <div className="pointer-events-none absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-blue-500/[0.04] blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-6 py-10 lg:px-8">
+          <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300/80">
+                  Administración
+                </span>
+              </div>
+
+              <h1 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
+                Patrocinadores y
+                <span className="text-white/45">
+                  {' '}
+                  transparencia
+                </span>
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">
-                Gestión de solicitudes, subvenciones,
-                premios y reconocimientos concedidos al
-                club.
+                Gestiona las solicitudes de
+                patrocinio, subvenciones, premios y
+                reconocimientos del club desde un
+                único espacio.
               </p>
+            </div>
+
+            {/* HEADER STATS */}
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="min-w-[110px] rounded-2xl border border-white/10 bg-white/[0.025] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.05]">
+                    <Icon
+                      className="h-3.5 w-3.5 text-white/60"
+                      path="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                    />
+                  </div>
+
+                  <span className="text-[10px] uppercase tracking-wider text-white/30">
+                    Solicitudes
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xl font-semibold text-white">
+                  {solicitudes.length}
+                </p>
+              </div>
+
+              <div className="min-w-[110px] rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.025] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/[0.08]">
+                    <Icon
+                      className="h-3.5 w-3.5 text-emerald-300/70"
+                      path="M12 2v20M17 5H9.5a3.5 3.5 0 000 7H15a3.5 3.5 0 010 7H6"
+                    />
+                  </div>
+
+                  <span className="text-[10px] uppercase tracking-wider text-white/30">
+                    Subvenciones
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xl font-semibold text-emerald-300">
+                  {formatCurrency(
+                    totalSubvenciones
+                  )}{' '}
+                  €
+                </p>
+              </div>
+
+              <div className="min-w-[110px] rounded-2xl border border-blue-400/10 bg-blue-400/[0.025] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-400/[0.08]">
+                    <Icon
+                      className="h-3.5 w-3.5 text-blue-300/70"
+                      path="M12 3l1.9 3.85 4.25.62-3.08 3 0.73 4.23L12 12.7l-3.8 2 0.73-4.23-3.08-3 4.25-.62L12 3z"
+                    />
+                  </div>
+
+                  <span className="text-[10px] uppercase tracking-wider text-white/30">
+                    Premios
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xl font-semibold text-blue-300">
+                  {formatCurrency(
+                    totalPremios
+                  )}{' '}
+                  €
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -675,20 +879,36 @@ export default function Patrocinadores() {
           TABS
       =================================================== */}
 
-      <div className="border-b border-white/10 bg-[#080808]">
-        <div className="mx-auto flex max-w-7xl gap-8 overflow-x-auto px-6 lg:px-8">
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-[#080808]/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 lg:px-8">
           <button
             type="button"
             onClick={() =>
               setActiveTab('solicitudes')
             }
-            className={`border-b-2 py-4 text-sm font-medium transition ${
+            className={`relative flex items-center gap-2 px-1 py-4 text-sm font-medium transition ${
               activeTab === 'solicitudes'
-                ? 'border-white text-white'
-                : 'border-transparent text-white/40 hover:text-white'
+                ? 'text-white'
+                : 'text-white/40 hover:text-white/70'
             }`}
           >
+            <Icon
+              className="h-4 w-4"
+              path="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+            />
+
             Solicitudes
+
+            {solicitudes.length > 0 && (
+              <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] text-white/60">
+                {solicitudes.length}
+              </span>
+            )}
+
+            {activeTab ===
+              'solicitudes' && (
+              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-white" />
+            )}
           </button>
 
           <button
@@ -696,13 +916,23 @@ export default function Patrocinadores() {
             onClick={() =>
               setActiveTab('transparencia')
             }
-            className={`border-b-2 py-4 text-sm font-medium transition ${
+            className={`relative flex items-center gap-2 px-1 py-4 text-sm font-medium transition ${
               activeTab === 'transparencia'
-                ? 'border-white text-white'
-                : 'border-transparent text-white/40 hover:text-white'
+                ? 'text-white'
+                : 'text-white/40 hover:text-white/70'
             }`}
           >
+            <Icon
+              className="h-4 w-4"
+              path="M3 3v18h18M7 16l4-5 3 3 5-7"
+            />
+
             Transparencia
+
+            {activeTab ===
+              'transparencia' && (
+              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-white" />
+            )}
           </button>
         </div>
       </div>
@@ -718,76 +948,124 @@ export default function Patrocinadores() {
 
         {activeTab === 'solicitudes' && (
           <section>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold">
-                Solicitudes de patrocinio
-              </h2>
+            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-400/70">
+                  Contacto
+                </p>
 
-              <p className="mt-1 text-sm text-white/40">
-                Solicitudes recibidas a través del
-                formulario de patrocinadores.
-              </p>
+                <h2 className="text-xl font-semibold text-white">
+                  Solicitudes de patrocinio
+                </h2>
+
+                <p className="mt-1.5 text-sm text-white/40">
+                  Solicitudes recibidas a través
+                  del formulario de patrocinadores.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+
+                <span className="text-xs text-white/50">
+                  {solicitudes.length}{' '}
+                  {solicitudes.length === 1
+                    ? 'solicitud'
+                    : 'solicitudes'}
+                </span>
+              </div>
             </div>
 
             {solicitudes.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-12 text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                  <Icon
-                    className="h-5 w-5 text-white/40"
-                    path="M12 6v12m6-6H6"
-                  />
-                </div>
+              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] p-14 text-center">
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.025] to-transparent" />
 
-                <p className="text-sm text-white/40">
-                  No hay solicitudes recibidas.
-                </p>
+                <div className="relative">
+                  <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] shadow-inner">
+                    <Icon
+                      className="h-6 w-6 text-white/30"
+                      path="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+                    />
+                  </div>
+
+                  <h3 className="text-sm font-medium text-white/70">
+                    No hay solicitudes
+                  </h3>
+
+                  <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-white/30">
+                    Las nuevas solicitudes de
+                    patrocinio aparecerán aquí cuando
+                    sean recibidas.
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl shadow-black/20">
+                <div className="border-b border-white/10 bg-white/[0.02] px-5 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                      Solicitudes recibidas
+                    </span>
+                  </div>
+                </div>
+
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[800px] text-left">
-                    <thead className="border-b border-white/10 bg-white/[0.02]">
+                    <thead className="border-b border-white/10 bg-black/20">
                       <tr>
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                        <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                           Empresa
                         </th>
 
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                        <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                           Contacto
                         </th>
 
-                        <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                        <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                           Fecha
                         </th>
 
-                        <th className="px-5 py-4 text-right text-xs font-medium uppercase tracking-wider text-white/40">
+                        <th className="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                           Acciones
                         </th>
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-white/[0.06]">
                       {solicitudes.map(
                         (solicitud) => (
                           <tr
                             key={solicitud.id}
-                            className="transition hover:bg-white/[0.02]"
+                            className="group transition hover:bg-white/[0.025]"
                           >
-                            <td className="px-5 py-4">
-                              <div className="font-medium">
-                                {solicitud.empresa ||
-                                  solicitud.nombre ||
-                                  '—'}
+                            <td className="px-5 py-5">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035]">
+                                  <Icon
+                                    className="h-4 w-4 text-white/40"
+                                    path="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
+                                  />
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="font-medium text-white/90">
+                                    {solicitud.empresa ||
+                                      solicitud.nombre ||
+                                      '—'}
+                                  </p>
+                                </div>
                               </div>
                             </td>
 
-                            <td className="px-5 py-4 text-sm text-white/60">
+                            <td className="px-5 py-5 text-sm text-white/55">
                               {solicitud.email ||
                                 solicitud.correo ||
                                 '—'}
                             </td>
 
-                            <td className="px-5 py-4 text-sm text-white/50">
+                            <td className="px-5 py-5 text-sm text-white/45">
                               {solicitud.createdAt
                                 ? new Date(
                                     solicitud.createdAt
@@ -797,7 +1075,7 @@ export default function Patrocinadores() {
                                 : '—'}
                             </td>
 
-                            <td className="px-5 py-4">
+                            <td className="px-5 py-5">
                               <div className="flex justify-end gap-2">
                                 <button
                                   type="button"
@@ -806,8 +1084,12 @@ export default function Patrocinadores() {
                                       solicitud
                                     )
                                   }
-                                  className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs font-medium text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
                                 >
+                                  <Icon
+                                    className="h-3.5 w-3.5"
+                                    path="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z M12 15a3 3 0 100-6 3 3 0 000 6z"
+                                  />
                                   Ver
                                 </button>
 
@@ -819,8 +1101,12 @@ export default function Patrocinadores() {
                                       id: solicitud.id,
                                     })
                                   }
-                                  className="rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/15 bg-red-500/[0.03] px-3 py-2 text-xs font-medium text-red-400/80 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300"
                                 >
+                                  <Icon
+                                    className="h-3.5 w-3.5"
+                                    path="M3 6h18M8 6V4h8v2m-9 0l1 15h8l1-15M10 11v6M14 11v6"
+                                  />
                                   Eliminar
                                 </button>
                               </div>
@@ -846,15 +1132,24 @@ export default function Patrocinadores() {
                 HEADER
             ============================================= */}
 
-            <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h2 className="text-xl font-semibold">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-400/70">
+                    Gestión económica
+                  </p>
+                </div>
+
+                <h2 className="text-2xl font-semibold tracking-tight">
                   Transparencia
                 </h2>
 
-                <p className="mt-1 text-sm text-white/40">
+                <p className="mt-2 max-w-xl text-sm leading-6 text-white/40">
                   Subvenciones, premios y
-                  reconocimientos recibidos por el club.
+                  reconocimientos recibidos por el
+                  club.
                 </p>
               </div>
 
@@ -862,96 +1157,152 @@ export default function Patrocinadores() {
                 <button
                   type="button"
                   onClick={abrirNuevaSubvencion}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/[0.06]"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/20 hover:bg-white/[0.07] hover:text-white"
                 >
                   <Icon
-                    className="h-4 w-4"
+                    className="h-4 w-4 text-emerald-300/80"
                     path="M12 5v14m-7-7h14"
                   />
+
                   Añadir subvención
                 </button>
 
                 <button
                   type="button"
                   onClick={abrirNuevoPremio}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black shadow-lg shadow-white/[0.04] transition hover:bg-white/90"
                 >
                   <Icon
                     className="h-4 w-4"
                     path="M12 5v14m-7-7h14"
                   />
+
                   Añadir premio
                 </button>
               </div>
             </div>
 
             {/* =============================================
-                SUMMARY
+                SUMMARY CARDS
             ============================================= */}
 
             {summaries.length > 0 && (
-              <div className="mb-12 space-y-4">
-                {summaries.map((summary) => (
-                  <div
-                    key={summary.year}
-                    className="rounded-2xl border border-white/10 bg-white/[0.02] p-5"
-                  >
-                    <div className="mb-5 flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-semibold">
-                          {summary.year}
-                        </span>
+              <div className="mb-12">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30">
+                      Resumen anual
+                    </p>
 
-                        <span className="ml-3 text-xs text-white/30">
-                          {summary.subvencionesCount +
-                            summary.premiosCount}{' '}
-                          registros
-                        </span>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="text-[10px] uppercase tracking-widest text-white/30">
-                          Total ayudas y premios
-                        </p>
-
-                        <p className="mt-1 text-xl font-semibold">
-                          {formatCurrency(
-                            summary.total
-                          )}{' '}
-                          €
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-                        <p className="text-xs uppercase tracking-wider text-white/30">
-                          Subvenciones
-                        </p>
-
-                        <p className="mt-2 text-lg font-medium">
-                          {formatCurrency(
-                            summary.subvencionesTotal
-                          )}{' '}
-                          €
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-                        <p className="text-xs uppercase tracking-wider text-white/30">
-                          Premios y reconocimientos
-                        </p>
-
-                        <p className="mt-2 text-lg font-medium">
-                          {formatCurrency(
-                            summary.premiosTotal
-                          )}{' '}
-                          €
-                        </p>
-                      </div>
-                    </div>
+                    <p className="mt-1 text-xs text-white/25">
+                      Histórico económico del club
+                    </p>
                   </div>
-                ))}
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {summaries.map(
+                    (summary) => (
+                      <div
+                        key={summary.year}
+                        className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] p-5 transition hover:border-white/15"
+                      >
+                        <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-emerald-400/[0.035] blur-3xl" />
+
+                        <div className="relative">
+                          <div className="mb-5 flex items-start justify-between gap-4">
+                            <div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035]">
+                                  <span className="text-sm font-semibold text-white/70">
+                                    {String(
+                                      summary.year
+                                    ).slice(-2)}
+                                  </span>
+                                </div>
+
+                                <div>
+                                  <h3 className="text-lg font-semibold">
+                                    {summary.year}
+                                  </h3>
+
+                                  <p className="mt-0.5 text-[11px] text-white/30">
+                                    {summary.subvencionesCount +
+                                      summary.premiosCount}{' '}
+                                    {summary.subvencionesCount +
+                                      summary.premiosCount ===
+                                    1
+                                      ? 'registro'
+                                      : 'registros'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                                Total
+                              </p>
+
+                              <p className="mt-1 text-xl font-semibold tracking-tight text-white">
+                                {formatCurrency(
+                                  summary.total
+                                )}{' '}
+                                €
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="rounded-xl border border-emerald-400/10 bg-emerald-400/[0.025] p-4">
+                              <div className="flex items-center gap-2">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/[0.08]">
+                                  <Icon
+                                    className="h-3.5 w-3.5 text-emerald-300/80"
+                                    path="M12 2v20M17 5H9.5a3.5 3.5 0 000 7H15a3.5 3.5 0 010 7H6"
+                                  />
+                                </div>
+
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                                  Subvenciones
+                                </p>
+                              </div>
+
+                              <p className="mt-3 text-lg font-semibold text-emerald-300/90">
+                                {formatCurrency(
+                                  summary.subvencionesTotal
+                                )}{' '}
+                                €
+                              </p>
+                            </div>
+
+                            <div className="rounded-xl border border-blue-400/10 bg-blue-400/[0.025] p-4">
+                              <div className="flex items-center gap-2">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-400/[0.08]">
+                                  <Icon
+                                    className="h-3.5 w-3.5 text-blue-300/80"
+                                    path="M12 3l1.9 3.85 4.25.62-3.08 3 0.73 4.23L12 12.7l-3.8 2 0.73-4.23-3.08-3 4.25-.62L12 3z"
+                                  />
+                                </div>
+
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                                  Premios
+                                </p>
+                              </div>
+
+                              <p className="mt-3 text-lg font-semibold text-blue-300/90">
+                                {formatCurrency(
+                                  summary.premiosTotal
+                                )}{' '}
+                                €
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
             )}
 
@@ -960,69 +1311,112 @@ export default function Patrocinadores() {
             ============================================= */}
 
             <div className="mb-12">
-              <div className="mb-5 flex items-end justify-between">
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/30">
-                    Transparencia económica
-                  </p>
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
 
-                  <h3 className="mt-2 text-lg font-semibold">
-                    SUBVENCIONES RECIBIDAS
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-400/60">
+                      Transparencia económica
+                    </p>
+                  </div>
+
+                  <h3 className="text-lg font-semibold tracking-tight">
+                    Subvenciones recibidas
                   </h3>
                 </div>
+
+                <span className="text-xs text-white/25">
+                  {subvenciones.length}{' '}
+                  {subvenciones.length === 1
+                    ? 'registro'
+                    : 'registros'}
+                </span>
               </div>
 
               {subvenciones.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-10 text-center">
-                  <p className="text-sm text-white/40">
-                    No hay subvenciones registradas.
+                <div className="rounded-2xl border border-white/10 bg-[#0b0b0b] p-12 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035]">
+                    <Icon
+                      className="h-5 w-5 text-white/30"
+                      path="M12 6v12m6-6H6"
+                    />
+                  </div>
+
+                  <p className="text-sm font-medium text-white/60">
+                    No hay subvenciones
+                    registradas.
+                  </p>
+
+                  <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-white/25">
+                    Añade la primera subvención
+                    recibida por el club.
                   </p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl shadow-black/20">
+                  <div className="border-b border-white/10 bg-white/[0.02] px-5 py-3">
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className="h-3.5 w-3.5 text-emerald-300/60"
+                        path="M12 2v20M17 5H9.5a3.5 3.5 0 000 7H15a3.5 3.5 0 010 7H6"
+                      />
+
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                        Ayudas económicas
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[900px] text-left">
-                      <thead className="border-b border-white/10 bg-white/[0.02]">
+                      <thead className="border-b border-white/10 bg-black/20">
                         <tr>
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Año
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Entidad
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Tipo
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Ámbito
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Importe
                           </th>
 
-                          <th className="px-5 py-4 text-right text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Acciones
                           </th>
                         </tr>
                       </thead>
 
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-white/[0.06]">
                         {subvenciones.map(
                           (subvencion) => (
                             <tr
-                              key={subvencion.id}
-                              className="transition hover:bg-white/[0.02]"
+                              key={
+                                subvencion.id
+                              }
+                              className="group transition hover:bg-white/[0.025]"
                             >
-                              <td className="px-5 py-4 text-sm">
-                                {subvencion.ano}
+                              <td className="px-5 py-5">
+                                <span className="inline-flex rounded-lg border border-white/10 bg-white/[0.035] px-2.5 py-1 text-xs font-semibold text-white/70">
+                                  {
+                                    subvencion.ano
+                                  }
+                                </span>
                               </td>
 
-                              <td className="px-5 py-4">
-                                <p className="font-medium">
+                              <td className="px-5 py-5">
+                                <p className="font-medium text-white/85">
                                   {
                                     subvencion.entidad
                                   }
@@ -1037,26 +1431,32 @@ export default function Patrocinadores() {
                                 )}
                               </td>
 
-                              <td className="px-5 py-4 text-sm text-white/60">
-                                {subvencion.tipo ||
-                                  '—'}
+                              <td className="px-5 py-5">
+                                <span className="inline-flex rounded-lg border border-white/10 bg-white/[0.025] px-2.5 py-1 text-xs text-white/55">
+                                  {subvencion.tipo ||
+                                    '—'}
+                                </span>
                               </td>
 
-                              <td className="px-5 py-4 text-sm text-white/60">
-                                {subvencion.ambito ||
-                                  '—'}
+                              <td className="px-5 py-5 text-sm text-white/50">
+                                {
+                                  subvencion.ambito ||
+                                    '—'
+                                }
                               </td>
 
-                              <td className="px-5 py-4 text-sm font-medium">
-                                {formatCurrency(
-                                  parseEuropeanNumber(
-                                    subvencion.valor
-                                  )
-                                )}{' '}
-                                €
+                              <td className="px-5 py-5">
+                                <span className="font-semibold text-emerald-300/90">
+                                  {formatCurrency(
+                                    parseEuropeanNumber(
+                                      subvencion.valor
+                                    )
+                                  )}{' '}
+                                  €
+                                </span>
                               </td>
 
-                              <td className="px-5 py-4">
+                              <td className="px-5 py-5">
                                 <div className="flex justify-end gap-2">
                                   <button
                                     type="button"
@@ -1065,8 +1465,13 @@ export default function Patrocinadores() {
                                         subvencion
                                       )
                                     }
-                                    className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 transition hover:bg-white/5 hover:text-white"
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs font-medium text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
                                   >
+                                    <Icon
+                                      className="h-3.5 w-3.5"
+                                      path="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"
+                                    />
+
                                     Editar
                                   </button>
 
@@ -1078,8 +1483,13 @@ export default function Patrocinadores() {
                                         id: subvencion.id,
                                       })
                                     }
-                                    className="rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/15 bg-red-500/[0.03] px-3 py-2 text-xs font-medium text-red-400/80 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300"
                                   >
+                                    <Icon
+                                      className="h-3.5 w-3.5"
+                                      path="M3 6h18M8 6V4h8v2m-9 0l1 15h8l1-15M10 11v6M14 11v6"
+                                    />
+
                                     Eliminar
                                   </button>
                                 </div>
@@ -1099,148 +1509,199 @@ export default function Patrocinadores() {
             ============================================= */}
 
             <div>
-              <div className="mb-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/30">
-                  Reconocimientos
-                </p>
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
 
-                <h3 className="mt-2 text-lg font-semibold">
-                  PREMIOS Y RECONOCIMIENTOS
-                </h3>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-400/60">
+                      Reconocimientos
+                    </p>
+                  </div>
+
+                  <h3 className="text-lg font-semibold tracking-tight">
+                    Premios y reconocimientos
+                  </h3>
+                </div>
+
+                <span className="text-xs text-white/25">
+                  {premios.length}{' '}
+                  {premios.length === 1
+                    ? 'registro'
+                    : 'registros'}
+                </span>
               </div>
 
               {premios.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-10 text-center">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
+                <div className="rounded-2xl border border-white/10 bg-[#0b0b0b] p-12 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035]">
                     <Icon
-                      className="h-5 w-5 text-white/40"
-                      path="M12 6v12m6-6H6"
+                      className="h-5 w-5 text-white/30"
+                      path="M12 3l1.9 3.85 4.25.62-3.08 3 0.73 4.23L12 12.7l-3.8 2 0.73-4.23-3.08-3 4.25-.62L12 3z"
                     />
                   </div>
 
-                  <p className="text-sm text-white/40">
-                    No hay premios o reconocimientos
-                    registrados.
+                  <p className="text-sm font-medium text-white/60">
+                    No hay premios o
+                    reconocimientos registrados.
+                  </p>
+
+                  <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-white/25">
+                    Añade el primer reconocimiento
+                    recibido por el club.
                   </p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl shadow-black/20">
+                  <div className="border-b border-white/10 bg-white/[0.02] px-5 py-3">
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className="h-3.5 w-3.5 text-blue-300/60"
+                        path="M12 3l1.9 3.85 4.25.62-3.08 3 0.73 4.23L12 12.7l-3.8 2 0.73-4.23-3.08-3 4.25-.62L12 3z"
+                      />
+
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                        Reconocimientos recibidos
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[900px] text-left">
-                      <thead className="border-b border-white/10 bg-white/[0.02]">
+                      <thead className="border-b border-white/10 bg-black/20">
                         <tr>
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Año
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Entidad
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Premio / Reconocimiento
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Importe
                           </th>
 
-                          <th className="px-5 py-4 text-right text-xs font-medium uppercase tracking-wider text-white/40">
+                          <th className="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">
                             Acciones
                           </th>
                         </tr>
                       </thead>
 
-                      <tbody className="divide-y divide-white/5">
-                        {premios.map((premio) => (
-                          <tr
-                            key={premio.id}
-                            className="transition hover:bg-white/[0.02]"
-                          >
-                            <td className="px-5 py-4 text-sm">
-                              {premio.ano}
-                            </td>
-
-                            <td className="px-5 py-4">
-                              <div className="flex items-center gap-3">
-                                {premio.logo ? (
-                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white p-1.5">
-                                    <img
-                                      src={premio.logo}
-                                      alt={
-                                        premio.entidad
-                                      }
-                                      className="max-h-full max-w-full object-contain"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03]">
-                                    <Icon
-                                      className="h-4 w-4 text-white/30"
-                                      path="M12 4v16m8-8H4"
-                                    />
-                                  </div>
-                                )}
-
-                                <span className="font-medium">
-                                  {premio.entidad}
+                      <tbody className="divide-y divide-white/[0.06]">
+                        {premios.map(
+                          (premio) => (
+                            <tr
+                              key={premio.id}
+                              className="group transition hover:bg-white/[0.025]"
+                            >
+                              <td className="px-5 py-5">
+                                <span className="inline-flex rounded-lg border border-white/10 bg-white/[0.035] px-2.5 py-1 text-xs font-semibold text-white/70">
+                                  {premio.ano}
                                 </span>
-                              </div>
-                            </td>
+                              </td>
 
-                            <td className="px-5 py-4">
-                              <p className="font-medium">
-                                {premio.premio}
-                              </p>
+                              <td className="px-5 py-5">
+                                <div className="flex items-center gap-3">
+                                  {premio.logo ? (
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white p-1.5 shadow-lg">
+                                      <img
+                                        src={
+                                          premio.logo
+                                        }
+                                        alt={
+                                          premio.entidad
+                                        }
+                                        className="max-h-full max-w-full object-contain"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035]">
+                                      <Icon
+                                        className="h-4 w-4 text-white/30"
+                                        path="M12 4v16m8-8H4"
+                                      />
+                                    </div>
+                                  )}
 
-                              {premio.descripcion && (
-                                <p className="mt-1 max-w-md text-xs leading-5 text-white/35">
-                                  {
-                                    premio.descripcion
-                                  }
+                                  <span className="font-medium text-white/85">
+                                    {
+                                      premio.entidad
+                                    }
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-5">
+                                <p className="font-medium text-white/85">
+                                  {premio.premio}
                                 </p>
-                              )}
-                            </td>
 
-                            <td className="px-5 py-4 text-sm font-medium">
-                              {formatCurrency(
-                                parseEuropeanNumber(
-                                  premio.valor
-                                )
-                              )}{' '}
-                              €
-                            </td>
+                                {premio.descripcion && (
+                                  <p className="mt-1 max-w-md text-xs leading-5 text-white/30">
+                                    {
+                                      premio.descripcion
+                                    }
+                                  </p>
+                                )}
+                              </td>
 
-                            <td className="px-5 py-4">
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    editarPremio(
-                                      premio
+                              <td className="px-5 py-5">
+                                <span className="font-semibold text-blue-300/90">
+                                  {formatCurrency(
+                                    parseEuropeanNumber(
+                                      premio.valor
                                     )
-                                  }
-                                  className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 transition hover:bg-white/5 hover:text-white"
-                                >
-                                  Editar
-                                </button>
+                                  )}{' '}
+                                  €
+                                </span>
+                              </td>
 
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setDeleteTarget({
-                                      type: 'premio',
-                                      id: premio.id,
-                                    })
-                                  }
-                                  className="rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10"
-                                >
-                                  Eliminar
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                              <td className="px-5 py-5">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      editarPremio(
+                                        premio
+                                      )
+                                    }
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs font-medium text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+                                  >
+                                    <Icon
+                                      className="h-3.5 w-3.5"
+                                      path="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"
+                                    />
+
+                                    Editar
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setDeleteTarget({
+                                        type: 'premio',
+                                        id: premio.id,
+                                      })
+                                    }
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/15 bg-red-500/[0.03] px-3 py-2 text-xs font-medium text-red-400/80 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300"
+                                  >
+                                    <Icon
+                                      className="h-3.5 w-3.5"
+                                      path="M3 6h18M8 6V4h8v2m-9 0l1 15h8l1-15M10 11v6M14 11v6"
+                                    />
+
+                                    Eliminar
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1256,18 +1717,27 @@ export default function Patrocinadores() {
       ===================================================== */}
 
       {modalSubvencionOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0b0b0b] px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-black/60">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0a0a0a]/95 px-6 py-5 backdrop-blur-xl">
               <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-400/60">
+                    Transparencia
+                  </span>
+                </div>
+
                 <h3 className="text-lg font-semibold">
                   {editingSubId
                     ? 'Editar subvención'
                     : 'Nueva subvención'}
                 </h3>
 
-                <p className="mt-1 text-xs text-white/35">
-                  Información económica de transparencia.
+                <p className="mt-1 text-xs text-white/30">
+                  Información económica de
+                  transparencia.
                 </p>
               </div>
 
@@ -1276,7 +1746,7 @@ export default function Patrocinadores() {
                 onClick={() =>
                   setModalSubvencionOpen(false)
                 }
-                className="rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.02] p-2 text-white/40 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
               >
                 <Icon
                   className="h-5 w-5"
@@ -1287,7 +1757,7 @@ export default function Patrocinadores() {
 
             <form
               onSubmit={guardarSubvencion}
-              className="space-y-5 p-6"
+              className="space-y-6 p-6"
             >
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
@@ -1307,7 +1777,7 @@ export default function Patrocinadores() {
                         ano: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    className={inputClass}
                     placeholder="2026"
                   />
                 </div>
@@ -1327,7 +1797,7 @@ export default function Patrocinadores() {
                         valor: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    className={inputClass}
                     placeholder="Ej: 2.500,00"
                   />
                 </div>
@@ -1348,7 +1818,7 @@ export default function Patrocinadores() {
                       entidad: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={inputClass}
                   placeholder="Nombre de la entidad"
                 />
               </div>
@@ -1367,14 +1837,20 @@ export default function Patrocinadores() {
                         tipo: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm outline-none focus:border-white/30"
+                    className={selectClass}
                   >
                     <option>
                       Administración
                     </option>
-                    <option>Entidad privada</option>
-                    <option>Fundación</option>
-                    <option>Federación</option>
+                    <option>
+                      Entidad privada
+                    </option>
+                    <option>
+                      Fundación
+                    </option>
+                    <option>
+                      Federación
+                    </option>
                     <option>Otro</option>
                   </select>
                 </div>
@@ -1392,13 +1868,21 @@ export default function Patrocinadores() {
                         ambito: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm outline-none focus:border-white/30"
+                    className={selectClass}
                   >
                     <option>Local</option>
-                    <option>Provincial</option>
-                    <option>Autonómico</option>
-                    <option>Nacional</option>
-                    <option>Europeo</option>
+                    <option>
+                      Provincial
+                    </option>
+                    <option>
+                      Autonómico
+                    </option>
+                    <option>
+                      Nacional
+                    </option>
+                    <option>
+                      Europeo
+                    </option>
                   </select>
                 </div>
               </div>
@@ -1410,14 +1894,17 @@ export default function Patrocinadores() {
 
                 <input
                   type="text"
-                  value={formDataSub.departamento}
+                  value={
+                    formDataSub.departamento
+                  }
                   onChange={(e) =>
                     setFormDataSub({
                       ...formDataSub,
-                      departamento: e.target.value,
+                      departamento:
+                        e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={inputClass}
                   placeholder="Departamento / concejalía / organismo"
                 />
               </div>
@@ -1429,14 +1916,17 @@ export default function Patrocinadores() {
 
                 <input
                   type="text"
-                  value={formDataSub.convocatoria}
+                  value={
+                    formDataSub.convocatoria
+                  }
                   onChange={(e) =>
                     setFormDataSub({
                       ...formDataSub,
-                      convocatoria: e.target.value,
+                      convocatoria:
+                        e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={inputClass}
                   placeholder="Nombre de la convocatoria"
                 />
               </div>
@@ -1448,14 +1938,17 @@ export default function Patrocinadores() {
 
                 <input
                   type="date"
-                  value={formDataSub.fechaConcesion}
+                  value={
+                    formDataSub.fechaConcesion
+                  }
                   onChange={(e) =>
                     setFormDataSub({
                       ...formDataSub,
-                      fechaConcesion: e.target.value,
+                      fechaConcesion:
+                        e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                  className={`${inputClass} [color-scheme:dark]`}
                 />
               </div>
 
@@ -1466,32 +1959,37 @@ export default function Patrocinadores() {
 
                 <input
                   type="url"
-                  value={formDataSub.basesLink}
+                  value={
+                    formDataSub.basesLink
+                  }
                   onChange={(e) =>
                     setFormDataSub({
                       ...formDataSub,
-                      basesLink: e.target.value,
+                      basesLink:
+                        e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={inputClass}
                   placeholder="https://..."
                 />
               </div>
 
-              <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
+              <div className="flex justify-end gap-3 border-t border-white/10 pt-6">
                 <button
                   type="button"
                   onClick={() =>
-                    setModalSubvencionOpen(false)
+                    setModalSubvencionOpen(
+                      false
+                    )
                   }
-                  className="rounded-xl border border-white/10 px-5 py-3 text-sm text-white/60 transition hover:bg-white/5 hover:text-white"
+                  className="rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-medium text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-white/90"
+                  className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
                 >
                   {editingSubId
                     ? 'Guardar cambios'
@@ -1508,19 +2006,27 @@ export default function Patrocinadores() {
       ===================================================== */}
 
       {modalPremioOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0b0b0b] px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-black/60">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0a0a0a]/95 px-6 py-5 backdrop-blur-xl">
               <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-400/60">
+                    Reconocimientos
+                  </span>
+                </div>
+
                 <h3 className="text-lg font-semibold">
                   {editingPremioId
                     ? 'Editar premio o reconocimiento'
                     : 'Nuevo premio o reconocimiento'}
                 </h3>
 
-                <p className="mt-1 text-xs text-white/35">
-                  Añade el reconocimiento recibido por
-                  el club.
+                <p className="mt-1 text-xs text-white/30">
+                  Añade el reconocimiento
+                  recibido por el club.
                 </p>
               </div>
 
@@ -1529,7 +2035,7 @@ export default function Patrocinadores() {
                 onClick={() =>
                   setModalPremioOpen(false)
                 }
-                className="rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.02] p-2 text-white/40 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
               >
                 <Icon
                   className="h-5 w-5"
@@ -1540,11 +2046,9 @@ export default function Patrocinadores() {
 
             <form
               onSubmit={guardarPremio}
-              className="space-y-5 p-6"
+              className="space-y-6 p-6"
             >
-              {/* ===========================================
-                  YEAR + VALUE
-              =========================================== */}
+              {/* YEAR + VALUE */}
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
@@ -1564,7 +2068,7 @@ export default function Patrocinadores() {
                         ano: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    className={inputClass}
                     placeholder="2026"
                   />
                 </div>
@@ -1577,40 +2081,44 @@ export default function Patrocinadores() {
                   <input
                     type="text"
                     required
-                    value={formDataPremio.valor}
+                    value={
+                      formDataPremio.valor
+                    }
                     onChange={(e) =>
                       setFormDataPremio({
                         ...formDataPremio,
-                        valor: e.target.value,
+                        valor:
+                          e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                    className={inputClass}
                     placeholder="Ej: 2.500,00"
                   />
 
                   <p className="mt-2 text-[11px] leading-5 text-white/25">
-                    Introduzca el importe en euros.
+                    Introduzca el importe en
+                    euros.
                   </p>
                 </div>
               </div>
 
-              {/* ===========================================
-                  LOGO UPLOAD
-              =========================================== */}
+              {/* LOGO UPLOAD */}
 
               <div>
                 <label className="mb-2 block text-xs font-medium text-white/60">
                   Logo de la entidad
                 </label>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     {/* PREVIEW */}
 
-                    <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white">
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white shadow-lg">
                       {formDataPremio.logo ? (
                         <img
-                          src={formDataPremio.logo}
+                          src={
+                            formDataPremio.logo
+                          }
                           alt="Vista previa del logo"
                           className="max-h-full max-w-full object-contain p-2"
                         />
@@ -1635,39 +2143,43 @@ export default function Patrocinadores() {
                         id="premio-logo"
                         type="file"
                         accept="image/jpeg,image/jpg,image/png,image/webp"
-                        disabled={uploadingLogo}
+                        disabled={
+                          uploadingLogo
+                        }
                         onChange={(e) => {
                           const file =
-                            e.target.files?.[0];
+                            e.target
+                              .files?.[0];
 
                           if (file) {
-                            subirLogoPremio(file);
+                            subirLogoPremio(
+                              file
+                            );
                           }
 
-                          /*
-                           * Permite seleccionar nuevamente
-                           * el mismo archivo si fuera necesario.
-                           */
-                          e.target.value = '';
+                          e.target.value =
+                            '';
                         }}
-                        className="block w-full cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] text-sm text-white/60 file:mr-4 file:cursor-pointer file:border-0 file:border-r file:border-white/10 file:bg-white/[0.05] file:px-4 file:py-3 file:text-xs file:font-medium file:text-white transition hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="block w-full cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] text-sm text-white/60 file:mr-4 file:cursor-pointer file:border-0 file:border-r file:border-white/10 file:bg-white/[0.06] file:px-4 file:py-3 file:text-xs file:font-medium file:text-white transition hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
                       />
 
                       <p className="mt-2 text-[11px] leading-5 text-white/25">
-                        JPG, JPEG, PNG o WEBP · máximo
-                        5 MB. El logo se subirá
-                        automáticamente a Cloudinary.
+                        JPG, JPEG, PNG o WEBP ·
+                        máximo 5 MB. El logo se
+                        subirá automáticamente a
+                        Cloudinary.
                       </p>
 
                       {uploadingLogo && (
-                        <div className="mt-3 flex items-center gap-2 text-xs text-white/60">
+                        <div className="mt-3 flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs text-white/60">
                           <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+
                           Subiendo logo...
                         </div>
                       )}
 
                       {logoUploadError && (
-                        <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-400">
+                        <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/[0.05] px-3 py-2 text-xs leading-5 text-red-400">
                           {logoUploadError}
                         </p>
                       )}
@@ -1689,9 +2201,7 @@ export default function Patrocinadores() {
                 </div>
               </div>
 
-              {/* ===========================================
-                  ENTITY
-              =========================================== */}
+              {/* ENTITY */}
 
               <div>
                 <label className="mb-2 block text-xs font-medium text-white/60">
@@ -1701,21 +2211,22 @@ export default function Patrocinadores() {
                 <input
                   type="text"
                   required
-                  value={formDataPremio.entidad}
+                  value={
+                    formDataPremio.entidad
+                  }
                   onChange={(e) =>
                     setFormDataPremio({
                       ...formDataPremio,
-                      entidad: e.target.value,
+                      entidad:
+                        e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={inputClass}
                   placeholder="Ej: Ayuntamiento de Valencia"
                 />
               </div>
 
-              {/* ===========================================
-                  AWARD
-              =========================================== */}
+              {/* AWARD */}
 
               <div>
                 <label className="mb-2 block text-xs font-medium text-white/60">
@@ -1725,21 +2236,22 @@ export default function Patrocinadores() {
                 <input
                   type="text"
                   required
-                  value={formDataPremio.premio}
+                  value={
+                    formDataPremio.premio
+                  }
                   onChange={(e) =>
                     setFormDataPremio({
                       ...formDataPremio,
-                      premio: e.target.value,
+                      premio:
+                        e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={inputClass}
                   placeholder="Ej: Premio al deporte inclusivo"
                 />
               </div>
 
-              {/* ===========================================
-                  DESCRIPTION
-              =========================================== */}
+              {/* DESCRIPTION */}
 
               <div>
                 <label className="mb-2 block text-xs font-medium text-white/60">
@@ -1748,7 +2260,9 @@ export default function Patrocinadores() {
 
                 <textarea
                   rows={4}
-                  value={formDataPremio.descripcion}
+                  value={
+                    formDataPremio.descripcion
+                  }
                   onChange={(e) =>
                     setFormDataPremio({
                       ...formDataPremio,
@@ -1756,23 +2270,21 @@ export default function Patrocinadores() {
                         e.target.value,
                     })
                   }
-                  className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none transition placeholder:text-white/20 focus:border-white/30"
+                  className={`${inputClass} resize-none`}
                   placeholder="Descripción breve del premio o reconocimiento..."
                 />
               </div>
 
-              {/* ===========================================
-                  ACTIONS
-              =========================================== */}
+              {/* ACTIONS */}
 
-              <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
+              <div className="flex justify-end gap-3 border-t border-white/10 pt-6">
                 <button
                   type="button"
                   onClick={() =>
                     setModalPremioOpen(false)
                   }
                   disabled={uploadingLogo}
-                  className="rounded-xl border border-white/10 px-5 py-3 text-sm text-white/60 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-medium text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Cancelar
                 </button>
@@ -1780,7 +2292,7 @@ export default function Patrocinadores() {
                 <button
                   type="submit"
                   disabled={uploadingLogo}
-                  className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {editingPremioId
                     ? 'Guardar cambios'
@@ -1797,15 +2309,23 @@ export default function Patrocinadores() {
       ===================================================== */}
 
       {selectedSolicitud && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b0b] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-black/60">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0a0a0a]/95 px-6 py-5 backdrop-blur-xl">
               <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-400/60">
+                    Solicitud
+                  </span>
+                </div>
+
                 <h3 className="text-lg font-semibold">
                   Detalle de la solicitud
                 </h3>
 
-                <p className="mt-1 text-xs text-white/35">
+                <p className="mt-1 text-xs text-white/30">
                   Información enviada por el
                   patrocinador.
                 </p>
@@ -1816,7 +2336,7 @@ export default function Patrocinadores() {
                 onClick={() =>
                   setSelectedSolicitud(null)
                 }
-                className="rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.02] p-2 text-white/40 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
               >
                 <Icon
                   className="h-5 w-5"
@@ -1825,7 +2345,7 @@ export default function Patrocinadores() {
               </button>
             </div>
 
-            <div className="space-y-5 p-6">
+            <div className="space-y-1 p-6">
               {Object.entries(
                 selectedSolicitud
               ).map(([key, value]) => {
@@ -1837,12 +2357,15 @@ export default function Patrocinadores() {
                 }
 
                 return (
-                  <div key={key}>
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                  <div
+                    key={key}
+                    className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
+                  >
+                    <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/25">
                       {key}
                     </p>
 
-                    <p className="whitespace-pre-wrap break-words text-sm text-white/70">
+                    <p className="whitespace-pre-wrap break-words text-sm leading-6 text-white/70">
                       {value === null ||
                       value === undefined ||
                       value === ''
@@ -1862,30 +2385,34 @@ export default function Patrocinadores() {
       ===================================================== */}
 
       {deleteTarget && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 shadow-2xl">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-red-500/20 bg-red-500/5">
-              <Icon
-                className="h-5 w-5 text-red-400"
-                path="M12 9v4m0 4h.01M10.29 3.86l-8.82 15a1 1 0 00.86 1.5h19.34a1 1 0 00.86-1.5l-8.82-15a1 1 0 00-1.72 0z"
-              />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-red-500/15 bg-[#0a0a0a] shadow-2xl shadow-black/60">
+            <div className="border-b border-white/10 bg-red-500/[0.025] px-6 py-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.06]">
+                <Icon
+                  className="h-5 w-5 text-red-400"
+                  path="M12 9v4m0 4h.01M10.29 3.86l-8.82 15a1 1 0 00.86 1.5h19.34a1 1 0 00.86-1.5l-8.82-15a1 1 0 00-1.72 0z"
+                />
+              </div>
+
+              <h3 className="mt-5 text-lg font-semibold">
+                ¿Eliminar este elemento?
+              </h3>
+
+              <p className="mt-2 text-sm leading-6 text-white/40">
+                Esta acción no se puede deshacer.
+                El elemento se eliminará
+                permanentemente.
+              </p>
             </div>
 
-            <h3 className="mt-5 text-lg font-semibold">
-              ¿Eliminar este elemento?
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-white/40">
-              Esta acción no se puede deshacer.
-            </p>
-
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-3 px-6 py-5">
               <button
                 type="button"
                 onClick={() =>
                   setDeleteTarget(null)
                 }
-                className="rounded-xl border border-white/10 px-5 py-3 text-sm text-white/60 transition hover:bg-white/5 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-medium text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
               >
                 Cancelar
               </button>
@@ -1893,7 +2420,7 @@ export default function Patrocinadores() {
               <button
                 type="button"
                 onClick={confirmarEliminacion}
-                className="rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-400"
+                className="rounded-xl bg-red-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-400"
               >
                 Eliminar
               </button>
