@@ -77,7 +77,7 @@ const getMonthIndex = (month) => {
 const getEventDate = (evento) => {
   if (!evento) return null;
 
-  // Compatibilidad si en el futuro el backend incorpora dateISO.
+  // Compatibilidad futura si el backend incorpora dateISO.
   if (evento.dateISO) {
     const isoDate = new Date(evento.dateISO);
 
@@ -104,8 +104,7 @@ const getEventDate = (evento) => {
     return null;
   }
 
-  const year =
-    new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   const result = new Date(
     year,
@@ -155,19 +154,17 @@ const getEventPhotos = (evento) => {
     return [];
   }
 
-  return rawPhotos.filter(
-    (foto) => {
-      if (typeof foto === 'string') {
-        return Boolean(foto);
-      }
-
-      return Boolean(
-        foto?.url ||
-        foto?.secure_url ||
-        foto?.secureUrl
-      );
+  return rawPhotos.filter((foto) => {
+    if (typeof foto === 'string') {
+      return Boolean(foto);
     }
-  );
+
+    return Boolean(
+      foto?.url ||
+      foto?.secure_url ||
+      foto?.secureUrl
+    );
+  });
 };
 
 const getPhotoUrl = (foto) => {
@@ -186,9 +183,7 @@ const getPhotoUrl = (foto) => {
 };
 
 const getEventSortDate = (evento) => {
-  if (
-    isEventCompleted(evento)
-  ) {
+  if (isEventCompleted(evento)) {
     const completedDate =
       getCompletionDate(evento);
 
@@ -225,8 +220,14 @@ const getUpcomingSortDate = (evento) => {
     0
   );
 
-  // Apenas para ordenação.
-  // NÃO significa que o evento está finalizado.
+  /*
+   * Solo se utiliza para ordenar.
+   *
+   * IMPORTANTE:
+   * Esto NO cambia el estado del evento.
+   * Un evento solo está finalizado cuando
+   * el backend devuelve FINALIZADO.
+   */
   if (normalized < today) {
     normalized.setFullYear(
       normalized.getFullYear() + 1
@@ -259,6 +260,20 @@ const formatEventDate = (evento) => {
   ).format(date);
 };
 
+const formatDate = (value) => {
+  if (!value) return '—';
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '—';
+  }
+
+  return date.toLocaleDateString(
+    'es-ES'
+  );
+};
+
 // =========================================================
 // COMPONENTE
 // =========================================================
@@ -269,6 +284,9 @@ export default function Eventos() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [error, setError] =
+    useState('');
 
   const [saving, setSaving] =
     useState(false);
@@ -284,8 +302,10 @@ export default function Eventos() {
   const [inscricoes, setInscricoes] =
     useState([]);
 
-  const [loadingInscricoes, setLoadingInscricoes] =
-    useState(false);
+  const [
+    loadingInscricoes,
+    setLoadingInscricoes,
+  ] = useState(false);
 
   const [editingId, setEditingId] =
     useState(null);
@@ -350,6 +370,7 @@ export default function Eventos() {
 
       try {
         setLoading(true);
+        setError('');
 
         const response =
           await fetch(
@@ -379,6 +400,10 @@ export default function Eventos() {
         console.error(
           'Error al buscar eventos:',
           error
+        );
+
+        setError(
+          'No se han podido cargar los eventos.'
         );
       } finally {
         setLoading(false);
@@ -460,6 +485,8 @@ export default function Eventos() {
   };
 
   const closeModal = () => {
+    if (saving) return;
+
     setModalOpen(false);
     setEditingId(null);
     resetForm();
@@ -469,9 +496,7 @@ export default function Eventos() {
   // GUARDAR EVENTO
   // =========================================================
 
-  const handleSubmit = async (
-    e
-  ) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const token =
@@ -521,7 +546,9 @@ export default function Eventos() {
         );
       }
 
-      closeModal();
+      setModalOpen(false);
+      setEditingId(null);
+      resetForm();
 
       await fetchEventos();
     } catch (error) {
@@ -842,6 +869,10 @@ export default function Eventos() {
         const data =
           await response.json();
 
+        if (!Array.isArray(data)) {
+          return null;
+        }
+
         return (
           data.find(
             (evento) =>
@@ -979,8 +1010,12 @@ export default function Eventos() {
 
   const handleDeletePhoto =
     async (foto) => {
-      if (!galeriaEvento)
+      if (
+        !galeriaEvento ||
+        !foto?.id
+      ) {
         return;
+      }
 
       const token =
         localStorage.getItem(
@@ -1119,6 +1154,23 @@ export default function Eventos() {
             return -1;
           }
 
+          /*
+           * Próximos:
+           * más cercano primero.
+           *
+           * Historial:
+           * más reciente primero.
+           */
+          if (
+            activeTab ===
+            'historico'
+          ) {
+            return (
+              dateB.getTime() -
+              dateA.getTime()
+            );
+          }
+
           return (
             dateA.getTime() -
             dateB.getTime()
@@ -1138,11 +1190,13 @@ export default function Eventos() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center">
+
           <div className="w-8 h-8 border-2 border-zinc-700 border-t-red-600 rounded-full animate-spin mb-4" />
 
           <div className="text-zinc-500 text-sm uppercase tracking-widest">
             Cargando eventos...
           </div>
+
         </div>
       </div>
     );
@@ -1162,12 +1216,15 @@ export default function Eventos() {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
 
         <div>
+
           <div className="flex items-center gap-3 mb-2">
+
             <span className="w-8 h-px bg-red-600" />
 
             <span className="text-red-500 text-[10px] font-bold uppercase tracking-[0.25em]">
               Actividades
             </span>
+
           </div>
 
           <h1 className="font-display text-3xl md:text-4xl text-white">
@@ -1177,9 +1234,11 @@ export default function Eventos() {
           <p className="text-zinc-500 text-sm mt-2 max-w-xl">
             Gestiona eventos, inscripciones y la galería de actividades del club.
           </p>
+
         </div>
 
         <button
+          type="button"
           onClick={() =>
             openModal()
           }
@@ -1192,7 +1251,41 @@ export default function Eventos() {
 
           Nuevo Evento
         </button>
+
       </div>
+
+      {/* =====================================================
+          ERROR
+      ===================================================== */}
+
+      {error && (
+        <div className="bg-red-500/5 border border-red-500/20 rounded-sm px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+          <div className="flex items-center gap-3">
+
+            <div className="w-8 h-8 bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+              <Icon
+                path="M12 9v3.75m0 3.75h.007M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                className="w-4 h-4 text-red-500"
+              />
+            </div>
+
+            <p className="text-red-400 text-sm">
+              {error}
+            </p>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={fetchEventos}
+            className="px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-700 hover:text-white transition-colors rounded-sm"
+          >
+            Reintentar
+          </button>
+
+        </div>
+      )}
 
       {/* =====================================================
           TABS
@@ -1201,6 +1294,7 @@ export default function Eventos() {
       <div className="flex border-b border-zinc-800">
 
         <button
+          type="button"
           onClick={() =>
             setActiveTab(
               'activos'
@@ -1217,6 +1311,7 @@ export default function Eventos() {
         </button>
 
         <button
+          type="button"
           onClick={() =>
             setActiveTab(
               'historico'
@@ -1243,10 +1338,12 @@ export default function Eventos() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-16 text-center">
 
           <div className="w-14 h-14 mx-auto mb-5 border border-zinc-800 flex items-center justify-center">
+
             <Icon
               path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               className="w-6 h-6 text-zinc-600"
             />
+
           </div>
 
           <p className="text-zinc-400 text-sm mb-5">
@@ -1259,6 +1356,7 @@ export default function Eventos() {
           {activeTab ===
             'activos' && (
             <button
+              type="button"
               onClick={() =>
                 openModal()
               }
@@ -1267,6 +1365,7 @@ export default function Eventos() {
               Crear Primer Evento
             </button>
           )}
+
         </div>
       ) : (
         <div className="bg-zinc-900 border border-zinc-800 rounded-sm overflow-x-auto">
@@ -1319,6 +1418,28 @@ export default function Eventos() {
                   const isFinalizado =
                     isEventCompleted(ev);
 
+                  const finalizando =
+                    actionLoading ===
+                    `finalizar-${ev.id}`;
+
+                  const reabriendo =
+                    actionLoading ===
+                    `reabrir-${ev.id}`;
+
+                  const changingActive =
+                    actionLoading ===
+                    `active-${ev.id}`;
+
+                  const deleting =
+                    actionLoading ===
+                    `delete-${ev.id}`;
+
+                  const rowBusy =
+                    finalizando ||
+                    reabriendo ||
+                    changingActive ||
+                    deleting;
+
                   return (
                     <tr
                       key={ev.id}
@@ -1346,10 +1467,8 @@ export default function Eventos() {
                           ev.completedAt && (
                             <p className="text-zinc-600 text-[9px] uppercase tracking-wider mt-2">
                               Finalizado el{' '}
-                              {new Date(
+                              {formatDate(
                                 ev.completedAt
-                              ).toLocaleDateString(
-                                'es-ES'
                               )}
                             </p>
                           )}
@@ -1398,13 +1517,19 @@ export default function Eventos() {
 
                         {isFinalizado ? (
                           <span className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-400 border border-zinc-700">
+
                             <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+
                             Finalizado
+
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
+
                             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+
                             Programado
+
                           </span>
                         )}
 
@@ -1434,6 +1559,7 @@ export default function Eventos() {
 
                         {isFinalizado ? (
                           <button
+                            type="button"
                             onClick={() =>
                               setGaleriaEvento(
                                 ev
@@ -1466,6 +1592,7 @@ export default function Eventos() {
 
                         {ev.isPublic ? (
                           <button
+                            type="button"
                             onClick={() =>
                               verInscricoes(
                                 ev
@@ -1497,12 +1624,16 @@ export default function Eventos() {
                           {/* EDITAR */}
 
                           <button
+                            type="button"
                             onClick={() =>
                               openModal(
                                 ev
                               )
                             }
-                            className="p-2.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
+                            disabled={
+                              rowBusy
+                            }
+                            className="p-2.5 text-zinc-500 hover:text-white hover:bg-zinc-800 disabled:opacity-40 rounded-sm transition-colors"
                             title="Editar"
                           >
                             <Icon
@@ -1514,16 +1645,16 @@ export default function Eventos() {
 
                           {!isFinalizado ? (
                             <button
+                              type="button"
                               onClick={() =>
                                 setFinalizarEvento(
                                   ev
                                 )
                               }
                               disabled={
-                                actionLoading ===
-                                `finalizar-${ev.id}`
+                                rowBusy
                               }
-                              className="p-2.5 text-green-500 hover:text-green-400 hover:bg-green-500/10 disabled:opacity-50 rounded-sm transition-colors"
+                              className="p-2.5 text-green-500 hover:text-green-400 hover:bg-green-500/10 disabled:opacity-40 rounded-sm transition-colors"
                               title="Marcar como finalizado"
                             >
                               <Icon
@@ -1532,16 +1663,16 @@ export default function Eventos() {
                             </button>
                           ) : (
                             <button
+                              type="button"
                               onClick={() =>
                                 handleReabrirEvento(
                                   ev
                                 )
                               }
                               disabled={
-                                actionLoading ===
-                                `reabrir-${ev.id}`
+                                rowBusy
                               }
-                              className="p-2.5 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 disabled:opacity-50 rounded-sm transition-colors"
+                              className="p-2.5 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 disabled:opacity-40 rounded-sm transition-colors"
                               title="Reabrir evento"
                             >
                               <Icon
@@ -1554,16 +1685,20 @@ export default function Eventos() {
 
                           {isFinalizado && (
                             <button
+                              type="button"
                               onClick={() =>
                                 setGaleriaEvento(
                                   ev
                                 )
                               }
-                              className="p-2.5 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-sm transition-colors"
+                              disabled={
+                                rowBusy
+                              }
+                              className="p-2.5 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 disabled:opacity-40 rounded-sm transition-colors"
                               title="Gestionar galería"
                             >
                               <Icon
-                                path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H6"
+                                path="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </button>
                           )}
@@ -1571,6 +1706,7 @@ export default function Eventos() {
                           {/* ARCHIVAR / REACTIVAR */}
 
                           <button
+                            type="button"
                             onClick={() =>
                               toggleActivo(
                                 ev.id,
@@ -1578,10 +1714,9 @@ export default function Eventos() {
                               )
                             }
                             disabled={
-                              actionLoading ===
-                              `active-${ev.id}`
+                              rowBusy
                             }
-                            className={`p-2.5 rounded-sm disabled:opacity-50 transition-colors ${
+                            className={`p-2.5 rounded-sm disabled:opacity-40 transition-colors ${
                               ev.isActive
                                 ? 'text-yellow-500 hover:bg-yellow-500/10'
                                 : 'text-green-500 hover:bg-green-500/10'
@@ -1604,16 +1739,16 @@ export default function Eventos() {
                           {/* ELIMINAR */}
 
                           <button
+                            type="button"
                             onClick={() =>
                               setItemToDelete(
                                 ev.id
                               )
                             }
                             disabled={
-                              actionLoading ===
-                              `delete-${ev.id}`
+                              rowBusy
                             }
-                            className="p-2.5 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 disabled:opacity-50 rounded-sm transition-colors"
+                            className="p-2.5 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 disabled:opacity-40 rounded-sm transition-colors"
                             title="Eliminar"
                           >
                             <Icon
@@ -1632,6 +1767,7 @@ export default function Eventos() {
 
             </tbody>
           </table>
+
         </div>
       )}
 
@@ -1640,13 +1776,24 @@ export default function Eventos() {
       ===================================================== */}
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (
+              e.target ===
+              e.currentTarget
+            ) {
+              closeModal();
+            }
+          }}
+        >
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
 
             <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
 
               <div>
+
                 <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
                   {editingId
                     ? 'Editar'
@@ -1658,13 +1805,16 @@ export default function Eventos() {
                     ? 'Editar Evento'
                     : 'Nuevo Evento'}
                 </h2>
+
               </div>
 
               <button
+                type="button"
                 onClick={
                   closeModal
                 }
-                className="text-zinc-500 hover:text-white transition-colors"
+                disabled={saving}
+                className="text-zinc-500 hover:text-white disabled:opacity-40 transition-colors"
                 aria-label="Cerrar"
               >
                 <Icon path="M6 18L18 6M6 6l12 12" />
@@ -1682,6 +1832,7 @@ export default function Eventos() {
               {/* TIPO */}
 
               <div>
+
                 <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
                   Tipo de Evento *
                 </label>
@@ -1711,11 +1862,13 @@ export default function Eventos() {
                     Evento Social
                   </option>
                 </select>
+
               </div>
 
               {/* NOMBRE */}
 
               <div>
+
                 <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
                   Nombre del Evento *
                 </label>
@@ -1735,6 +1888,7 @@ export default function Eventos() {
                   maxLength={120}
                   className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
                 />
+
               </div>
 
               {/* FECHA */}
@@ -1742,6 +1896,7 @@ export default function Eventos() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
                 <div>
+
                   <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
                     Día *
                   </label>
@@ -1762,9 +1917,11 @@ export default function Eventos() {
                     placeholder="14"
                     className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
                   />
+
                 </div>
 
                 <div>
+
                   <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
                     Mes *
                   </label>
@@ -1785,6 +1942,7 @@ export default function Eventos() {
                     placeholder="Septiembre"
                     className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
                   />
+
                 </div>
 
                 <div className="col-span-2">
@@ -1838,6 +1996,7 @@ export default function Eventos() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 <div>
+
                   <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
                     Horario *
                   </label>
@@ -1858,9 +2017,11 @@ export default function Eventos() {
                     placeholder="17:00 — 19:30"
                     className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
                   />
+
                 </div>
 
                 <div>
+
                   <label className="block text-zinc-400 text-[10px] uppercase tracking-[0.18em] mb-2">
                     Ubicación *
                   </label>
@@ -1881,6 +2042,7 @@ export default function Eventos() {
                     maxLength={180}
                     className="w-full bg-zinc-950 border border-zinc-700 text-white px-4 py-3 rounded-sm focus:border-red-600 outline-none"
                   />
+
                 </div>
 
               </div>
@@ -1926,6 +2088,7 @@ export default function Eventos() {
                 <div className="flex items-center justify-between gap-5">
 
                   <div>
+
                     <p className="text-white font-bold text-sm">
                       ¿Abierto al público?
                     </p>
@@ -1933,6 +2096,7 @@ export default function Eventos() {
                     <p className="text-zinc-500 text-xs mt-1">
                       Los visitantes podrán inscribirse desde la web.
                     </p>
+
                   </div>
 
                   <button
@@ -1953,6 +2117,7 @@ export default function Eventos() {
                         : 'bg-zinc-700'
                     }`}
                   >
+
                     <span
                       className={`absolute top-0.5 w-6 h-6 bg-white rounded-full transition-transform ${
                         formData.isPublic
@@ -1960,6 +2125,7 @@ export default function Eventos() {
                           : 'left-0.5'
                       }`}
                     />
+
                   </button>
 
                 </div>
@@ -1996,6 +2162,7 @@ export default function Eventos() {
               </div>
 
             </form>
+
           </div>
         </div>
       )}
@@ -2005,13 +2172,24 @@ export default function Eventos() {
       ===================================================== */}
 
       {galeriaEvento && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (
+              e.target ===
+              e.currentTarget
+            ) {
+              setGaleriaEvento(null);
+            }
+          }}
+        >
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-2xl">
 
             <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
 
               <div>
+
                 <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
                   Archivo del club
                 </p>
@@ -2027,9 +2205,11 @@ export default function Eventos() {
                   ·{' '}
                   {galeriaEvento.location}
                 </p>
+
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   setGaleriaEvento(
                     null
@@ -2048,22 +2228,27 @@ export default function Eventos() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 
                 <div>
+
                   <p className="text-white font-bold">
                     Galería del evento
                   </p>
 
                   <p className="text-zinc-500 text-xs mt-1">
+
                     {
                       getEventPhotos(
                         galeriaEvento
                       ).length
                     }{' '}
+
                     {getEventPhotos(
                       galeriaEvento
                     ).length === 1
                       ? 'imagen'
                       : 'imágenes'}
+
                   </p>
+
                 </div>
 
                 <label
@@ -2135,6 +2320,7 @@ export default function Eventos() {
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-end justify-end p-3">
 
                             <button
+                              type="button"
                               onClick={() =>
                                 handleDeletePhoto(
                                   foto
@@ -2191,13 +2377,24 @@ export default function Eventos() {
       ===================================================== */}
 
       {inscricoesModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (
+              e.target ===
+              e.currentTarget
+            ) {
+              setInscricoesModal(null);
+            }
+          }}
+        >
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
 
             <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
 
               <div>
+
                 <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
                   Registro
                 </p>
@@ -2212,9 +2409,11 @@ export default function Eventos() {
                   {inscricoes.length}{' '}
                   inscrito(s)
                 </p>
+
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   setInscricoesModal(
                     null
@@ -2232,11 +2431,13 @@ export default function Eventos() {
 
               {loadingInscricoes ? (
                 <div className="py-12 flex flex-col items-center">
+
                   <div className="w-7 h-7 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin mb-4" />
 
                   <p className="text-zinc-500 text-sm">
                     Cargando inscripciones...
                   </p>
+
                 </div>
               ) : inscricoes.length ===
                 0 ? (
@@ -2298,13 +2499,9 @@ export default function Eventos() {
                           </td>
 
                           <td className="py-3 text-zinc-500 text-xs">
-                            {insc.createdAt
-                              ? new Date(
-                                  insc.createdAt
-                                ).toLocaleDateString(
-                                  'es-ES'
-                                )
-                              : '—'}
+                            {formatDate(
+                              insc.createdAt
+                            )}
                           </td>
 
                         </tr>
@@ -2312,6 +2509,7 @@ export default function Eventos() {
                     )}
 
                   </tbody>
+
                 </table>
               )}
 
@@ -2326,15 +2524,29 @@ export default function Eventos() {
       ===================================================== */}
 
       {finalizarEvento && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (
+              e.target ===
+              e.currentTarget
+            ) {
+              setFinalizarEvento(
+                null
+              );
+            }
+          }}
+        >
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-sm max-w-md w-full p-7 shadow-2xl">
 
             <div className="w-12 h-12 bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-5">
+
               <Icon
                 path="M5 13l4 4L19 7"
                 className="w-6 h-6 text-green-500"
               />
+
             </div>
 
             <h3 className="font-display text-2xl text-white mb-2">
@@ -2342,11 +2554,15 @@ export default function Eventos() {
             </h3>
 
             <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+
               ¿Confirmas que el evento{' '}
+
               <span className="text-white font-medium">
                 «{finalizarEvento.name}»
               </span>{' '}
+
               ya ha finalizado?
+
             </p>
 
             <p className="text-zinc-600 text-xs mb-6">
@@ -2356,6 +2572,7 @@ export default function Eventos() {
             <div className="flex gap-3">
 
               <button
+                type="button"
                 onClick={() =>
                   setFinalizarEvento(
                     null
@@ -2371,6 +2588,7 @@ export default function Eventos() {
               </button>
 
               <button
+                type="button"
                 onClick={
                   handleFinalizarEvento
                 }
@@ -2412,10 +2630,12 @@ export default function Eventos() {
           >
 
             <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
+
               <Icon
                 path="M12 9v3.75m0 3.75h.007M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 className="w-6 h-6 text-red-500"
               />
+
             </div>
 
             <h3 className="font-display text-xl text-white mb-2">
@@ -2429,6 +2649,7 @@ export default function Eventos() {
             <div className="flex gap-3">
 
               <button
+                type="button"
                 onClick={() =>
                   setItemToDelete(
                     null
@@ -2444,6 +2665,7 @@ export default function Eventos() {
               </button>
 
               <button
+                type="button"
                 onClick={
                   confirmDelete
                 }
