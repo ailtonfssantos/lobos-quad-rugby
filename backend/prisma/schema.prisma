@@ -62,20 +62,20 @@ model Jogador {
 
 model Evento {
   id          Int               @id @default(autoincrement())
-  type        String
+  type        String?
   name        String
   date        String?
   month       String?
-  year        String?    
+  year        String?    @default("2026") // <-- ESTE CAMPO DEVE ESTAR AQUI
   day         String?
-  time        String
-  location    String
+  time        String?
+  location    String?
   description String?
   isPublic    Boolean           @default(false)
   isActive    Boolean           @default(true)
 
   // Estado real del evento
-  status      String            @default("PROGRAMADO")
+  status      String?           @default("PROGRAMADO")
   completedAt DateTime?
 
   createdAt   DateTime          @default(now())
