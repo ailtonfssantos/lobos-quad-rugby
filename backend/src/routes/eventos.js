@@ -38,7 +38,6 @@ router.get('/', async (req, res) => {
       ? {}
       : {
           isActive: true,
-          isPublic: true,
         };
 
     const eventos = await prisma.evento.findMany({
