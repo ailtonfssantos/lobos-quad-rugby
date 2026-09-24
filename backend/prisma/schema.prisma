@@ -64,9 +64,10 @@ model Evento {
   id          Int               @id @default(autoincrement())
   type        String
   name        String
-  date        String
-  month       String
-  day         String
+  date        String?
+  month       String?
+  year        String?  @default("2026")  // ✅ Campo novo com valor padrão
+  day         String?
   time        String
   location    String
   description String?
