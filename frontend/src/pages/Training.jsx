@@ -271,7 +271,6 @@ const normalizeMonth = (month) => {
   return match ? match[1] : null;
 };
 
-// ✅ CORREÇÃO 1: Função getEventDate corrigida para usar a data real do evento
 const getEventDate = (evento) => {
   if (!evento) return null;
 
@@ -281,9 +280,6 @@ const getEventDate = (evento) => {
       return dateISO;
     }
   }
-
-  // Removido o fallback para completedAt, pois ele representa o momento 
-  // em que o admin clicou em "Finalizar", não a data real do evento.
 
   const day = parseInt(String(evento.date || '').replace(/\D/g, ''), 10);
   const month = normalizeMonth(evento.month);
@@ -334,6 +330,7 @@ const isEventCompleted = (evento) => {
   return false;
 };
 
+// ✅ CORREÇÃO 1: Adicionado o 'year' ao objeto retornado
 const formatEventDate = (evento) => {
   const date = getEventDate(evento);
 
@@ -342,6 +339,7 @@ const formatEventDate = (evento) => {
       day: evento?.date || '—',
       month: evento?.month || '',
       weekday: evento?.day || '',
+      year: '',
     };
   }
 
@@ -352,6 +350,7 @@ const formatEventDate = (evento) => {
       .replace('.', '')
       .toUpperCase(),
     weekday: new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(date),
+    year: new Intl.DateTimeFormat('es-ES', { year: 'numeric' }).format(date),
   };
 };
 
@@ -424,7 +423,8 @@ const EventCard = ({ evento, past = false, onRegister, onOpenGallery }) => {
         <div className="flex flex-col md:flex-row gap-6">
           {/* DATE */}
           <div className="shrink-0">
-            <div className="w-full md:w-28 h-24 md:h-28 bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden">
+            {/* ✅ CORREÇÃO 2: Aumentado a altura (h-28 md:h-32) e adicionado py-2 para caber o ano */}
+            <div className="w-full md:w-28 h-28 md:h-32 bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden py-2">
               <div
                 className={`absolute top-0 left-0 w-full h-[2px] ${
                   past ? 'bg-zinc-700' : 'bg-red-600'
@@ -436,16 +436,23 @@ const EventCard = ({ evento, past = false, onRegister, onOpenGallery }) => {
               </span>
 
               <span
-                className={`text-[10px] uppercase tracking-[0.18em] mt-2 ${
+                className={`text-[10px] uppercase tracking-[0.18em] ${
                   past ? 'text-zinc-500' : 'text-red-500'
                 }`}
               >
                 {date.month}
               </span>
 
-              <span className="text-zinc-600 text-[9px] uppercase tracking-[0.15em] mt-1">
+              <span className="text-zinc-600 text-[9px] uppercase tracking-[0.15em]">
                 {date.weekday}
               </span>
+
+              {/* Exibe o ano se estiver disponível */}
+              {date.year && (
+                <span className={`text-[9px] font-bold tracking-wider ${past ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                  {date.year}
+                </span>
+              )}
             </div>
           </div>
 
@@ -829,7 +836,7 @@ export default function Training() {
       return dateA - dateB;
     });
 
-    // ✅ CORREÇÃO 2: HISTORIAL ordenado pela data real do evento (do mais recente ao mais antigo)
+    // HISTORIAL: Ordenado pela data real do evento (do mais recente ao mais antigo)
     realizados.sort((a, b) => {
       const dateA = getEventDate(a)?.getTime() ?? 0;
       const dateB = getEventDate(b)?.getTime() ?? 0;
