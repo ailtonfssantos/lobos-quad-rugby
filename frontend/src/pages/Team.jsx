@@ -244,7 +244,6 @@ export default function Team() {
 
   const renderCard = (person) => {
     const category = getPersonCategory(person);
-    const isNationalPlayer = person.nationality?.toLowerCase().includes('españa') || person.role?.toLowerCase().includes('selección');
 
     return (
       <article
@@ -283,13 +282,6 @@ export default function Team() {
             <span className="absolute top-4 right-4 text-6xl sm:text-7xl font-black text-white/5 group-hover:text-red-600/10 transition-colors duration-500 leading-none select-none">
               {person.classification || `#${person.id}`}
             </span>
-          )}
-
-          {/* Badge Selección */}
-          {isNationalPlayer && (
-            <div className="absolute top-4 left-4 bg-red-600 text-white px-2.5 py-1.5">
-              <span className="text-[9px] font-bold uppercase tracking-[0.15em]">Selección</span>
-            </div>
           )}
 
           {/* Botón Ver Perfil */}
@@ -458,38 +450,8 @@ export default function Team() {
             </div>
           </section>
 
-          {/* REPRESENTACIÓN NACIONAL (Destacado) */}
-          {players.some((p) => p.nationality?.toLowerCase().includes('españa') || p.role?.toLowerCase().includes('selección')) && (
-            <section className="py-20 md:py-28 bg-zinc-900 border-y border-zinc-800">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="h-[2px] w-10 bg-red-600" />
-                      <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">Orgullo del club</p>
-                    </div>
-                    <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
-                      Representación
-                      <br />
-                      <span className="text-zinc-600">Nacional</span>
-                    </h2>
-                  </div>
-                  <p className="text-zinc-400 max-w-md text-sm md:text-base leading-relaxed">
-                    Jugadores de Lobos Quad Rugby que han vestido la camiseta de la Selección Española, llevando el nombre de Valencia al máximo nivel.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {players
-                    .filter((p) => p.nationality?.toLowerCase().includes('españa') || p.role?.toLowerCase().includes('selección'))
-                    .map(renderCard)}
-                </div>
-              </div>
-            </section>
-          )}
-
           {/* PLAYERS */}
-          <section className="py-16 md:py-20 bg-zinc-950">
+          <section className="py-16 md:py-20 bg-zinc-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12">
                 <div>
@@ -600,14 +562,14 @@ export default function Team() {
                 </h2>
 
                 <div className="flex flex-wrap gap-3 mb-8">
-                  {(selectedPerson.nationality?.toLowerCase().includes('españa') || selectedPerson.role?.toLowerCase().includes('selección')) && (
-                    <span className="inline-flex items-center px-3 py-1.5 bg-red-600/10 border border-red-600/30 text-red-500 text-[10px] font-bold uppercase tracking-[0.15em]">
-                      Selección Española
-                    </span>
-                  )}
                   <span className="inline-flex items-center px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-[0.15em]">
                     Lobos Quad Rugby
                   </span>
+                  {selectedPerson.nationality && (
+                    <span className="inline-flex items-center px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-[0.15em]">
+                      {selectedPerson.nationality}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -617,16 +579,8 @@ export default function Team() {
                   <p className="text-lg text-white font-display">{selectedPerson.classification || '—'}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] text-zinc-500 uppercase tracking-[0.18em] mb-1">Nacionalidad</p>
-                  <p className="text-lg text-white font-display">{selectedPerson.nationality || '—'}</p>
-                </div>
-                <div>
                   <p className="text-[9px] text-zinc-500 uppercase tracking-[0.18em] mb-1">Posición / Rol</p>
                   <p className="text-lg text-white font-display">{selectedPerson.role || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] text-zinc-500 uppercase tracking-[0.18em] mb-1">Club</p>
-                  <p className="text-lg text-white font-display">Lobos Quad Rugby</p>
                 </div>
               </div>
 
