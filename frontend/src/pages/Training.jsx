@@ -684,7 +684,7 @@ export default function Training() {
           {/* OSCURECIMIENTO BASE */}
           <div className="absolute inset-0 bg-black/50" />
 
-          {/* DEGRADÉ LATERAL — PROTEGE EL CONTENIDO */}
+          {/* DEGRADÉ LATERAL */}
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-[65%] to-black/25" />
 
           {/* DEGRADÉ INFERIOR */}
@@ -711,9 +711,8 @@ export default function Training() {
               </p>
             </div>
 
-            {/* CONTEXTO EDITORIAL */}
+            {/* CONTEXTO */}
             <div className="mb-7 md:mb-8">
-
               <p className="text-zinc-300 text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-[0.28em]">
                 Rugby en silla de ruedas
               </p>
@@ -721,13 +720,24 @@ export default function Training() {
               <p className="text-zinc-600 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] mt-2">
                 Valencia · España
               </p>
-
             </div>
 
             {/* TITLE */}
             <h1 className="font-display text-[3.8rem] sm:text-[5rem] md:text-[7rem] lg:text-[8.5rem] leading-[0.82] tracking-[-0.035em] text-white uppercase mb-8">
               ENTRENAMIENTOS
             </h1>
+
+            {/* FRASE EDITORIAL */}
+            <div className="relative border-l-2 border-red-600 pl-5 sm:pl-6 mb-8 max-w-2xl">
+              <p className="text-white text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+                Entrenamos para competir.
+              </p>
+
+              <p className="text-zinc-400 text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight mt-1">
+                Competimos para seguir{' '}
+                <span className="text-red-500">creciendo.</span>
+              </p>
+            </div>
 
             {/* DESCRIPTION */}
             <p className="text-zinc-300 text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed">
@@ -736,7 +746,6 @@ export default function Training() {
 
             {/* ACTIONS */}
             <div className="mt-10 flex flex-wrap items-center gap-5">
-
               <a
                 href="#horarios"
                 className="inline-flex items-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
@@ -752,11 +761,9 @@ export default function Training() {
                 Quiero formar parte
                 <ArrowUpRight className="w-4 h-4 text-red-500" />
               </Link>
-
             </div>
 
           </div>
-
         </div>
 
         {/* IDENTIDAD DEL CLUB — INFERIOR DERECHA */}
@@ -773,7 +780,6 @@ export default function Training() {
           </div>
 
           <span className="block w-12 h-px bg-zinc-700 mb-3" />
-
         </div>
 
       </section>
