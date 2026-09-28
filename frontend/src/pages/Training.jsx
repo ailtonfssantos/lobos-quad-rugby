@@ -8,438 +8,446 @@ import {
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config';
 
-// ============================================================
-// ICON
-// ============================================================
+/* =========================================================
+   ICONS
+========================================================= */
 
-const Icon = ({ path, className = 'w-6 h-6', strokeWidth = 1.5 }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    strokeWidth={strokeWidth}
-    aria-hidden="true"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+const ClockIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 2" />
   </svg>
 );
 
-// ============================================================
-// HELPERS
-// ============================================================
+const MapPinIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+);
 
-const EVENT_TYPES = {
-  PUERTAS_ABIERTAS: {
-    label: 'PUERTAS ABIERTAS',
-    className: 'bg-red-600 text-white',
-  },
-  CLINICA: {
-    label: 'CLÍNICA',
-    className: 'bg-white text-black',
-  },
-  DEFAULT: {
-    label: 'EVENTO',
-    className: 'bg-zinc-800 text-zinc-200 border border-white/10',
-  },
+const CalendarIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+  </svg>
+);
+
+const ArrowUpRight = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17 17 7M7 7h10v10" />
+  </svg>
+);
+
+const ChevronLeftIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m15 18-6-6 6-6" />
+  </svg>
+);
+
+const ChevronRightIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
+  </svg>
+);
+
+const CloseIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
+
+const CheckIcon = ({ className = 'w-6 h-6' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m5 12 4 4L19 7" />
+  </svg>
+);
+
+const RefreshIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20 11a8.1 8.1 0 0 0-15.5-2M4 5v4h4M4 13a8.1 8.1 0 0 0 15.5 2M20 19v-4h-4" />
+  </svg>
+);
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const getEventTypeStyle = (type) => {
+  const normalized = String(type || '').toUpperCase();
+
+  if (normalized === 'PUERTAS ABIERTAS' || normalized === 'JORNADA DE PUERTAS ABIERTAS') {
+    return { wrapper: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-400' };
+  }
+  if (normalized === 'CLINICA' || normalized === 'CLÍNICA') {
+    return { wrapper: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-400' };
+  }
+
+  return { wrapper: 'bg-purple-500/10 text-purple-400 border-purple-500/20', dot: 'bg-purple-400' };
 };
 
-const getEventType = (tipo) => {
-  if (!tipo) return EVENT_TYPES.DEFAULT;
+/* =========================================================
+   DATE HELPERS
+========================================================= */
 
-  const normalized = tipo
-    .toString()
-    .trim()
-    .toUpperCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-
-  if (normalized.includes('PUERTA')) {
-    return EVENT_TYPES.PUERTAS_ABIERTAS;
-  }
-
-  if (normalized.includes('CLINICA')) {
-    return EVENT_TYPES.CLINICA;
-  }
-
-  return EVENT_TYPES.DEFAULT;
+const MONTHS = {
+  ENERO: 0, FEBRERO: 1, MARZO: 2, ABRIL: 3, MAYO: 4, JUNIO: 5,
+  JULIO: 6, AGOSTO: 7, SEPTIEMBRE: 8, SETIEMBRE: 8, OCTUBRE: 9,
+  NOVIEMBRE: 10, DICIEMBRE: 11,
+  JANUARY: 0, FEBRUARY: 1, MARCH: 2, APRIL: 3, MAY: 4, JUNE: 5,
+  JULY: 6, AUGUST: 7, SEPTEMBER: 8, OCTOBER: 9, NOVEMBER: 10, DECEMBER: 11,
 };
 
-const formatDate = (date) => {
-  if (!date) return '';
+const normalizeMonth = (month) => {
+  if (!month) return null;
 
-  const parsed = new Date(date);
+  const value = String(month).trim().toUpperCase().replace(/Á/g, 'A').replace(/É/g, 'E').replace(/Í/g, 'I').replace(/Ó/g, 'O').replace(/Ú/g, 'U');
 
-  if (Number.isNaN(parsed.getTime())) {
-    return '';
+  if (Object.prototype.hasOwnProperty.call(MONTHS, value)) {
+    return MONTHS[value];
   }
 
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(parsed);
+  const numericMonth = Number(value);
+  if (Number.isInteger(numericMonth) && numericMonth >= 1 && numericMonth <= 12) {
+    return numericMonth - 1;
+  }
+
+  const shortMonth = value.slice(0, 3);
+  const match = Object.entries(MONTHS).find(([name]) => name.startsWith(shortMonth));
+
+  return match ? match[1] : null;
 };
 
-const formatShortDate = (date) => {
-  if (!date) return '';
+// ✅ CORREÇÃO PRINCIPAL: Prioriza o campo 'year' do banco de dados
+const getEventDate = (evento) => {
+  if (!evento) return null;
 
-  const parsed = new Date(date);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return '';
-  }
-
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'short',
-  })
-    .format(parsed)
-    .replace('.', '')
-    .toUpperCase();
-};
-
-const getEventPhotos = (evento) => {
-  if (!evento) return [];
-
-  if (Array.isArray(evento.fotos)) {
-    return evento.fotos.filter(Boolean);
-  }
-
-  if (typeof evento.fotos === 'string') {
-    try {
-      const parsed = JSON.parse(evento.fotos);
-
-      if (Array.isArray(parsed)) {
-        return parsed.filter(Boolean);
-      }
-    } catch {
-      return evento.fotos
-        .split(',')
-        .map((foto) => foto.trim())
-        .filter(Boolean);
+  if (evento.dateISO) {
+    const dateISO = new Date(evento.dateISO);
+    if (!Number.isNaN(dateISO.getTime())) {
+      return dateISO;
     }
   }
 
-  if (evento.galeria && Array.isArray(evento.galeria)) {
-    return evento.galeria.filter(Boolean);
+  const day = parseInt(String(evento.date || '').replace(/\D/g, ''), 10);
+  const month = normalizeMonth(evento.month);
+
+  if (!Number.isInteger(day) || month === null) {
+    return null;
   }
 
-  return [];
-};
-
-const isPastEvent = (evento) => {
-  if (!evento?.dateISO) return false;
-
-  const eventDate = new Date(evento.dateISO);
-
-  if (Number.isNaN(eventDate.getTime())) {
-    return false;
+  // ✅ PRIORIZA o ano que vem do banco. Se não existir, tenta extrair do texto, senão usa o ano atual.
+  let year = new Date().getFullYear();
+  if (evento.year) {
+    year = Number(evento.year);
+  } else {
+    const dateValue = String(evento.date || '').trim();
+    const yearMatch = dateValue.match(/\b(\d{4})\b/);
+    if (yearMatch) {
+      year = Number(yearMatch[1]);
+    }
   }
 
-  return eventDate.getTime() < Date.now();
+  const date = new Date(year, month, day);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
 };
 
-// ============================================================
-// SKELETON
-// ============================================================
+const isEventCompleted = (evento) => {
+  if (!evento) return false;
+
+  const status = String(evento.status || evento.estado || '').trim().toUpperCase();
+
+  if (status === 'FINALIZADO' || status === 'COMPLETADO' || status === 'REALIZADO' || status === 'FINISHED' || status === 'COMPLETED') {
+    return true;
+  }
+
+  if (evento.completedAt) return true;
+  if (evento.isCompleted === true) return true;
+
+  return false;
+};
+
+const formatEventDate = (evento) => {
+  const date = getEventDate(evento);
+
+  if (!date) {
+    return {
+      day: evento?.date || '—',
+      month: evento?.month || '',
+      weekday: evento?.day || '',
+      year: evento?.year || '', // ✅ Garante que o ano do banco seja exibido se a data falhar
+    };
+  }
+
+  return {
+    day: new Intl.DateTimeFormat('es-ES', { day: '2-digit' }).format(date),
+    month: new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(date).replace('.', '').toUpperCase(),
+    weekday: new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(date),
+    year: new Intl.DateTimeFormat('es-ES', { year: 'numeric' }).format(date),
+  };
+};
+
+/* =========================================================
+   PHOTO HELPERS
+========================================================= */
+
+const getEventPhotos = (evento) => {
+  const photos = evento?.fotos ?? evento?.photos ?? [];
+  if (!Array.isArray(photos)) return [];
+
+  return photos.filter((photo) => {
+    if (typeof photo === 'string') return Boolean(photo);
+    return Boolean(photo?.url || photo?.secure_url || photo?.secureUrl);
+  });
+};
+
+const getPhotoUrl = (photo) => {
+  if (typeof photo === 'string') return photo;
+  return photo?.url || photo?.secure_url || photo?.secureUrl || '';
+};
+
+/* =========================================================
+   SKELETON EVENT
+========================================================= */
 
 const EventSkeleton = () => (
-  <div className="animate-pulse overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70">
-    <div className="h-56 bg-zinc-800" />
-
-    <div className="space-y-4 p-6">
-      <div className="h-4 w-24 rounded bg-zinc-800" />
-      <div className="h-7 w-3/4 rounded bg-zinc-800" />
-      <div className="h-4 w-full rounded bg-zinc-800" />
-      <div className="h-4 w-2/3 rounded bg-zinc-800" />
+  <div className="bg-zinc-950 border border-zinc-800 p-5 sm:p-6 animate-pulse" aria-hidden="true">
+    <div className="flex flex-col md:flex-row gap-6">
+      <div className="w-full md:w-28 h-28 bg-zinc-900 border border-zinc-800" />
+      <div className="flex-1 space-y-4">
+        <div className="h-4 w-32 bg-zinc-800" />
+        <div className="h-7 w-2/3 bg-zinc-800" />
+        <div className="h-4 w-1/2 bg-zinc-800" />
+        <div className="h-4 w-full max-w-xl bg-zinc-800" />
+      </div>
     </div>
   </div>
 );
 
-// ============================================================
-// EVENT CARD
-// ============================================================
+/* =========================================================
+   EVENT CARD
+========================================================= */
 
-const EventCard = ({ evento, onRegister, onGallery }) => {
-  const type = getEventType(evento?.tipo);
+const EventCard = ({ evento, past = false, onRegister, onOpenGallery }) => {
+  const typeStyle = getEventTypeStyle(evento?.type);
+  const date = formatEventDate(evento);
   const photos = getEventPhotos(evento);
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/20 transition duration-500 hover:-translate-y-1 hover:border-red-600/40">
-      {/* IMAGE */}
-      <div className="relative h-60 overflow-hidden bg-zinc-900">
-        {evento?.imagen ? (
-          <img
-            src={evento.imagen}
-            alt={evento.nombre || 'Evento Lobos Quad Rugby'}
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-900 via-zinc-950 to-black">
-            <Icon
-              path="M6 3v18M18 3v18M3 9h18M3 15h18"
-              className="h-12 w-12 text-zinc-700"
-            />
-          </div>
-        )}
+    <article className={`group bg-zinc-950 border ${past ? 'border-zinc-800' : 'border-zinc-800 hover:border-red-600/50'} transition-all duration-300 overflow-hidden`}>
+      <div className="p-5 sm:p-6 md:p-7">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* DATE */}
+          <div className="shrink-0">
+            <div className="w-full md:w-28 h-28 md:h-32 bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden py-2">
+              <div className={`absolute top-0 left-0 w-full h-[2px] ${past ? 'bg-zinc-700' : 'bg-red-600'}`} />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              <span className="font-display text-3xl md:text-4xl text-white leading-none">{date.day}</span>
 
-        <div className="absolute left-5 top-5">
-          <span
-            className={`inline-flex items-center px-3 py-1.5 text-[9px] font-black tracking-[0.18em] ${type.className}`}
-          >
-            {type.label}
-          </span>
-        </div>
+              <span className={`text-[10px] uppercase tracking-[0.18em] ${past ? 'text-zinc-500' : 'text-red-500'}`}>
+                {date.month}
+              </span>
 
-        {evento?.dateISO && (
-          <div className="absolute bottom-5 left-5">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">
-              {formatShortDate(evento.dateISO)}
-            </p>
-          </div>
-        )}
-      </div>
+              <span className="text-zinc-600 text-[9px] uppercase tracking-[0.15em]">{date.weekday}</span>
 
-      {/* CONTENT */}
-      <div className="p-6">
-        <div className="mb-4">
-          <h3 className="font-display text-2xl uppercase leading-none tracking-tight text-white">
-            {evento?.nombre || 'Evento Lobos Quad Rugby'}
-          </h3>
-        </div>
-
-        {evento?.descripcion && (
-          <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-zinc-400">
-            {evento.descripcion}
-          </p>
-        )}
-
-        <div className="space-y-3 border-t border-white/10 pt-5">
-          {evento?.dateISO && (
-            <div className="flex items-start gap-3">
-              <Icon
-                path="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"
-                className="mt-0.5 h-4 w-4 shrink-0 text-red-500"
-              />
-
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">
-                  Fecha
-                </p>
-
-                <p className="mt-1 text-sm text-zinc-300">
-                  {formatDate(evento.dateISO)}
-                </p>
-              </div>
+              {date.year && (
+                <span className={`text-[9px] font-bold tracking-wider ${past ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                  {date.year}
+                </span>
+              )}
             </div>
-          )}
+          </div>
 
-          {evento?.location && (
-            <div className="flex items-start gap-3">
-              <Icon
-                path="M12 21s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12zM12 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
-                className="mt-0.5 h-4 w-4 shrink-0 text-red-500"
-              />
+          {/* INFO */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+              {past ? (
+                <span className="inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] border bg-zinc-800/60 text-zinc-400 border-zinc-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                  Evento realizado
+                </span>
+              ) : (
+                evento?.type && (
+                  <span className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] border ${typeStyle.wrapper}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${typeStyle.dot}`} />
+                    {evento.type}
+                  </span>
+                )
+              )}
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">
-                  Lugar
-                </p>
+              {!past && evento?.time && (
+                <span className="inline-flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-[0.12em]">
+                  <ClockIcon className="w-3.5 h-3.5" />
+                  {evento.time}
+                </span>
+              )}
+            </div>
 
-                <p className="mt-1 text-sm text-zinc-300">
-                  {evento.location}
-                </p>
+            <h3 className={`font-display text-2xl md:text-3xl text-white mb-3 transition-colors ${past ? '' : 'group-hover:text-red-500'}`}>
+              {evento?.name || 'Evento'}
+            </h3>
+
+            {evento?.location && (
+              <div className="flex items-start gap-2 text-zinc-500 text-sm mb-3">
+                <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-zinc-700" />
+                <span>{evento.location}</span>
+              </div>
+            )}
+
+            {evento?.description && (
+              <p className="text-zinc-600 text-sm leading-relaxed max-w-3xl">{evento.description}</p>
+            )}
+          </div>
+
+          {/* ARROW */}
+          {!past && (
+            <div className="hidden md:flex items-start justify-end">
+              <div className="w-10 h-10 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:text-red-500 group-hover:border-red-600/40 transition-all">
+                <ArrowUpRight className="w-4 h-4" />
               </div>
             </div>
           )}
         </div>
 
-        {/* ACTIONS */}
-        <div className="mt-6 flex flex-wrap gap-3">
-          {onRegister && (
-            <button
-              type="button"
-              onClick={() => onRegister(evento)}
-              className="inline-flex items-center gap-2 bg-red-600 px-5 py-3 text-[10px] font-black uppercase tracking-[0.16em] text-white transition hover:bg-red-500"
-            >
-              Inscribirme
-              <Icon
-                path="M5 12h14M13 6l6 6-6 6"
-                className="h-4 w-4"
-              />
+        {/* REGISTRATION */}
+        {!past && evento?.isPublic && (
+          <div className="mt-6 pt-5 border-t border-zinc-800">
+            <button type="button" onClick={() => onRegister(evento)} className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all">
+              Inscribirme al evento
+              <ArrowUpRight className="w-4 h-4" />
             </button>
-          )}
+          </div>
+        )}
 
-          {photos.length > 0 && onGallery && (
-            <button
-              type="button"
-              onClick={() => onGallery(evento)}
-              className="inline-flex items-center gap-2 border border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-300 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
-            >
+        {/* GALLERY BUTTON */}
+        {past && photos.length > 0 && (
+          <div className="mt-6 pt-5 border-t border-zinc-800">
+            <button type="button" onClick={() => onOpenGallery(evento)} className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all">
               Ver galería
-              <Icon
-                path="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5zM8 15l2.5-3 2 2.5 1.5-2 2.5 3.5M8 8h.01"
-                className="h-4 w-4"
-              />
+              <ArrowUpRight className="w-4 h-4" />
             </button>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* INLINE GALLERY PREVIEW */}
+        {past && photos.length > 0 && (
+          <div className="mt-6 pt-6 border-t border-zinc-800">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div>
+                <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em] mb-1">Recuerdos</p>
+                <p className="text-zinc-600 text-[10px] uppercase tracking-[0.15em]">
+                  {photos.length} {photos.length === 1 ? 'fotografía' : 'fotografías'}
+                </p>
+              </div>
+              <button type="button" onClick={() => onOpenGallery(evento)} className="text-zinc-600 hover:text-white text-[9px] font-bold uppercase tracking-[0.15em] transition-colors">
+                Ver todas
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {photos.slice(0, 4).map((photo, index) => {
+                const url = getPhotoUrl(photo);
+                return (
+                  <button
+                    key={`${evento.id}-photo-${index}`}
+                    type="button"
+                    onClick={() => onOpenGallery(evento, index)}
+                    className="relative aspect-[4/3] overflow-hidden bg-zinc-900 group/photo"
+                    aria-label={`Ver fotografía ${index + 1}`}
+                  >
+                    <img src={url} alt={`${evento?.name || 'Evento'} — fotografía ${index + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover grayscale group-hover/photo:grayscale-0 group-hover/photo:scale-105 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-black/10 group-hover/photo:bg-transparent transition-colors" />
+                    {index === 3 && photos.length > 4 && (
+                      <div className="absolute inset-0 bg-black/65 flex items-center justify-center">
+                        <span className="text-white font-display text-xl">+{photos.length - 4}</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );
 };
 
-// ============================================================
-// GALLERY MODAL
-// ============================================================
+/* =========================================================
+   GALLERY MODAL
+========================================================= */
 
-const GalleryModal = ({ evento, onClose }) => {
+const GalleryModal = ({ evento, currentIndex, setCurrentIndex, onClose }) => {
+  if (!evento) return null;
+
   const photos = getEventPhotos(evento);
-  const [activeIndex, setActiveIndex] = useState(0);
+  if (!photos.length) return null;
 
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [evento]);
+  const currentPhoto = photos[currentIndex] || photos[0];
+  const currentUrl = getPhotoUrl(currentPhoto);
 
-  useEffect(() => {
-    if (!evento) return;
+  const previousPhoto = () => {
+    setCurrentIndex((current) => (current === 0 ? photos.length - 1 : current - 1));
+  };
 
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-
-      if (event.key === 'ArrowRight') {
-        setActiveIndex((current) =>
-          current === photos.length - 1 ? 0 : current + 1
-        );
-      }
-
-      if (event.key === 'ArrowLeft') {
-        setActiveIndex((current) =>
-          current === 0 ? photos.length - 1 : current - 1
-        );
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [evento, onClose, photos.length]);
-
-  if (!evento || photos.length === 0) {
-    return null;
-  }
+  const nextPhoto = () => {
+    setCurrentIndex((current) => (current === photos.length - 1 ? 0 : current + 1));
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Galería del evento"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div className="relative flex w-full max-w-6xl flex-col">
-        {/* CLOSE */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-0 top-0 z-20 flex h-11 w-11 translate-y-[-60px] items-center justify-center border border-white/10 bg-zinc-950 text-zinc-300 transition hover:bg-white hover:text-black"
-          aria-label="Cerrar galería"
-        >
-          <Icon
-            path="M6 6l12 12M18 6L6 18"
-            className="h-5 w-5"
-          />
-        </button>
-
-        {/* TITLE */}
-        <div className="mb-5">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.25em] text-red-500">
-            Lobos Quad Rugby
-          </p>
-
-          <h3 className="font-display text-3xl uppercase tracking-tight text-white md:text-4xl">
-            {evento.nombre}
-          </h3>
+    <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={`Galería de ${evento.name || 'evento'}`} onMouseDown={onClose}>
+      <div className="relative w-full max-w-6xl h-full max-h-[92vh] flex flex-col" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="shrink-0 flex items-center justify-between gap-4 pb-4">
+          <div className="min-w-0">
+            <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em] mb-1">Galería</p>
+            <h2 className="font-display text-xl sm:text-2xl text-white uppercase truncate">{evento.name || 'Evento'}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar galería" className="shrink-0 w-10 h-10 flex items-center justify-center border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors">
+            <CloseIcon className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* MAIN IMAGE */}
-        <div className="relative overflow-hidden border border-white/10 bg-zinc-950">
-          <img
-            src={photos[activeIndex]}
-            alt={`${evento.nombre} - ${activeIndex + 1}`}
-            className="max-h-[68vh] w-full object-contain"
-          />
+        <div className="relative flex-1 min-h-0 bg-zinc-950 border border-zinc-800 overflow-hidden flex items-center justify-center">
+          <img src={currentUrl} alt={`${evento.name || 'Evento'} — fotografía ${currentIndex + 1}`} className="max-w-full max-h-full w-full h-full object-contain" />
 
           {photos.length > 1 && (
             <>
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveIndex((current) =>
-                    current === 0 ? photos.length - 1 : current - 1
-                  )
-                }
-                className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/10 bg-black/60 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
-                aria-label="Foto anterior"
-              >
-                <Icon
-                  path="M15 18l-6-6 6-6"
-                  className="h-5 w-5"
-                />
+              <button type="button" onClick={previousPhoto} aria-label="Fotografía anterior" className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 bg-black/70 border border-zinc-700 text-white hover:bg-red-600 hover:border-red-600 transition-colors flex items-center justify-center">
+                <ChevronLeftIcon />
               </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveIndex((current) =>
-                    current === photos.length - 1 ? 0 : current + 1
-                  )
-                }
-                className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/10 bg-black/60 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
-                aria-label="Foto siguiente"
-              >
-                <Icon
-                  path="M9 18l6-6-6-6"
-                  className="h-5 w-5"
-                />
+              <button type="button" onClick={nextPhoto} aria-label="Fotografía siguiente" className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 bg-black/70 border border-zinc-700 text-white hover:bg-red-600 hover:border-red-600 transition-colors flex items-center justify-center">
+                <ChevronRightIcon />
               </button>
             </>
           )}
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/75 border border-zinc-800 px-4 py-2 text-white text-[9px] font-bold uppercase tracking-[0.15em]">
+            {currentIndex + 1} / {photos.length}
+          </div>
         </div>
 
-        {/* THUMBNAILS */}
         {photos.length > 1 && (
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-            {photos.map((photo, index) => (
-              <button
-                key={`${photo}-${index}`}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                className={`h-16 w-24 shrink-0 overflow-hidden border transition ${
-                  activeIndex === index
-                    ? 'border-red-600'
-                    : 'border-white/10 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <img
-                  src={photo}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              </button>
-            ))}
+          <div className="shrink-0 pt-4 overflow-x-auto">
+            <div className="flex gap-2 min-w-max">
+              {photos.map((photo, index) => {
+                const url = getPhotoUrl(photo);
+                return (
+                  <button
+                    key={`thumbnail-${index}`}
+                    type="button"
+                    onClick={() => setCurrentIndex(index)}
+                    className={`relative w-20 h-14 sm:w-24 sm:h-16 overflow-hidden border transition-all ${index === currentIndex ? 'border-red-600' : 'border-zinc-800 opacity-50 hover:opacity-100'}`}
+                    aria-label={`Ver fotografía ${index + 1}`}
+                  >
+                    <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -447,906 +455,632 @@ const GalleryModal = ({ evento, onClose }) => {
   );
 };
 
-// ============================================================
-// MAIN
-// ============================================================
+/* =========================================================
+   TRAINING
+========================================================= */
 
-export default function Entrenamientos() {
+export default function Training() {
   const [eventos, setEventos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadingEventos, setLoadingEventos] = useState(true);
+  const [errorEventos, setErrorEventos] = useState(null);
+  const eventosAbortControllerRef = useRef(null);
 
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [galleryEvent, setGalleryEvent] = useState(null);
+  const [inscricaoModal, setInscricaoModal] = useState(null);
+  const [galleryModal, setGalleryModal] = useState(null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [inscricaoForm, setInscricaoForm] = useState({ fullName: '', email: '', phone: '', message: '' });
+  const [inscricaoSucesso, setInscricaoSucesso] = useState(false);
+  const [inscricaoLoading, setInscricaoLoading] = useState(false);
+  const [inscricaoError, setInscricaoError] = useState(null);
 
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    message: '',
-  });
+  const fetchEventos = useCallback(async () => {
+    setLoadingEventos(true);
+    setErrorEventos(null);
 
-  const [formMessage, setFormMessage] = useState({
-    type: '',
-    text: '',
-  });
+    if (eventosAbortControllerRef.current) {
+      eventosAbortControllerRef.current.abort();
+    }
 
-  const formRef = useRef(null);
+    const controller = new AbortController();
+    eventosAbortControllerRef.current = controller;
 
-  // ==========================================================
-  // FETCH EVENTS
-  // ==========================================================
-
-  const cargarEventos = useCallback(async () => {
     try {
-      setLoading(true);
-      setError('');
+      if (!API_URL) throw new Error('La configuración de la API no está disponible.');
 
-      const response = await fetch(`${API_URL}/api/eventos`);
+      const response = await fetch(`${API_URL}/api/eventos`, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' },
+      });
 
-      if (!response.ok) {
-        throw new Error('No se pudieron cargar los eventos.');
-      }
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
       const data = await response.json();
+      if (!Array.isArray(data)) throw new Error('El servidor devolvió datos inválidos.');
 
-      const normalized = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.eventos)
-          ? data.eventos
-          : [];
+      const eventosActivos = data.filter(
+        (evento) => evento?.isActive === true && (evento?.isPublic === true || evento?.status === 'FINALIZADO')
+      );
 
-      setEventos(normalized);
-    } catch (err) {
-      console.error('Error al cargar eventos:', err);
-      setError('No se pudieron cargar los eventos en este momento.');
+      setEventos(eventosActivos);
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      console.error('Error al cargar eventos:', error);
+      setErrorEventos('No hemos podido cargar los eventos.');
+      setEventos([]);
     } finally {
-      setLoading(false);
+      if (eventosAbortControllerRef.current === controller) {
+        setLoadingEventos(false);
+        eventosAbortControllerRef.current = null;
+      }
     }
   }, []);
 
   useEffect(() => {
-    cargarEventos();
-  }, [cargarEventos]);
+    fetchEventos();
+    return () => {
+      if (eventosAbortControllerRef.current) {
+        eventosAbortControllerRef.current.abort();
+        eventosAbortControllerRef.current = null;
+      }
+    };
+  }, [fetchEventos]);
 
-  // ==========================================================
-  // EVENTS
-  // ==========================================================
+  const { proximosEventos, eventosRealizados } = useMemo(() => {
+    const proximos = [];
+    const realizados = [];
 
-  const upcomingEvents = useMemo(() => {
-    return [...eventos]
-      .filter((evento) => !isPastEvent(evento))
-      .sort(
-        (a, b) =>
-          new Date(a.dateISO).getTime() -
-          new Date(b.dateISO).getTime()
-      );
+    eventos.forEach((evento) => {
+      if (isEventCompleted(evento)) {
+        realizados.push(evento);
+      } else {
+        proximos.push(evento);
+      }
+    });
+
+    proximos.sort((a, b) => {
+      const dateA = getEventDate(a)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      const dateB = getEventDate(b)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      return dateA - dateB;
+    });
+
+    realizados.sort((a, b) => {
+      const dateA = getEventDate(a)?.getTime() ?? 0;
+      const dateB = getEventDate(b)?.getTime() ?? 0;
+      return dateB - dateA;
+    });
+
+    return { proximosEventos: proximos, eventosRealizados: realizados };
   }, [eventos]);
 
-  const pastEvents = useMemo(() => {
-    return [...eventos]
-      .filter((evento) => isPastEvent(evento))
-      .sort(
-        (a, b) =>
-          new Date(b.dateISO).getTime() -
-          new Date(a.dateISO).getTime()
-      );
-  }, [eventos]);
-
-  // ==========================================================
-  // OPEN REGISTRATION
-  // ==========================================================
-
-  const abrirRegistro = (evento) => {
-    setSelectedEvent(evento);
-    setFormOpen(true);
-
-    setFormData({
-      fullName: '',
-      email: '',
-      phone: '',
-      message: '',
-    });
-
-    setFormMessage({
-      type: '',
-      text: '',
-    });
-
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }, 100);
+  const abrirInscricao = (evento) => {
+    setInscricaoModal(evento);
+    setInscricaoForm({ fullName: '', email: '', phone: '', message: '' });
+    setInscricaoSucesso(false);
+    setInscricaoError(null);
   };
 
-  const cerrarRegistro = () => {
-    if (submitting) return;
+  const fecharInscricao = useCallback(() => {
+    if (inscricaoLoading) return;
+    setInscricaoModal(null);
+    setInscricaoSucesso(false);
+    setInscricaoError(null);
+  }, [inscricaoLoading]);
 
-    setFormOpen(false);
-    setSelectedEvent(null);
+  const abrirGaleria = useCallback((evento, index = 0) => {
+    const photos = getEventPhotos(evento);
+    if (!photos.length) return;
+    setGalleryModal(evento);
+    setGalleryIndex(Math.min(Math.max(index, 0), photos.length - 1));
+  }, []);
 
-    setFormMessage({
-      type: '',
-      text: '',
-    });
-  };
+  const fecharGaleria = useCallback(() => {
+    setGalleryModal(null);
+    setGalleryIndex(0);
+  }, []);
 
-  // ==========================================================
-  // FORM CHANGE
-  // ==========================================================
+  useEffect(() => {
+    if (!inscricaoModal && !galleryModal) return;
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  };
-
-  // ==========================================================
-  // REGISTER
-  // ==========================================================
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!selectedEvent) return;
-
-    setSubmitting(true);
-
-    setFormMessage({
-      type: '',
-      text: '',
-    });
-
-    try {
-      const response = await fetch(
-        `${API_URL}/api/inscricoes-eventos`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            eventId: selectedEvent.id,
-            eventoId: selectedEvent.id,
-            fullName: formData.fullName.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            message: formData.message.trim(),
-          }),
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        if (galleryModal) {
+          fecharGaleria();
+          return;
         }
-      );
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            data?.message ||
-            'No se pudo completar la inscripción.'
-        );
+        if (inscricaoModal) fecharInscricao();
       }
 
-      setFormMessage({
-        type: 'success',
-        text:
-          data?.message ||
-          'Inscripción enviada correctamente. Nos pondremos en contacto contigo.',
+      if (galleryModal && event.key === 'ArrowLeft') {
+        const photos = getEventPhotos(galleryModal);
+        if (photos.length > 1) {
+          setGalleryIndex((current) => (current === 0 ? photos.length - 1 : current - 1));
+        }
+      }
+
+      if (galleryModal && event.key === 'ArrowRight') {
+        const photos = getEventPhotos(galleryModal);
+        if (photos.length > 1) {
+          setGalleryIndex((current) => (current === photos.length - 1 ? 0 : current + 1));
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [inscricaoModal, galleryModal, fecharInscricao, fecharGaleria]);
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    setInscricaoForm((previous) => ({ ...previous, [name]: value }));
+    if (inscricaoError) setInscricaoError(null);
+  };
+
+  const enviarInscricao = async (event) => {
+    event.preventDefault();
+
+    if (!inscricaoModal?.id) {
+      setInscricaoError('No se ha podido identificar el evento.');
+      return;
+    }
+
+    setInscricaoLoading(true);
+    setInscricaoError(null);
+
+    try {
+      if (!API_URL) throw new Error('La configuración de la API no está disponible.');
+
+      const response = await fetch(`${API_URL}/api/inscricoes-eventos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          ...inscricaoForm,
+          fullName: inscricaoForm.fullName.trim(),
+          email: inscricaoForm.email.trim(),
+          phone: inscricaoForm.phone.trim(),
+          message: inscricaoForm.message.trim(),
+          eventId: inscricaoModal.id,
+        }),
       });
 
-      setFormData({
-        fullName: '',
-        email: '',
-        phone: '',
-        message: '',
-      });
-    } catch (err) {
-      console.error('Error en la inscripción:', err);
+      if (!response.ok) {
+        let message = 'No se ha podido completar la inscripción.';
+        try {
+          const data = await response.json();
+          if (data?.message) message = data.message;
+        } catch {}
+        throw new Error(message);
+      }
 
-      setFormMessage({
-        type: 'error',
-        text:
-          err.message ||
-          'Ha ocurrido un error. Inténtalo de nuevo.',
-      });
+      setInscricaoSucesso(true);
+    } catch (error) {
+      console.error('Error al enviar inscripción:', error);
+      setInscricaoError(error?.message || 'Error al inscribirse. Inténtalo de nuevo.');
     } finally {
-      setSubmitting(false);
+      setInscricaoLoading(false);
     }
   };
 
-  // ==========================================================
-  // RENDER
-  // ==========================================================
-
   return (
-    <main className="min-h-screen bg-black text-white">
-      {/* ======================================================
-          HERO
-      ====================================================== */}
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* HERO */}
+      <section className="relative min-h-[620px] lg:min-h-[680px] flex items-center overflow-hidden bg-zinc-950 border-b border-white/10">
 
-      <section className="relative flex min-h-[620px] items-end overflow-hidden border-b border-white/10 bg-zinc-950 lg:min-h-[680px]">
-        {/* BACKGROUND */}
+        {/* FOTO HERO — DARK PREMIUM */}
         <div className="absolute inset-0">
           <img
             src="/assets/IMG_8358.jpg"
             alt=""
-            className="h-full w-full scale-105 object-cover object-center grayscale opacity-70"
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center grayscale opacity-70 scale-105"
           />
 
+          {/* OSCURECIMIENTO BASE */}
           <div className="absolute inset-0 bg-black/50" />
 
+          {/* DEGRADÉ LATERAL — PROTEGE EL CONTENIDO */}
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-[65%] to-black/25" />
 
+          {/* DEGRADÉ INFERIOR */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 
+          {/* ATMÓSFERA ROJA */}
           <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-transparent to-transparent" />
 
-          <div className="pointer-events-none absolute -right-[100px] -top-40 h-[600px] w-[600px] rounded-full bg-red-700/15 blur-3xl" />
+          {/* BRILLO ROJO SUTIL */}
+          <div className="absolute -top-40 right-[-100px] w-[600px] h-[600px] rounded-full bg-red-700/15 blur-3xl pointer-events-none" />
         </div>
 
-        {/* CONTENT */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 pt-32 sm:px-8 md:pb-28 lg:px-12">
-          <div className="max-w-5xl">
-            {/* EDITORIAL LINE */}
-            <div className="mb-7 flex items-center gap-4">
-              <span className="block h-[2px] w-10 bg-red-600" />
+        {/* CONTENIDO HERO */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-28 md:py-32">
 
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-500 md:text-[11px]">
-                Rugby en silla de ruedas · Valencia
+          <div className="max-w-5xl">
+
+            {/* EYEBROW */}
+            <div className="flex items-center gap-4 mb-8">
+              <span className="block w-10 h-[2px] bg-red-600" />
+
+              <p className="text-red-500 font-bold tracking-[0.28em] text-[10px] md:text-[11px] uppercase">
+                Entrena con nosotros
               </p>
             </div>
 
+            {/* CONTEXTO EDITORIAL */}
+            <div className="mb-7 md:mb-8">
+
+              <p className="text-zinc-300 text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-[0.28em]">
+                Rugby en silla de ruedas
+              </p>
+
+              <p className="text-zinc-600 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] mt-2">
+                Valencia · España
+              </p>
+
+            </div>
+
             {/* TITLE */}
-            <h1 className="mb-8 font-display text-[3.8rem] uppercase leading-[0.82] tracking-[-0.035em] text-white sm:text-[5rem] md:text-[7rem] lg:text-[8.5rem]">
+            <h1 className="font-display text-[3.8rem] sm:text-[5rem] md:text-[7rem] lg:text-[8.5rem] leading-[0.82] tracking-[-0.035em] text-white uppercase mb-8">
               ENTRENAMIENTOS
             </h1>
 
             {/* DESCRIPTION */}
-            <p className="max-w-2xl text-base leading-relaxed text-zinc-300 sm:text-lg md:text-xl">
-              El lugar donde empieza el equipo. Entrenamos,
-              competimos y crecemos juntos.
+            <p className="text-zinc-300 text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed">
+              El lugar donde empieza el equipo. Entrenamos, competimos y crecemos juntos.
             </p>
 
             {/* ACTIONS */}
-            <div className="mt-10 flex flex-wrap items-center gap-4 sm:gap-5">
+            <div className="mt-10 flex flex-wrap items-center gap-5">
+
               <a
                 href="#horarios"
-                className="group inline-flex items-center gap-3 bg-red-600 px-6 py-3.5 text-[10px] font-black uppercase tracking-[0.18em] text-white transition hover:bg-red-500"
+                className="inline-flex items-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
               >
                 Ver horarios
-
-                <Icon
-                  path="M5 12h14M13 6l6 6-6 6"
-                  className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                />
+                <ArrowUpRight className="w-4 h-4" />
               </a>
 
               <Link
                 to="/unete"
-                className="group inline-flex items-center gap-3 border border-white/20 bg-black/20 px-6 py-3.5 text-[10px] font-black uppercase tracking-[0.18em] text-white backdrop-blur-sm transition hover:border-white/40 hover:bg-white/5"
+                className="inline-flex items-center gap-3 text-zinc-300 hover:text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
               >
                 Quiero formar parte
-
-                <Icon
-                  path="M5 12h14M13 6l6 6-6 6"
-                  className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                />
+                <ArrowUpRight className="w-4 h-4 text-red-500" />
               </Link>
+
             </div>
+
           </div>
+
         </div>
 
-        {/* LOCATION TAG */}
-        <div className="absolute bottom-6 right-6 hidden items-center gap-3 md:flex md:right-12">
-          <span className="h-px w-8 bg-white/30" />
+        {/* IDENTIDAD DEL CLUB — INFERIOR DERECHA */}
+        <div className="absolute bottom-6 right-6 md:right-12 flex items-end gap-4">
 
-          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50">
-            Lobos Quad Rugby — Valencia
-          </span>
-        </div>
-      </section>
+          <div className="text-right">
+            <p className="font-display text-2xl md:text-3xl text-white leading-none tracking-tight">
+              2017
+            </p>
 
-      {/* ======================================================
-          HORARIOS
-      ====================================================== */}
-
-      <section
-        id="horarios"
-        className="border-b border-white/10 bg-zinc-950"
-      >
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-12">
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            {/* INTRO */}
-            <div>
-              <div className="mb-5 flex items-center gap-4">
-                <span className="h-[2px] w-10 bg-red-600" />
-
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">
-                  Entrenamientos
-                </p>
-              </div>
-
-              <h2 className="font-display text-4xl uppercase leading-none tracking-tight text-white sm:text-5xl">
-                Ven a
-                <br />
-                entrenar.
-              </h2>
-
-              <p className="mt-6 max-w-md text-sm leading-relaxed text-zinc-400">
-                Nuestros entrenamientos están abiertos a personas
-                interesadas en conocer el rugby en silla de ruedas,
-                aprender y formar parte del equipo.
-              </p>
-            </div>
-
-            {/* SCHEDULE */}
-            <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
-              {/* LOCATION */}
-              <div className="bg-zinc-950 p-6 sm:p-7">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center bg-red-600/10 text-red-500">
-                  <Icon
-                    path="M12 21s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12zM12 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
-                    className="h-5 w-5"
-                  />
-                </div>
-
-                <p className="mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
-                  Lugar
-                </p>
-
-                <h3 className="text-base font-bold text-white">
-                  Pabellón Malvarrosa
-                </h3>
-
-                <p className="mt-2 text-xs leading-relaxed text-zinc-500">
-                  Av. de Neptú s/n
-                </p>
-              </div>
-
-              {/* MON/WED */}
-              <div className="bg-zinc-950 p-6 sm:p-7">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center bg-red-600/10 text-red-500">
-                  <Icon
-                    path="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"
-                    className="h-5 w-5"
-                  />
-                </div>
-
-                <p className="mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
-                  Lunes · Miércoles
-                </p>
-
-                <h3 className="text-xl font-bold text-white">
-                  17:00 — 19:30
-                </h3>
-
-                <p className="mt-2 text-xs text-zinc-500">
-                  Entrenamiento de equipo
-                </p>
-              </div>
-
-              {/* FRIDAY */}
-              <div className="bg-zinc-950 p-6 sm:p-7">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center bg-red-600/10 text-red-500">
-                  <Icon
-                    path="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    className="h-5 w-5"
-                  />
-                </div>
-
-                <p className="mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
-                  Viernes
-                </p>
-
-                <h3 className="text-xl font-bold text-white">
-                  10:00 — 11:30
-                </h3>
-
-                <p className="mt-2 text-xs text-zinc-500">
-                  Sesión de entrenamiento
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ======================================================
-          GALLERY / ASÍ SE ENTRENA
-      ====================================================== */}
-
-      <section className="border-b border-white/10 bg-black">
-        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-12">
-          <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <div className="mb-5 flex items-center gap-4">
-                <span className="h-[2px] w-10 bg-red-600" />
-
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">
-                  Dentro de la pista
-                </p>
-              </div>
-
-              <h2 className="font-display text-5xl uppercase leading-none tracking-tight text-white md:text-6xl">
-                Así se
-                <br />
-                entrena.
-              </h2>
-            </div>
-
-            <p className="max-w-md text-sm leading-relaxed text-zinc-500">
-              Intensidad, compañerismo y trabajo en equipo.
-              Cada entrenamiento es un paso más.
+            <p className="text-zinc-600 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.25em] mt-2">
+              Desde Valencia
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            {[
-              '/assets/momento-1.PNG',
-              '/assets/momento-2.PNG',
-              '/assets/momento-3.PNG',
-              '/assets/momento-4.PNG',
-              '/assets/momento-5.PNG',
-              '/assets/momento-6.PNG',
-              '/assets/momento-7.PNG',
-            ].map((image, index) => (
-              <div
-                key={image}
-                className={`group relative overflow-hidden bg-zinc-900 ${
-                  index === 0
-                    ? 'col-span-2 row-span-2'
-                    : index === 4
-                      ? 'col-span-2'
-                      : ''
-                }`}
-              >
-                <img
-                  src={image}
-                  alt={`Entrenamiento Lobos Quad Rugby ${index + 1}`}
-                  className="h-full min-h-[180px] w-full object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0 md:min-h-[220px]"
-                  loading="lazy"
-                />
+          <span className="block w-12 h-px bg-zinc-700 mb-3" />
 
-                <div className="absolute inset-0 bg-black/20 transition duration-500 group-hover:bg-transparent" />
+        </div>
 
-                <div className="absolute bottom-4 left-4 opacity-0 transition duration-500 group-hover:opacity-100">
-                  <span className="bg-black/70 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-white backdrop-blur-sm">
-                    Lobos Quad Rugby
-                  </span>
-                </div>
+      </section>
+
+      {/* HORARIOS */}
+      <section id="horarios" className="py-16 md:py-20 bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-6 mb-10 md:mb-12">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="w-10 h-[2px] bg-red-600" />
+                <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">Cada semana</p>
               </div>
-            ))}
+              <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
+                Horarios <br />
+                <span className="text-zinc-600">habituales</span>
+              </h2>
+            </div>
+            <div className="hidden md:block text-right">
+              <p className="text-zinc-700 text-[9px] uppercase tracking-[0.18em]">Entrenamiento</p>
+              <p className="text-zinc-500 text-xs mt-1">Valencia, España</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+            <div className="group relative bg-zinc-900 border border-zinc-800 p-6 md:p-8 hover:border-red-600/50 transition-all duration-300 overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-red-600/5 blur-2xl group-hover:bg-red-600/10 transition-colors" />
+              <MapPinIcon className="w-5 h-5 text-red-500 mb-8" />
+              <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mb-3">Ubicación</p>
+              <h3 className="font-display text-xl md:text-2xl text-white mb-3 group-hover:text-red-500 transition-colors">PABELLÓN<br />MALVARROSA</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed">Av. de Neptú, s/n<br />46011 Valencia, España</p>
+            </div>
+
+            <div className="group relative bg-zinc-900 border border-zinc-800 p-6 md:p-8 hover:border-red-600/50 transition-all duration-300 overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-red-600/5 blur-2xl group-hover:bg-red-600/10 transition-colors" />
+              <ClockIcon className="w-5 h-5 text-red-500 mb-8" />
+              <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mb-3">Lunes y miércoles</p>
+              <h3 className="font-display text-3xl md:text-4xl text-white mb-3 group-hover:text-red-500 transition-colors">17:00<span className="text-zinc-600 mx-2">—</span>19:30</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed">Sesiones semanales de entrenamiento y preparación del equipo.</p>
+            </div>
+
+            <div className="group relative bg-zinc-900 border border-zinc-800 p-6 md:p-8 hover:border-red-600/50 transition-all duration-300 overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-red-600/5 blur-2xl group-hover:bg-red-600/10 transition-colors" />
+              <CalendarIcon className="w-5 h-5 text-red-500 mb-8" />
+              <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] mb-3">Viernes</p>
+              <h3 className="font-display text-3xl md:text-4xl text-white mb-3 group-hover:text-red-500 transition-colors">10:00<span className="text-zinc-600 mx-2">—</span>11:30</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed">Sesión matinal de entrenamiento y preparación de nuevos jugadores.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ======================================================
-          UPCOMING EVENTS
-      ====================================================== */}
-
-      <section className="border-b border-white/10 bg-zinc-950">
-        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-12">
-          <div className="mb-12">
-            <div className="mb-5 flex items-center gap-4">
-              <span className="h-[2px] w-10 bg-red-600" />
-
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">
-                Próximamente
-              </p>
-            </div>
-
-            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-              <h2 className="font-display text-5xl uppercase leading-none tracking-tight text-white md:text-6xl">
-                Próximos
-                <br />
-                eventos.
+      {/* GALERÍA */}
+      <section className="py-20 md:py-28 bg-zinc-900 border-y border-zinc-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-6 mb-10">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="w-10 h-[2px] bg-red-600" />
+                <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">En acción</p>
+              </div>
+              <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
+                Así se<br /><span className="text-zinc-600">entrena</span>
               </h2>
-
-              <p className="max-w-md text-sm leading-relaxed text-zinc-500">
-                Actividades, clínicas y jornadas especiales
-                organizadas por Lobos Quad Rugby.
-              </p>
             </div>
+            <p className="hidden md:block text-zinc-600 text-[10px] uppercase tracking-[0.18em]">Lobos Quad Rugby</p>
           </div>
 
-          {loading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <EventSkeleton />
-              <EventSkeleton />
-              <EventSkeleton />
-            </div>
-          ) : error ? (
-            <div className="border border-red-900/40 bg-red-950/20 p-8">
-              <div className="flex items-start gap-4">
-                <Icon
-                  path="M12 9v4M12 17h.01M10.3 3.8L2.5 17a2 2 0 001.7 3h15.6a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"
-                  className="h-6 w-6 shrink-0 text-red-500"
-                />
-
-                <div>
-                  <h3 className="font-bold text-white">
-                    No se pudieron cargar los eventos
-                  </h3>
-
-                  <p className="mt-2 text-sm text-zinc-400">
-                    {error}
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={cargarEventos}
-                    className="mt-5 border border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-black"
-                  >
-                    Reintentar
-                  </button>
-                </div>
+          <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+            <div className="relative aspect-[4/3] overflow-hidden group">
+              <img src="/assets/IMG_8325.jpg" alt="Equipo Lobos Quad Rugby durante entrenamiento" loading="lazy" decoding="async" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Entrenamiento</p>
+                <p className="text-white text-xl md:text-2xl font-display font-bold uppercase tracking-wide">Intensidad y esfuerzo</p>
               </div>
             </div>
-          ) : upcomingEvents.length === 0 ? (
-            <div className="border border-white/10 bg-black p-10 text-center">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center bg-white/5">
-                <Icon
-                  path="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"
-                  className="h-6 w-6 text-zinc-600"
-                />
+
+            <div className="relative aspect-[4/3] overflow-hidden group">
+              <img src="/assets/IMG_8356.jpg" alt="Jugadores de Lobos Quad Rugby en competición" loading="lazy" decoding="async" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Competición</p>
+                <p className="text-white text-xl md:text-2xl font-display font-bold uppercase tracking-wide">Compromiso y pasión</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <h3 className="font-display text-2xl uppercase text-white">
-                Próximamente
-              </h3>
-
-              <p className="mx-auto mt-3 max-w-md text-sm text-zinc-500">
-                En este momento no hay eventos programados.
-                Vuelve a visitarnos pronto.
+      {/* PRÓXIMOS EVENTOS */}
+      <section className="py-16 md:py-20 bg-zinc-950">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="w-10 h-[2px] bg-red-600" />
+                <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">Calendario</p>
+              </div>
+              <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
+                Próximos<br /><span className="text-zinc-600">eventos</span>
+              </h2>
+            </div>
+            {!loadingEventos && !errorEventos && proximosEventos.length > 0 && (
+              <p className="text-zinc-600 text-[10px] uppercase tracking-[0.18em]">
+                {proximosEventos.length} {proximosEventos.length === 1 ? 'evento programado' : 'eventos programados'}
               </p>
+            )}
+          </div>
+
+          {loadingEventos && (
+            <div className="space-y-4">
+              <EventSkeleton />
+              <EventSkeleton />
             </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {upcomingEvents.map((evento) => (
-                <EventCard
-                  key={evento.id}
-                  evento={evento}
-                  onRegister={abrirRegistro}
-                  onGallery={setGalleryEvent}
-                />
+          )}
+
+          {!loadingEventos && errorEventos && (
+            <div className="border border-zinc-800 bg-zinc-950 p-10 md:p-14 text-center">
+              <RefreshIcon className="w-8 h-8 text-red-500 mx-auto mb-5" />
+              <h3 className="font-display text-2xl text-white mb-3">No hemos podido cargar los eventos</h3>
+              <p className="text-zinc-500 text-sm mb-7">{errorEventos}</p>
+              <button type="button" onClick={fetchEventos} disabled={loadingEventos} className="inline-flex items-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-500 disabled:bg-red-600/40 disabled:cursor-not-allowed text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors">
+                <RefreshIcon className="w-4 h-4" />
+                {loadingEventos ? 'Cargando...' : 'Reintentar'}
+              </button>
+            </div>
+          )}
+
+          {!loadingEventos && !errorEventos && proximosEventos.length > 0 && (
+            <div className="space-y-4">
+              {proximosEventos.map((evento) => (
+                <EventCard key={evento.id} evento={evento} past={false} onRegister={abrirInscricao} onOpenGallery={abrirGaleria} />
               ))}
+            </div>
+          )}
+
+          {!loadingEventos && !errorEventos && proximosEventos.length === 0 && (
+            <div className="border border-zinc-800 bg-zinc-950 p-12 md:p-16 text-center">
+              <CalendarIcon className="w-10 h-10 text-zinc-700 mx-auto mb-6" />
+              <h3 className="font-display text-2xl md:text-3xl text-zinc-400 mb-3">No hay próximos eventos</h3>
+              <p className="text-zinc-600 text-sm max-w-md mx-auto leading-relaxed">En este momento no hay eventos especiales programados. Consulta nuestros horarios habituales de entrenamiento.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* ======================================================
-          PAST EVENTS
-      ====================================================== */}
-
-      {pastEvents.length > 0 && (
-        <section className="border-b border-white/10 bg-black">
-          <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-12">
-            <div className="mb-12">
-              <div className="mb-5 flex items-center gap-4">
-                <span className="h-[2px] w-10 bg-zinc-700" />
-
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
-                  Archivo
-                </p>
-              </div>
-
-              <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-                <h2 className="font-display text-5xl uppercase leading-none tracking-tight text-white md:text-6xl">
-                  Eventos
-                  <br />
-                  pasados.
+      {/* EVENTOS REALIZADOS */}
+      {!loadingEventos && !errorEventos && eventosRealizados.length > 0 && (
+        <section className="py-16 md:py-24 bg-zinc-900 border-y border-zinc-800">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="w-10 h-[2px] bg-red-600" />
+                  <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">Nuestro recorrido</p>
+                </div>
+                <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
+                  Eventos<br /><span className="text-zinc-600">realizados</span>
                 </h2>
-
-                <p className="max-w-md text-sm leading-relaxed text-zinc-500">
-                  Revive algunos de los momentos compartidos
-                  fuera y dentro de la pista.
-                </p>
               </div>
+              <p className="text-zinc-600 text-[10px] uppercase tracking-[0.18em]">Momentos que forman nuestra historia</p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {pastEvents.map((evento) => (
-                <EventCard
-                  key={evento.id}
-                  evento={evento}
-                  onGallery={setGalleryEvent}
-                />
+            <div className="space-y-4">
+              {eventosRealizados.map((evento) => (
+                <EventCard key={evento.id} evento={evento} past onRegister={abrirInscricao} onOpenGallery={abrirGaleria} />
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* ======================================================
-          MAP
-      ====================================================== */}
-
-      <section className="border-b border-white/10 bg-zinc-950">
-        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-12">
-          <div className="grid overflow-hidden border border-white/10 bg-black lg:grid-cols-[0.7fr_1.3fr]">
-            <div className="flex flex-col justify-between p-8 md:p-10">
-              <div>
-                <div className="mb-5 flex items-center gap-4">
-                  <span className="h-[2px] w-10 bg-red-600" />
-
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">
-                    Dónde estamos
-                  </p>
-                </div>
-
-                <h2 className="font-display text-4xl uppercase leading-none text-white md:text-5xl">
-                  Pabellón
-                  <br />
-                  Malvarrosa.
-                </h2>
-
-                <p className="mt-6 text-sm leading-relaxed text-zinc-500">
-                  Av. de Neptú s/n
-                  <br />
-                  Valencia
-                </p>
+      {/* MAPA */}
+      <section className="py-16 md:py-20 bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="w-10 h-[2px] bg-red-600" />
+                <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em]">Encuéntranos</p>
               </div>
-
-              <a
-                href="https://www.google.com/maps/search/?api=1&query=Pabellón+Malvarrosa+Valencia"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-10 inline-flex w-fit items-center gap-3 border border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.16em] text-white transition hover:border-white/30 hover:bg-white/5"
-              >
-                Abrir en Google Maps
-
-                <Icon
-                  path="M14 3h7v7M10 14L21 3M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
-                  className="h-4 w-4"
-                />
-              </a>
+              <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-tight">
+                Nuestra<br /><span className="text-zinc-600">ubicación</span>
+              </h2>
             </div>
+            <div className="flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-[0.15em]">
+              <MapPinIcon className="w-4 h-4 text-red-500" />
+              Valencia, España
+            </div>
+          </div>
 
-            <div className="min-h-[360px] bg-zinc-900">
-              <iframe
-                title="Ubicación Pabellón Malvarrosa"
-                src="https://www.google.com/maps?q=Pabellón+Malvarrosa+Valencia&output=embed"
-                className="h-full min-h-[360px] w-full border-0 grayscale"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+          <div className="relative bg-zinc-900 border border-zinc-800 overflow-hidden group">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3079.3920446386073!2d-0.32886762490259597!3d39.48306121193713!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd6048770f04218d%3A0xd97df836238c0cd7!2sPabell%C3%B3n%20Malvarrosa!5e0!3m2!1ses!2ses!4v1788012711007!5m2!1ses!2ses"
+              width="100%"
+              height="420"
+              style={{ border: 0, filter: 'grayscale(1) invert(0.9) contrast(1.2)' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+              title="Ubicación Pabellón Malvarrosa"
+            />
+            <div className="absolute bottom-4 left-4 bg-zinc-950/95 backdrop-blur border border-zinc-800 px-4 py-3 pointer-events-none">
+              <p className="text-[9px] text-zinc-600 uppercase tracking-[0.18em] mb-1">Entrenamientos</p>
+              <p className="text-xs text-white font-medium">Pabellón Malvarrosa</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ======================================================
-          REGISTRATION MODAL
-      ====================================================== */}
+      {/* CTA */}
+      <section className="relative py-20 md:py-28 bg-red-600 overflow-hidden">
+        <div className="absolute -right-6 -bottom-16 font-display text-[180px] md:text-[260px] leading-none text-black/10 select-none">L</div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
+          <p className="text-red-100/80 text-[10px] uppercase tracking-[0.25em] font-bold mb-5">El siguiente paso</p>
+          <h2 className="font-display text-4xl sm:text-5xl md:text-7xl text-white leading-none mb-6">
+            ¿LISTO PARA<br />ENTRENAR?
+          </h2>
+          <p className="text-red-100 text-base md:text-xl max-w-2xl mx-auto mb-9 leading-relaxed">Únete al equipo y descubre el rugby en silla de ruedas.</p>
+          <Link to="/unete" className="inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 bg-zinc-950 hover:bg-black text-white text-xs font-bold uppercase tracking-[0.18em] transition-all shadow-2xl">
+            Quiero unirme <ArrowUpRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
 
-      {formOpen && selectedEvent && (
-        <div
-          className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/90 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              cerrarRegistro();
-            }
-          }}
-        >
-          <div
-            ref={formRef}
-            className="relative my-8 w-full max-w-2xl border border-white/10 bg-zinc-950 shadow-2xl"
-          >
-            {/* HEADER */}
-            <div className="border-b border-white/10 p-6 sm:p-8">
-              <button
-                type="button"
-                onClick={cerrarRegistro}
-                disabled={submitting}
-                className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center border border-white/10 text-zinc-400 transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Cerrar formulario"
-              >
-                <Icon
-                  path="M6 6l12 12M18 6L6 18"
-                  className="h-5 w-5"
-                />
+      {/* MODAL INSCRIPCIÓN */}
+      {inscricaoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="inscripcion-title" onMouseDown={fecharInscricao}>
+          <div className="relative w-full max-w-xl max-h-[94vh] overflow-y-auto bg-zinc-900 border border-zinc-800 shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="relative p-6 sm:p-8 border-b border-zinc-800 overflow-hidden">
+              <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-red-600/10 blur-3xl" />
+              <button type="button" onClick={fecharInscricao} disabled={inscricaoLoading} aria-label="Cerrar inscripción" className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors disabled:opacity-40">
+                <CloseIcon className="w-5 h-5" />
               </button>
-
-              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-red-500">
-                Inscripción
-              </p>
-
-              <h2 className="pr-12 font-display text-3xl uppercase leading-none text-white sm:text-4xl">
-                {selectedEvent.nombre}
-              </h2>
-
-              {selectedEvent.dateISO && (
-                <p className="mt-4 text-sm text-zinc-500">
-                  {formatDate(selectedEvent.dateISO)}
+              <p className="relative text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Inscripción</p>
+              <h2 id="inscripcion-title" className="relative font-display text-3xl sm:text-4xl text-white leading-none pr-12">{inscricaoModal.name || 'Inscribirme'}</h2>
+              {inscricaoModal.date && (
+                <p className="relative text-zinc-500 text-sm mt-3">
+                  {inscricaoModal.date}
+                  {inscricaoModal.month ? ` · ${inscricaoModal.month}` : ''}
+                  {inscricaoModal.time ? ` · ${inscricaoModal.time}` : ''}
                 </p>
               )}
             </div>
 
-            {/* FORM */}
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-5 p-6 sm:p-8"
-            >
-              {formMessage.text && (
-                <div
-                  className={`border p-4 text-sm ${
-                    formMessage.type === 'success'
-                      ? 'border-emerald-900/50 bg-emerald-950/20 text-emerald-300'
-                      : 'border-red-900/50 bg-red-950/20 text-red-300'
-                  }`}
-                >
-                  {formMessage.text}
+            {inscricaoSucesso ? (
+              <div className="p-8 sm:p-10 text-center">
+                <div className="w-16 h-16 mx-auto mb-6 border border-emerald-500/40 bg-emerald-500/5 flex items-center justify-center">
+                  <CheckIcon className="w-8 h-8 text-emerald-500" />
                 </div>
-              )}
-
-              <div className="grid gap-5 md:grid-cols-2">
-                {/* NAME */}
-                <div>
-                  <label
-                    htmlFor="fullName"
-                    className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500"
-                  >
-                    Nombre completo *
-                  </label>
-
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    required
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    className="w-full border border-white/10 bg-black px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-zinc-700 focus:border-red-600"
-                    placeholder="Tu nombre"
-                  />
-                </div>
-
-                {/* EMAIL */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500"
-                  >
-                    Email *
-                  </label>
-
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full border border-white/10 bg-black px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-zinc-700 focus:border-red-600"
-                    placeholder="tu@email.com"
-                  />
-                </div>
-
-                {/* PHONE */}
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="phone"
-                    className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500"
-                  >
-                    Teléfono
-                  </label>
-
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full border border-white/10 bg-black px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-zinc-700 focus:border-red-600"
-                    placeholder="+34 000 000 000"
-                  />
-                </div>
-
-                {/* MESSAGE */}
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="message"
-                    className="mb-2 block text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500"
-                  >
-                    Mensaje
-                  </label>
-
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows="4"
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="w-full resize-none border border-white/10 bg-black px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-zinc-700 focus:border-red-600"
-                    placeholder="¿Quieres contarnos algo antes de venir?"
-                  />
-                </div>
+                <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Inscripción confirmada</p>
+                <h3 className="font-display text-3xl text-white mb-4">¡Todo listo!</h3>
+                <p className="text-zinc-400 leading-relaxed max-w-md mx-auto mb-8">Te esperamos en el evento. Recibirás más información por email.</p>
+                <button type="button" onClick={fecharInscricao} className="inline-flex items-center justify-center px-7 py-3.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors">Cerrar</button>
               </div>
+            ) : (
+              <form onSubmit={enviarInscricao} className="p-6 sm:p-8">
+                <div className="space-y-5">
+                  <div>
+                    <label htmlFor="fullName" className="block text-zinc-400 text-[10px] font-bold uppercase tracking-[0.18em] mb-2">Nombre completo *</label>
+                    <input id="fullName" name="fullName" type="text" value={inscricaoForm.fullName} onChange={handleFormChange} required autoComplete="name" placeholder="Tu nombre completo" className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 px-4 py-3.5 text-sm focus:outline-none focus:border-red-600 transition-colors" />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-zinc-400 text-[10px] font-bold uppercase tracking-[0.18em] mb-2">Email *</label>
+                    <input id="email" name="email" type="email" value={inscricaoForm.email} onChange={handleFormChange} required autoComplete="email" placeholder="tu@email.com" className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 px-4 py-3.5 text-sm focus:outline-none focus:border-red-600 transition-colors" />
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="block text-zinc-400 text-[10px] font-bold uppercase tracking-[0.18em] mb-2">Teléfono</label>
+                    <input id="phone" name="phone" type="tel" value={inscricaoForm.phone} onChange={handleFormChange} autoComplete="tel" placeholder="+34 600 000 000" className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 px-4 py-3.5 text-sm focus:outline-none focus:border-red-600 transition-colors" />
+                  </div>
+                  <div>
+                    <label htmlFor="message" className="block text-zinc-400 text-[10px] font-bold uppercase tracking-[0.18em] mb-2">Mensaje <span className="text-zinc-700 ml-2">Opcional</span></label>
+                    <textarea id="message" name="message" value={inscricaoForm.message} onChange={handleFormChange} rows={4} placeholder="¿Tienes alguna pregunta o necesidad especial?" className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 px-4 py-3.5 text-sm focus:outline-none focus:border-red-600 transition-colors resize-none" />
+                  </div>
+                </div>
 
-              {/* SUBMIT */}
-              <div className="flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarRegistro}
-                  disabled={submitting}
-                  className="border border-white/10 px-6 py-3.5 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
+                {inscricaoError && (
+                  <div className="mt-5 border border-red-500/20 bg-red-500/5 p-4" role="alert">
+                    <p className="text-red-400 text-sm leading-relaxed">{inscricaoError}</p>
+                  </div>
+                )}
 
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="inline-flex items-center justify-center gap-3 bg-red-600 px-7 py-3.5 text-[10px] font-black uppercase tracking-[0.16em] text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {submitting ? 'Enviando...' : 'Enviar inscripción'}
-
-                  {!submitting && (
-                    <Icon
-                      path="M5 12h14M13 6l6 6-6 6"
-                      className="h-4 w-4"
-                    />
+                <button type="submit" disabled={inscricaoLoading} className="w-full mt-6 py-4 bg-red-600 hover:bg-red-500 disabled:bg-red-600/40 disabled:cursor-not-allowed text-white font-bold text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center justify-center gap-3">
+                  {inscricaoLoading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      Confirmar inscripción <ArrowUpRight className="w-4 h-4" />
+                    </>
                   )}
                 </button>
-              </div>
-            </form>
+
+                <p className="text-center text-zinc-700 text-[9px] uppercase tracking-[0.12em] mt-4">Tus datos serán utilizados únicamente para gestionar esta inscripción.</p>
+              </form>
+            )}
           </div>
         </div>
       )}
 
-      {/* ======================================================
-          GALLERY
-      ====================================================== */}
-
-      <GalleryModal
-        evento={galleryEvent}
-        onClose={() => setGalleryEvent(null)}
-      />
-
-      {/* ======================================================
-          FINAL CTA
-      ====================================================== */}
-
-      <section className="relative overflow-hidden bg-black">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-transparent to-transparent" />
-
-        <div className="relative mx-auto max-w-5xl px-5 py-28 text-center sm:px-8">
-          <p className="mb-5 text-[10px] font-black uppercase tracking-[0.28em] text-red-500">
-            El equipo empieza aquí
-          </p>
-
-          <h2 className="font-display text-5xl uppercase leading-[0.9] tracking-tight text-white sm:text-6xl md:text-8xl">
-            ¿Te apuntas?
-          </h2>
-
-          <p className="mx-auto mt-7 max-w-xl text-sm leading-relaxed text-zinc-400 md:text-base">
-            Ven a conocernos, prueba el rugby en silla de ruedas
-            y descubre lo que significa formar parte de Lobos.
-          </p>
-
-          <div className="mt-9">
-            <Link
-              to="/unete"
-              className="group inline-flex items-center gap-3 bg-red-600 px-7 py-4 text-[10px] font-black uppercase tracking-[0.18em] text-white transition hover:bg-red-500"
-            >
-              Quiero formar parte
-
-              <Icon
-                path="M5 12h14M13 6l6 6-6 6"
-                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </Link>
-          </div>
-        </div>
-      </section>
-    </main>
+      {/* MODAL GALERÍA */}
+      {galleryModal && (
+        <GalleryModal evento={galleryModal} currentIndex={galleryIndex} setCurrentIndex={setGalleryIndex} onClose={fecharGaleria} />
+      )}
+    </div>
   );
 }
