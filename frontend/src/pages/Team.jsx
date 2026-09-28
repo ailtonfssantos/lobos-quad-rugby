@@ -73,6 +73,43 @@ const shufflePlayers = (players) => {
   return shuffled;
 };
 
+/**
+ * ✅ NOVA FUNÇÃO: Determina o texto apropriado para o modal
+ * Baseado no gênero (inferido pelo nome/role) e tipo de perfil (jogador/staff)
+ */
+const getProfileTitle = (person) => {
+  if (!person) return 'Sobre el miembro';
+
+  const name = String(person.name || '').toLowerCase().trim();
+  const role = String(person.role || '').toLowerCase().trim();
+  const category = getPersonCategory(person);
+  const isPlayer = category !== null;
+
+  // Detectar gênero pelo role (formas femininas em espanhol)
+  const isFemaleRole = role.includes('presidenta') || 
+                       role.includes('vicepresidenta') || 
+                       role.includes('entrenadora') ||
+                       role.includes('capitana') ||
+                       role.includes('asistenta') ||
+                       role.includes('voluntaria');
+
+  // Detectar gênero pelo nome (nomes femininos comuns em espanhol)
+  const femaleNames = ['maría', 'ana', 'carmen', 'lucía', 'elena', 'sofía', 'isabel', 'laura', 'marta', 'paula', 'sara', 'julia', 'alba', 'marina', 'clara', 'lola', 'rosa', 'teresa', 'cristina', 'patricia', 'andrea', 'mónica', 'verónica', 'raquel', 'beatriz', 'nuria', 'irene', 'candela', 'valeria', 'daniela', 'carla', 'noa', 'vega', 'olivia', 'martina', 'valentina', 'camila', 'emma', 'mia', 'luna', 'alma', 'maya', 'zoe', 'chloe', 'nicole', 'alexandra', 'victoria', 'catalina', 'fernanda', 'gabriela', 'mariana', 'carolina', 'alejandra', 'adriana', 'natalia', 'silvia', 'monica', 'veronica', 'raquel', 'beatriz', 'nuria', 'irene', 'candela', 'valeria', 'daniela', 'carla', 'noa', 'vega', 'olivia', 'martina', 'valentina', 'camila', 'emma', 'mia', 'luna', 'alma', 'maya', 'zoe', 'chloe', 'nicole', 'alexandra', 'victoria', 'catalina', 'fernanda', 'gabriela', 'mariana', 'carolina', 'alejandra', 'adriana', 'natalia', 'silvia'];
+  
+  const firstName = name.split(' ')[0];
+  const isFemaleName = femaleNames.includes(firstName);
+
+  const isFemale = isFemaleRole || isFemaleName;
+
+  // Se é jogador/jogadora
+  if (isPlayer) {
+    return isFemale ? 'Sobre la jugadora' : 'Sobre el jugador';
+  }
+
+  // Se é staff (miembro/miembra)
+  return isFemale ? 'Sobre la miembro' : 'Sobre el miembro';
+};
+
 /* =========================================================
    ICONS
 ========================================================= */
@@ -244,8 +281,6 @@ export default function Team() {
 
   const renderCard = (person) => {
     const category = getPersonCategory(person);
-    
-    // ✅ LÓGICA: Mostra o número gigante APENAS se for jogador OU se tiver classificação (ex: Presidente que também joga)
     const isPlayer = category !== null;
     const hasClassification = Boolean(person.classification);
     const shouldShowNumber = isPlayer || hasClassification;
@@ -282,7 +317,7 @@ export default function Team() {
           {/* Gradiente inferior */}
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none" />
 
-          {/* ✅ Número/Clasificación gigante de fondo (Condicional) */}
+          {/* Número/Clasificación gigante de fondo (Condicional) */}
           {shouldShowNumber && (
             <span className="absolute top-4 right-4 text-6xl sm:text-7xl font-black text-white/5 group-hover:text-red-600/10 transition-colors duration-500 leading-none select-none">
               {person.classification || `#${person.id}`}
@@ -548,7 +583,7 @@ export default function Team() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent md:bg-gradient-to-r" />
               
-              {/* ✅ Número gigante en el modal (Condicional, misma lógica) */}
+              {/* Número gigante en el modal (Condicional) */}
               {(() => {
                 const modalIsPlayer = getPersonCategory(selectedPerson) !== null;
                 const modalHasClassification = Boolean(selectedPerson.classification);
@@ -566,7 +601,7 @@ export default function Team() {
             <div className="w-full md:w-3/5 p-6 sm:p-10 md:p-12 flex flex-col">
               <div className="mb-8">
                 <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">
-                  {selectedPerson.role || 'Miembro del equipo'}
+                  {selectedPerson.role || 'Miembro de la manada'}
                 </p>
                 <h2 id="person-modal-title" className="font-display text-4xl sm:text-5xl md:text-6xl text-white leading-[0.9] uppercase tracking-tight mb-6">
                   {selectedPerson.name || 'Sin nombre'}
@@ -599,7 +634,10 @@ export default function Team() {
                 <div className="mt-auto">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-[2px] bg-red-600" />
-                    <h3 className="font-display text-xl text-white uppercase">Sobre el jugador</h3>
+                    {/* ✅ TÍTULO DINÂMICO: Adapta-se ao gênero e tipo de perfil */}
+                    <h3 className="font-display text-xl text-white uppercase">
+                      {getProfileTitle(selectedPerson)}
+                    </h3>
                   </div>
                   <p className="text-zinc-400 leading-relaxed text-base whitespace-pre-line">
                     {selectedPerson.bio}
