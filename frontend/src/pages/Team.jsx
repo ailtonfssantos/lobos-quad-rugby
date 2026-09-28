@@ -566,7 +566,7 @@ export default function Team() {
             <div className="w-full md:w-3/5 p-6 sm:p-10 md:p-12 flex flex-col">
               <div className="mb-8">
                 <p className="text-red-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">
-                  {selectedPerson.role || 'Miembro de la manada'}
+                  {selectedPerson.role || 'Miembro del equipo'}
                 </p>
                 <h2 id="person-modal-title" className="font-display text-4xl sm:text-5xl md:text-6xl text-white leading-[0.9] uppercase tracking-tight mb-6">
                   {selectedPerson.name || 'Sin nombre'}
@@ -599,7 +599,7 @@ export default function Team() {
                 <div className="mt-auto">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-[2px] bg-red-600" />
-                    <h3 className="font-display text-xl text-white uppercase">Trayectoria</h3>
+                    <h3 className="font-display text-xl text-white uppercase">Sobre el jugador</h3>
                   </div>
                   <p className="text-zinc-400 leading-relaxed text-base whitespace-pre-line">
                     {selectedPerson.bio}
