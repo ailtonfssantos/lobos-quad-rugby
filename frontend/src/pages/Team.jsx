@@ -770,32 +770,35 @@ export default function Team() {
           HERO
       ===================================================== */}
 
-      <section className="relative min-h-[620px] md:min-h-[680px] flex items-end overflow-hidden bg-zinc-950 border-b border-zinc-800">
+      <section className="relative min-h-[620px] lg:min-h-[680px] flex items-end overflow-hidden bg-zinc-950 border-b border-white/10">
 
         {/* FOTO HERO */}
-        <img
-          src={HERO_IMAGE}
-          alt="Equipo Lobos Quad Rugby"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-          onError={(event) => {
-            event.currentTarget.src =
-              FALLBACK_HERO_IMAGE;
-          }}
-        />
+        <div className="absolute inset-0">
+          <img
+            src={HERO_IMAGE}
+            alt="Equipo Lobos Quad Rugby"
+            className="w-full h-full object-cover object-center grayscale opacity-70 scale-105"
+            onError={(event) => {
+              event.currentTarget.src = FALLBACK_HERO_IMAGE;
+            }}
+          />
 
-        {/* DARK OVERLAY */}
-        <div className="absolute inset-0 bg-zinc-950/55" />
+          {/* OSCURECIMIENTO BASE */}
+          <div className="absolute inset-0 bg-black/50" />
 
-        {/* DEGRADÊ LATERAL — protege o texto */}
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/20" />
+          {/* DEGRADÊ LATERAL — PROTEGE EL TEXTO */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-[65%] to-black/25" />
 
-        {/* DEGRADÊ INFERIOR */}
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/55 to-transparent" />
+          {/* DEGRADÊ INFERIOR */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 
-        {/* RED LIGHT */}
-        <div className="absolute -top-40 right-[-100px] w-[600px] h-[600px] rounded-full bg-red-700/15 blur-3xl pointer-events-none" />
+          {/* ATMOSFERA ROJA */}
+          <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-transparent to-transparent" />
 
-        {/* CONTEÚDO */}
+          <div className="absolute -top-40 right-[-100px] w-[600px] h-[600px] rounded-full bg-red-700/15 blur-3xl pointer-events-none" />
+        </div>
+
+        {/* CONTENIDO */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pb-16 md:pb-20 pt-32">
 
           <div className="max-w-4xl">

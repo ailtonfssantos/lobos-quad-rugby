@@ -670,41 +670,92 @@ export default function Training() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* HERO */}
-      <section className="relative min-h-[620px] md:min-h-[680px] flex items-center bg-zinc-950 border-b border-zinc-800 overflow-hidden">
+      <section className="relative min-h-[620px] lg:min-h-[680px] flex items-end overflow-hidden bg-zinc-950 border-b border-white/10">
+
+        {/* FOTO HERO — PADRÃO DARK PREMIUM */}
         <div className="absolute inset-0">
-          <img src="/assets/IMG_8358.jpg" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-center grayscale opacity-60 md:opacity-70" />
-          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/95 via-55% to-zinc-950/35" />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/30" />
-          <div className="absolute inset-0 bg-zinc-950/35 md:bg-transparent" />
+          <img
+            src="/assets/IMG_8358.jpg"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center grayscale opacity-70 scale-105"
+          />
+
+          {/* OSCURECIMENTO BASE */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* DEGRADÊ LATERAL — PROTEGE O CONTEÚDO */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-[65%] to-black/25" />
+
+          {/* DEGRADÊ INFERIOR */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+          {/* ATMOSFERA ROJA */}
+          <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-transparent to-transparent" />
+
+          <div className="absolute -top-40 right-[-100px] w-[600px] h-[600px] rounded-full bg-red-700/15 blur-3xl pointer-events-none" />
         </div>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-          <div className="max-w-3xl">
+        {/* CONTEÚDO */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pb-16 md:pb-20 pt-32">
+
+          <div className="max-w-4xl">
+
+            {/* EYEBROW */}
             <div className="flex items-center gap-4 mb-6">
-              <span className="w-12 h-[2px] bg-red-600" />
-              <p className="text-red-500 font-bold tracking-[0.28em] text-[10px] sm:text-xs uppercase">Entrena con nosotros</p>
+              <span className="block w-10 h-[2px] bg-red-600" />
+
+              <p className="text-red-500 font-bold tracking-[0.28em] text-[10px] md:text-[11px] uppercase">
+                Entrena con nosotros
+              </p>
             </div>
 
-            <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-[110px] leading-[0.82] tracking-tight text-white mb-8">ENTRENAMIENTOS</h1>
+            {/* TITLE */}
+            <h1 className="font-display text-[3.8rem] sm:text-[5rem] md:text-[7rem] lg:text-[8.5rem] leading-[0.82] tracking-[-0.035em] text-white uppercase mb-8">
+              ENTRENAMIENTOS
+            </h1>
 
-            <p className="text-zinc-300 text-base sm:text-lg md:text-xl max-w-xl leading-relaxed">El lugar donde empieza el equipo. Entrenamos, competimos y crecemos juntos.</p>
+            {/* DESCRIPTION */}
+            <p className="text-zinc-300 text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed">
+              El lugar donde empieza el equipo. Entrenamos, competimos y crecemos juntos.
+            </p>
 
+            {/* ACTIONS */}
             <div className="mt-10 flex flex-wrap items-center gap-5">
-              <a href="#horarios" className="inline-flex items-center gap-3 px-6 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors">
-                Ver horarios <ArrowUpRight className="w-4 h-4" />
+              <a
+                href="#horarios"
+                className="inline-flex items-center gap-3 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-all"
+              >
+                Ver horarios
+                <ArrowUpRight className="w-4 h-4" />
               </a>
-              <Link to="/unete" className="inline-flex items-center gap-3 text-zinc-300 hover:text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors">
-                Quiero formar parte <ArrowUpRight className="w-4 h-4 text-red-500" />
+
+              <Link
+                to="/unete"
+                className="inline-flex items-center gap-3 text-zinc-300 hover:text-white text-[10px] font-bold uppercase tracking-[0.18em] transition-colors"
+              >
+                Quiero formar parte
+                <ArrowUpRight className="w-4 h-4 text-red-500" />
               </Link>
             </div>
+
           </div>
 
-          <div className="hidden md:flex absolute right-8 bottom-10 items-center gap-4 text-zinc-600">
-            <span className="text-[9px] uppercase tracking-[0.2em]">Lobos Quad Rugby</span>
-            <span className="w-10 h-px bg-zinc-700" />
-            <span className="text-[9px] uppercase tracking-[0.2em]">Valencia</span>
-          </div>
         </div>
+
+        {/* SCROLL / LOCATION INDICATOR */}
+        <div className="absolute bottom-6 right-6 md:right-12 hidden md:flex items-center gap-3 text-zinc-500">
+          <span className="text-[8px] uppercase tracking-[0.25em]">
+            Lobos Quad Rugby
+          </span>
+
+          <span className="block w-12 h-px bg-zinc-700" />
+
+          <span className="text-[8px] uppercase tracking-[0.25em]">
+            Valencia
+          </span>
+        </div>
+
       </section>
 
       {/* HORARIOS */}
