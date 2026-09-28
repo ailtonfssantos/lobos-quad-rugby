@@ -697,7 +697,7 @@ export default function Training() {
         </div>
 
         {/* CONTEÚDO */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pb-16 md:pb-20 pt-32">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pb-28 md:pb-32 pt-32">
 
           <div className="max-w-4xl">
 
