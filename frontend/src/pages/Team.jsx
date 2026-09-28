@@ -244,6 +244,11 @@ export default function Team() {
 
   const renderCard = (person) => {
     const category = getPersonCategory(person);
+    
+    // ✅ LÓGICA: Mostra o número gigante APENAS se for jogador OU se tiver classificação (ex: Presidente que também joga)
+    const isPlayer = category !== null;
+    const hasClassification = Boolean(person.classification);
+    const shouldShowNumber = isPlayer || hasClassification;
 
     return (
       <article
@@ -277,8 +282,8 @@ export default function Team() {
           {/* Gradiente inferior */}
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none" />
 
-          {/* Número/Clasificación gigante de fondo */}
-          {(person.classification || person.id) && (
+          {/* ✅ Número/Clasificación gigante de fondo (Condicional) */}
+          {shouldShowNumber && (
             <span className="absolute top-4 right-4 text-6xl sm:text-7xl font-black text-white/5 group-hover:text-red-600/10 transition-colors duration-500 leading-none select-none">
               {person.classification || `#${person.id}`}
             </span>
@@ -543,12 +548,18 @@ export default function Team() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent md:bg-gradient-to-r" />
               
-              {/* Número gigante */}
-              {(selectedPerson.classification || selectedPerson.id) && (
-                <span className="absolute bottom-4 left-4 text-8xl md:text-9xl font-black text-white/5 leading-none select-none">
-                  {selectedPerson.classification || `#${selectedPerson.id}`}
-                </span>
-              )}
+              {/* ✅ Número gigante en el modal (Condicional, misma lógica) */}
+              {(() => {
+                const modalIsPlayer = getPersonCategory(selectedPerson) !== null;
+                const modalHasClassification = Boolean(selectedPerson.classification);
+                const modalShouldShowNumber = modalIsPlayer || modalHasClassification;
+
+                return modalShouldShowNumber ? (
+                  <span className="absolute bottom-4 left-4 text-8xl md:text-9xl font-black text-white/5 leading-none select-none">
+                    {selectedPerson.classification || `#${selectedPerson.id}`}
+                  </span>
+                ) : null;
+              })()}
             </div>
 
             {/* LADO DERECHO: INFO */}
