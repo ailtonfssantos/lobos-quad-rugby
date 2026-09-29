@@ -190,15 +190,58 @@ const shufflePlayers = (players) => {
 
 const getProfileTitle = (person) => {
   if (!person) return 'Sobre el miembro';
+
   const name = String(person.name || '').toLowerCase().trim();
   const role = String(person.role || '').toLowerCase().trim();
   const category = getPersonCategory(person);
-  const isPlayer = category !== null;
-  const isFemaleRole = role.includes('presidenta') || role.includes('vicepresidenta') || role.includes('entrenadora') || role.includes('capitana') || role.includes('asistenta') || role.includes('voluntaria');
-  const femaleNames = ['maría','mar','cris','erika','yuly','lidia','beatriz','ana','carmen','lucía','elena','sofía','isabel','laura','marta','paula','sara','julia','alba','marina','clara','lola','rosa','teresa','cristina','patricia','andrea','mónica','verónica','raquel','nuria','irene','candela','valeria','daniela','carla','noa','vega','olivia','martina','valentina','camila','emma','mia','luna','alma','maya','zoe','chloe','nicole','alexandra','victoria','catalina','fernanda','gabriela','mariana','carolina','alejandra','adriana','natalia','silvia','monica','veronica'];
-  const isFemale = isFemaleRole || femaleNames.includes(name.split(' ')[0]);
-  if (isPlayer) return isFemale ? 'Sobre la jugadora' : 'Sobre el jugador';
-  return isFemale ? 'Sobre la miembro' : 'Sobre el miembro';
+
+  if (category !== null) {
+    const femaleNames = [
+      'maría', 'mar', 'cris', 'erika', 'yuly', 'lidia', 'beatriz',
+      'ana', 'carmen', 'lucía', 'elena', 'sofía', 'isabel', 'laura',
+      'marta', 'paula', 'sara', 'julia', 'alba', 'marina', 'clara',
+      'lola', 'rosa', 'teresa', 'cristina', 'patricia', 'andrea',
+      'mónica', 'verónica', 'raquel', 'nuria', 'irene', 'candela',
+      'valeria', 'daniela', 'carla', 'noa', 'vega', 'olivia', 'martina',
+      'valentina', 'camila', 'emma', 'mia', 'luna', 'alma', 'maya',
+      'zoe', 'chloe', 'nicole', 'alexandra', 'victoria', 'catalina',
+      'fernanda', 'gabriela', 'mariana', 'carolina', 'alejandra',
+      'adriana', 'natalia', 'silvia', 'monica', 'veronica'
+    ];
+    return femaleNames.includes(name.split(' ')[0])
+      ? 'Sobre la jugadora'
+      : 'Sobre el jugador';
+  }
+
+  if (role.includes('vicepresidenta')) return 'Sobre la vicepresidenta';
+  if (role.includes('vicepresidente')) return 'Sobre el vicepresidente';
+  if (role.includes('presidenta')) return 'Sobre la presidenta';
+  if (role.includes('presidente')) return 'Sobre el presidente';
+  if (role.includes('entrenadora')) return 'Sobre la entrenadora';
+  if (role.includes('entrenador')) return 'Sobre el entrenador';
+  if (role.includes('auxiliar') || role.includes('asistenta') || role.includes('voluntaria')) return 'Sobre la auxiliar';
+  if (role.includes('asistente') || role.includes('voluntario')) return 'Sobre el auxiliar';
+
+  return 'Sobre el miembro del equipo';
+};
+
+const getProfileLabel = (person) => {
+  if (!person) return 'Perfil del miembro';
+
+  const role = String(person.role || '').toLowerCase().trim();
+  const category = getPersonCategory(person);
+
+  if (category !== null) return 'Perfil del jugador';
+  if (role.includes('vicepresidenta')) return 'Perfil de la vicepresidenta';
+  if (role.includes('vicepresidente')) return 'Perfil del vicepresidente';
+  if (role.includes('presidenta')) return 'Perfil de la presidenta';
+  if (role.includes('presidente')) return 'Perfil del presidente';
+  if (role.includes('entrenadora')) return 'Perfil de la entrenadora';
+  if (role.includes('entrenador')) return 'Perfil del entrenador';
+  if (role.includes('auxiliar') || role.includes('asistenta') || role.includes('voluntaria')) return 'Perfil de la auxiliar';
+  if (role.includes('asistente') || role.includes('voluntario')) return 'Perfil del auxiliar';
+
+  return 'Perfil del miembro del equipo';
 };
 
 /* =========================================================
@@ -366,13 +409,57 @@ export default function Team() {
          SEPARAR STAFF / JUGADORES
       ================================================= */
 
-      const staffData = data
-        .filter(isStaffMember)
+      const staffRaw = data.filter(isStaffMember);
+
+      /*
+       * Orden del cuerpo técnico/directiva:
+       * Presidente → Vicepresidente → Capitán/Entrenador.
+       * Las auxiliares/asistentes se muestran en orden aleatorio.
+       */
+      const fixedStaff = [
+        ...staffRaw.filter((person) => {
+          const role = normalizeText(person?.role);
+          return role.includes('PRESIDENTE') && !role.includes('VICEPRESIDENTE');
+        }),
+        ...staffRaw.filter((person) => {
+          const role = normalizeText(person?.role);
+          return role.includes('VICEPRESIDENTE');
+        }),
+        ...staffRaw.filter((person) => {
+          const role = normalizeText(person?.role);
+          return role.includes('ENTRENADOR');
+        }),
+      ];
+
+      const fixedStaffIds = new Set(fixedStaff.map((person) => person.id));
+
+      const assistantStaff = shufflePlayers(
+        staffRaw.filter(
+          (person) =>
+            getRolePriority(person?.role) === 5 &&
+            !fixedStaffIds.has(person.id)
+        )
+      );
+
+      const assistantStaffIds = new Set(assistantStaff.map((person) => person.id));
+
+      const otherStaff = staffRaw
+        .filter(
+          (person) =>
+            !fixedStaffIds.has(person.id) &&
+            !assistantStaffIds.has(person.id)
+        )
         .sort(
           (a, b) =>
             getRolePriority(a?.role) -
             getRolePriority(b?.role)
         );
+
+      const staffData = [
+        ...fixedStaff,
+        ...assistantStaff,
+        ...otherStaff,
+      ];
 
       const playersData = data.filter(
         (person) => !isStaffMember(person)
@@ -428,10 +515,6 @@ export default function Team() {
   /* =======================================================
      ABRIR PERFIL DESDE ABOUT
   ======================================================= */
-
-  /* =======================================================
-   ABRIR PERFIL DESDE ABOUT
-======================================================= */
 
   useEffect(() => {
     const jugadorSlug = searchParams.get('jugador');
@@ -1165,7 +1248,7 @@ export default function Team() {
                 <span className="w-8 h-[2px] bg-red-600" />
 
                 <p className="text-red-500 text-[9px] font-bold uppercase tracking-[0.2em]">
-                  Perfil del jugador
+                  {getProfileLabel(selectedPerson)}
                 </p>
               </div>
 
