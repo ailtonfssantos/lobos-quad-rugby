@@ -12,19 +12,49 @@ export default function Inscripciones() {
   const [itemToDelete, setItemToDelete] = useState(null);
 
   const fetchInscripciones = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/inscricoes`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      setInscripciones(data);
-    } catch (error) {
-      console.error('Error al buscar inscripciones:', error);
-    } finally {
-      setLoading(false);
+  const token = localStorage.getItem('token');
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/inscricoes`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Error API inscripciones:', response.status, data);
+
+      // Si el token ya no es válido
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/admin/login';
+        return;
+      }
+
+      throw new Error(data?.message || 'Error al cargar las inscripciones');
     }
-  };
+
+    // Garantizamos que el estado siempre sea un array
+    if (!Array.isArray(data)) {
+      console.error('Respuesta inesperada de /api/inscricoes:', data);
+      setInscripciones([]);
+      return;
+    }
+
+    setInscripciones(data);
+  } catch (error) {
+    console.error('Error al buscar inscripciones:', error);
+    setInscripciones([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchInscripciones();
